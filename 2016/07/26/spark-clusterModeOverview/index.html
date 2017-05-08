@@ -1,0 +1,689 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
+这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
+ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cluster Mode Overview">
+<meta property="og:url" content="http://baimoon.github.io/2016/07/26/spark-clusterModeOverview/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
+这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
+ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png">
+<meta property="og:updated_time" content="2016-08-13T16:00:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Cluster Mode Overview">
+<meta name="twitter:description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
+这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
+ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/07/26/spark-clusterModeOverview/"/>
+
+  <title> Cluster Mode Overview | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Cluster Mode Overview
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-26T15:06:27+08:00" content="2016-07-26">
+              2016-07-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是对<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="Cluster Mode Overview" target="_blank" rel="external">Cluster Mode Overview</a>的翻译，请多提宝贵意见。</p>
+<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications" target="_blank" rel="external">application submission guide</a>来学习如何在一个集群上发布application。</p>
+<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程序）中的SparkContext进行协调。<br>特别的，要在一个cluster运行，SparkContext能够连接到几个类型的cluster managers（Spark自己的standalone cluster manager、Mesos或YARN），通过application来分配资源。一旦连接到，Spark要求集群中node上的executors进程来为你的application计算并存储数据。接下来，它发送你的应用程序代码（通过JAR或Python文件传递给SparkContext）给executors。最终，SparkContext发送tasks给executors来执行。</p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png" alt="架构" title="架构"></p>
+<a id="more"></a>
+<p>关于这个架构，有些有用的东西需要注意：</p>
+<blockquote>
+<p>1、每个application拥有自己的executor进程，executor进程会在整个application期间等待并以多线程方式运行tasks。这对于隔离各个application是有好处的，在scheduling端（每个driver安排它自己的tasks）和executor端（来自不同applications的tasks运行在不同的JVMs中）。这意味着数据不能在不同的Spark application（SparkContext的实例）之间共享数据，除非是将数据写到外部存储系统。<br>2、Spark是不可知的底层cluster manager。只要它能够得到executor进程，它们彼此相互通信，在一个cluster manager运行它是相当的容易，同时支持其他applications（例如，Mesos/YARN）。<br>3、driver驱动程序必须在贯穿它的生命期内监听并接收来自它的executors的连接（例如，查看在network config 章节中的spark.driver.port、park.fileserver.port）。因此，driver程序必须是从worker node可寻址的。<br>4、因为driver在cluster上安排tasks，它应该与worker节点运行的很近，最好的是在相同的本地网络区域。如果你想要发送请求到远程cluster，打开一个到driver的RPC并从附近进行提交操作要比从一个距离worker nodes很远的driver提交任务更好。</p>
+</blockquote>
+<h2 id="Cluster-Manager-Types"><a href="#Cluster-Manager-Types" class="headerlink" title="Cluster Manager Types"></a>Cluster Manager Types</h2><p>当前这个系统支持三种cluster managers：</p>
+<blockquote>
+<p>1、standalone - 一个简单的cluster manager，它使得构建一个集群变得很容易。<br>2、Apache Mesoso - 一个一般的cluster manager，可以运行Hadoop MapReduce和service applications。<br>3、Hadoop YARN - Hadoop 2中的资源管理器。</p>
+</blockquote>
+<p>另外，Spark的EC2 launch scripts是的Spark很容易在Amazon EC2上发布一个standalone cluster。</p>
+<h2 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h2><p>使用spark-submit脚本，能够将applications提交到任意类型的cluster。</p>
+<h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><p>每个driver program都有一个web UI，通常是在4040端口，它显示了运行tasks、executors和存储使用的信息。简单的，在web浏览器中输入 http://<driver-node>:4040来访问这个UI。这个monitor guide同时描述其他监控选项。</driver-node></p>
+<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a>Job Scheduling</h2><p>在资源分配上，Spark给出了across应用(在cluster manager级别上)和within application(如果多个计算发生在同一个SparkContext上)。job scheduling overview对此做了更多的描述。</p>
+<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p>下面的表格总结了你将经常看到的一些涉及cluster的概念：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">term</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Application</td>
+<td style="text-align:left">用户在Spark上构建的程序。有一个驱动程序和cluster上的executor构成。</td>
+</tr>
+<tr>
+<td style="text-align:left">Application jar</td>
+<td style="text-align:left">一个包含了用户Spark Application的jar。在一些情况下，用户可能想要创建一个”超级jar”来包含他的application和application的依赖。用户的jar永远不要包含Hadoop和Spark的库，这些库会在运行的时候自动进行添加。</td>
+</tr>
+<tr>
+<td style="text-align:left">Driver program</td>
+<td style="text-align:left">执行application的main()函数，并创建SparkContext的进程。</td>
+</tr>
+<tr>
+<td style="text-align:left">Cluster manager</td>
+<td style="text-align:left">在集群上用于获取资源的一个额外的服务（如：standalone、Mesos、YARN）。</td>
+</tr>
+<tr>
+<td style="text-align:left">Deploy mode</td>
+<td style="text-align:left">区分driver进程在哪里运行。在”cluster”模式中，框架在集群内不发送driver。在”client”模式中，提交者在集群外部发送driver。</td>
+</tr>
+<tr>
+<td style="text-align:left">Worker node</td>
+<td style="text-align:left">那些在cluster中运行application代码的节点。</td>
+</tr>
+<tr>
+<td style="text-align:left">Exceutor</td>
+<td style="text-align:left">将一个application发送到一个worker node的进程，它运行task并在数据保存到内存或磁盘上。每个application都有自己的executors。</td>
+</tr>
+<tr>
+<td style="text-align:left">Task</td>
+<td style="text-align:left">一个将要被发送到一个executor的工作单元。</td>
+</tr>
+<tr>
+<td style="text-align:left">Job</td>
+<td style="text-align:left">一个由多个任务组成的并行计算，并引发一个到Spark action（如save、collect）的响应。</td>
+</tr>
+<tr>
+<td style="text-align:left">Stage</td>
+<td style="text-align:left">每个job被拆分成小的任务集合，被称为Stage，并且它们彼此依赖（与MapReduce中map阶段和reduce阶段类似）；你将在driver的日志中看到数据。</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/07/25/spark-submittingApplications/" rel="next" title="Submitting Applications">
+                <i class="fa fa-chevron-left"></i> Submitting Applications
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/07/27/unix-commonCommand/" rel="prev" title="Unix Common Command">
+                Unix Common Command <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Components"><span class="nav-number">1.</span> <span class="nav-text">Components</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster-Manager-Types"><span class="nav-number">2.</span> <span class="nav-text">Cluster Manager Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">3.</span> <span class="nav-text">Submitting Applications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring"><span class="nav-number">4.</span> <span class="nav-text">Monitoring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Job-Scheduling"><span class="nav-number">5.</span> <span class="nav-text">Job Scheduling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Glossary"><span class="nav-number">6.</span> <span class="nav-text">Glossary</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

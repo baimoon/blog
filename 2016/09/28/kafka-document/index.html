@@ -1,0 +1,746 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kafka document," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是Kafka 0.10.0文档的翻译，主要用于自学。
+1 Getting Started1.1 IntroductionKafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。那意味着什么？首先我们浏览一下基本的消息队列术语：
+
+Kafka以一种类型持续messages的提供称为topics。
+我们称那些publish message到一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Apache Kafka">
+<meta property="og:url" content="http://baimoon.github.io/2016/09/28/kafka-document/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是Kafka 0.10.0文档的翻译，主要用于自学。
+1 Getting Started1.1 IntroductionKafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。那意味着什么？首先我们浏览一下基本的消息队列术语：
+
+Kafka以一种类型持续messages的提供称为topics。
+我们称那些publish message到一">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/producer_consumer.png">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/log_anatomy.png">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/consumer-groups.png">
+<meta property="og:updated_time" content="2016-12-22T07:25:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Apache Kafka">
+<meta name="twitter:description" content="本文是Kafka 0.10.0文档的翻译，主要用于自学。
+1 Getting Started1.1 IntroductionKafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。那意味着什么？首先我们浏览一下基本的消息队列术语：
+
+Kafka以一种类型持续messages的提供称为topics。
+我们称那些publish message到一">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/producer_consumer.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/09/28/kafka-document/"/>
+
+  <title> Apache Kafka | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Apache Kafka
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-28T15:46:13+08:00" content="2016-09-28">
+              2016-09-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Kafka/" itemprop="url" rel="index">
+                    <span itemprop="name">Kafka</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是Kafka 0.10.0文档的翻译，主要用于自学。</p>
+<h1 id="1-Getting-Started"><a href="#1-Getting-Started" class="headerlink" title="1 Getting Started"></a>1 Getting Started</h1><h2 id="1-1-Introduction"><a href="#1-1-Introduction" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h2><p>Kafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。<br>那意味着什么？<br>首先我们浏览一下基本的消息队列术语：</p>
+<ul>
+<li>Kafka以一种类型持续messages的提供称为topics。</li>
+<li>我们称那些publish message到一个Kafka topic的进程为producers。</li>
+<li>我们称那些subscribe到topics并处理被publish的message的进程为consumers。</li>
+<li>kafka作为一个集群而运行，集群由一个或多个server组成，每个server成为一个broker。</li>
+</ul>
+<p>因此，整体来看，producers通过网络发送messages到Kafka集群，同样Kafka又为consumers服务，像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/producer_consumer.png" alt="producer_consumer" title="producer and consumer"><br>clients和servers之间的通信是通过一个简单的、高性能的、跨语言的TCP协议完成的。我们为Kafka提供了一个Java client，但是clients在很多语言中都可用。</p>
+<h3 id="Topics-and-Logs"><a href="#Topics-and-Logs" class="headerlink" title="Topics and Logs"></a>Topics and Logs</h3><p>首先我们学习由Kafka提供的高级别的抽象 - topic。<br>一个topic是一种或一个提供的名称，用来publish message。对于每个topic，Kafka集群维持着一个分区日志，看起来像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/log_anatomy.png" alt="Anatomy of a Topic" title="Anatomy of a Topic"><br>每个partition是一个顺序的、不可变的连续添加的消息队列。partitions中的每个message分配一个序列id号，称为offset，用来唯一标识partition中的每条message。<br>Kafka集群保存所有publish过来的message-不管它们是否被消费，保存时长可配置。例如，如果日志保存设置为两天，那么一个message在publish后两天内是可以被消费的，但是两天之后，它将被删除以释放空间。kafka的性能对于不同数据大小是恒定有效的，因此很多的数据不是个问题。<br>实际上每个consumer仅有被保存的元数据是consumer在日志中的位置，称为offset。这个offset由consumer控制：通常一个consumer按照它读取的message，线性的推进它的offset，但是这个位置由consumer控制并且consumer能够以任意顺序消费message。例如一个consumer可以重置到一个原来的offset来重新处理。<br>这个特征的组合意味着Kafka consumer是非常廉价的 - 它们能够自由的来去，而不会影响集群或其他consumer。例如，你可以使用我们的命令行工具来tail任何topic的内容，而不需要任何已经存在的consumers改变它所消费的内容。<br>日志中的partitions有几个用途。首先，它们允许日志扩展到单个server所能容纳的日志大小之外。一个partition必须位于它所属的server上，但是一个topic可能有很多的partitions，因此它能够持有任意数量的数据。其次，它们的行为类似一个并行单元 - 汇聚更多于一点。</p>
+<h3 id="Distribution"><a href="#Distribution" class="headerlink" title="Distribution"></a>Distribution</h3><p>日志的partitions在Kafka集群中跨server分布，每个server为一个共享的partition处理数据和请求。每个partition为了容灾，跨server保存多个备份，备份的数量可以配置。<br>每个partition有一个server扮演”leader”的角色，并有零个或多个servers扮演”followers”的角色。leader为partition处理所有的读和写的请求，而follower只是被动的复制leader。如果leader失效了，follower中的一个将自动成为新的leader。每个server为它自己一些的partitions扮演一个leader角色，为其他的partition扮演一个follower的角色，因此每个server在集群中的负载是很均衡的。</p>
+<h3 id="Producers"><a href="#Producers" class="headerlink" title="Producers"></a>Producers</h3><p>Producers将数据publish到它们选择的topics中。Producer负责哪些message被分配到topic的哪些partition中。这可以通过简单的轮转来完成以平衡负载，或者可以一致性的partition定义函数来完成（例如基于message的某些key）。在分区上用的更多的是第二种。</p>
+<h3 id="Consumers"><a href="#Consumers" class="headerlink" title="Consumers"></a>Consumers</h3><p>传统的消息传输有两种模式：queuing和publish-subscribe。在队列方式中，一个consumers池从一个server中读取，每条message只会到达某个consumer；在发布-订阅方式中，message广播给所有的consumers。Kafka提供了单个consumer抽象，它概括了上面两种方式 - consumer group。<br>consumers使用一个consumer群名称来标识它们自己，每个publish到一个topic的message被传递到每个订阅了topic的consumer组的一个consumer实例。consumer实例能够在单独的进程或单独的机器上。<br>如果所有的consumer实例拥有相同的consumer组，那么工作方式与一个传统的跨consumers负载均衡的队列类似。<br>如果所有的consumer实例都有不同的consumer组，那么工作方式与发布-订阅类似，所有的message会广播给所有的consumer。<br>更常见的，尽管我们发现那些topics有少数量的consumer组，然而每个都是一个逻辑订阅者。每个组由多个consumer实例组成，这样具有扩展性和容灾性。这也是publish-subscrib的定义，只不过subscriber是一个consumer群，而不是单个进程。<br>相对于传统消息传输系统，Kafka有更强的顺序保证。<br><img src="http://oaavtz33a.bkt.clouddn.com/consumer-groups.png" alt="consumer-groups" title="一个有两个server组成的Kafka集群有四个partitions(P0-P3)和两个consumer组。consumer组A有两个consumer实例，而组B有四个实例"><br>一个传统队列在server上按顺序保存messages，如果多个consumer从队列中消费数据，那么server以message存储的顺序拿出message。然而，虽然server按照顺序拿出message，但是message以异步方式投递给consumers，因此它们可能在不同的consumer上以不同的顺序到达。这意味着在并行消费的情况中消息的顺序丢失了。消息传输系统通过一个”exclusive consumer”的概念来解决这个问题，它只允许一个进程从队列中消费，但是这意味着没有并行处理。<br>Kafka做的更好一些。通过一个并行概念-partition-在topics中，Kafka能够在一个consumer进程池上同时提供顺序保证和负载均衡。这是通过将topic中的partitions分配给consumer组中的consumers来完成的，因此每个partition有组中确切的一个consumer来消费。通过这样，我们确保consumer值读取那一个partition，并以顺序消费数据。因为有很多partitions在很多consumer实例上是均衡负载的。注意，一个consumer组中的consumer实例不能多余partitions的数量。<br>Kafka只是在一个partition中提供了一个整体的顺序，而不是在一个topic的不同partition之间。对于大多applications，每个分区的排序联合根据key划分数据的能力是充分的。如果你要求在message上有整体的顺序，这可以通过使用一个topic只有一个partition来完成，这也意味着每个consuemr组只有一个consumer进程。</p>
+<h3 id="Guarantees"><a href="#Guarantees" class="headerlink" title="Guarantees"></a>Guarantees</h3><p>在高层次上，Kafka给了如下的保证：</p>
+<ul>
+<li>由一个producer发送到一个特定topic partition的Messages将会以它们被发送的顺序添加。那就是，如果一个message M1与发送message M2的producer是一个，并且M1先被发送，那么M1将有一个比M2小的offset，并且要比M2更早的添加到日志中。</li>
+<li>一个consumer看到messages的顺序是messages存储的顺序。</li>
+<li>对于使用了复制因子为N的topic，在不丢失任何提交到log的messages丢失，我们允许最多N-1个server故障。</li>
+</ul>
+<p>这些保证的更多细节在文档的design章节中给出。</p>
+<a id="more"></a>
+<h2 id="1-2-Use-Cases"><a href="#1-2-Use-Cases" class="headerlink" title="1.2 Use Cases"></a>1.2 Use Cases</h2><p>这是一个对于一些Apache Kafka流行用例的一个描述。对于这些action的一些概述，请参考<a href="https://engineering.linkedin.com/distributed-systems/log-what-every-software-engineer-should-know-about-real-time-datas-unifying" title="What every software engineer should know about real-time data&#39;s unifying abstraction" target="_blank" rel="external">blog post</a></p>
+<h3 id="Log-Aggregation"><a href="#Log-Aggregation" class="headerlink" title="Log Aggregation"></a>Log Aggregation</h3><p>很多人使用Kafka是将其作为日志聚合解决方案的替代品。日志聚合通常是收集日志文件并将日志文件日志到一个中心位置（可能是一个文件服务器或HDFS）用于处理。Kakfa从文件细节中抽象，并给出一个清晰的日志或事件数据的抽象来作为一个messages的流。这允许低延迟处理和对多个数据源及分布式数据消费的支持。相较于日志中心系统（如Scribe或Flume），Kafka提供了同样好的性能，并提供了更健壮的持久化保证用于复制，以及更低的端对端延迟。</p>
+<h3 id="Stream-Processing"><a href="#Stream-Processing" class="headerlink" title="Stream Processing"></a>Stream Processing</h3><p>很多Kafka用户以处理由多个阶段组成的pipeline的方式处理数据，从Kafka topic中消费原生输入数据然后聚合、提取，或者转换到新的topic做进一步的消费或后续处理。例如，一个用于处理推荐新闻文章的pipeline可能会从RSS feeds中爬取文章内容并将其publish到一个”articles”topic中；进一步的处理可能是格式化或去重内容，并将干净的文章内容publish到一个新的topic；最后的处理阶段可能是尝试推送这些内容给用户。这样的处理流程，基于单独的topics创建实时数据流的的图表。从0.10.0.0开始，一个轻量级但是强大的流处理库（称为Kafka Streams）可以在Apache中使用，用来执行上面描述的数据处理。除了Kafka Streams，可供选择的其他开源的流处理工具包括<a href="https://storm.apache.org/" title="Storm" target="_blank" rel="external">Apache Storm</a>和<a href="http://samza.apache.org/" title="Samza" target="_blank" rel="external">Apache Samza</a>。</p>
+<h3 id="Event-Sourcing"><a href="#Event-Sourcing" class="headerlink" title="Event Sourcing"></a>Event Sourcing</h3><p><a href="http://martinfowler.com/eaaDev/EventSourcing.html" title="Event sourcing" target="_blank" rel="external">Event sourcing</a>是一个apllication的设计方式，在其中，状态的变更作为一个时间顺序的记录序列被记录日志。 Kafka作为一个极好的后端，支持大量日志数据的存储，为application以这种风格惊醒构建。</p>
+<h3 id="Commit-Log"><a href="#Commit-Log" class="headerlink" title="Commit Log"></a>Commit Log</h3><p>Kafka能够作为一种外部日志提交为一个分布式系统提供服务。日志用来帮助在节点之间复制数据，并且行为类似重新同步机制，用于在节点故障时重新存储它们的数据。日志压缩特性在Kafka中用来帮助这种用法。在这种用法中，Kafka与Apache BookKeeper项目类似。</p>
+<h2 id="1-3-Quick-Start"><a href="#1-3-Quick-Start" class="headerlink" title="1.3 Quick Start"></a>1.3 Quick Start</h2><p>这个指南假设你刚刚开始，Kafka数据和ZooKeeper数据均为空。</p>
+<h3 id="Step-1-Download-the-code"><a href="#Step-1-Download-the-code" class="headerlink" title="Step 1 : Download the code"></a>Step 1 : Download the code</h3><p><a href="https://www.apache.org/dyn/closer.cgi?path=/kafka/0.10.0.0/kafka_2.11-0.10.0.0.tgz" title="下载Kafka 0.10.0.0版本" target="_blank" rel="external">下载</a>0.10.0.0发布版，并解压缩它。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&gt; tar -xzf kafka_2.11-0.10.0.0.tgz</div><div class="line">&gt; <span class="built_in">cd</span> kafka_2.11-0.10.0.0</div></pre></td></tr></table></figure></p>
+<h3 id="Step-2-Start-the-server"><a href="#Step-2-Start-the-server" class="headerlink" title="Step 2 : Start the server"></a>Step 2 : Start the server</h3><p>Kafka使用Zookeeper，因此如果你还没有一个ZooKeeper服务，你需要先启动一个ZooKeeper服务。你能够使用Kafka包内的方便脚本来得到一个quick-and-dirty的单节点ZooKeeper实例。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/zookeeper-server-start.sh config/zookeeper.properties</div><div class="line">[2013-04-22 15:01:37,495] INFO Reading configuration from: config/zookeeper.properties (org.apache.zookeeper.server.quorum.QuorumPeerConfig)</div><div class="line">...</div></pre></td></tr></table></figure></p>
+<p>现在，启动Kafka服务：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-server-start.sh config/server.properties</div><div class="line">[2013-04-22 15:01:47,028] INFO Verifying properties (kafka.utils.VerifiableProperties)</div><div class="line">[2013-04-22 15:01:47,051] INFO Property socket.send.buffer.bytes is overridden to 1048576 (kafka.utils.VerifiableProperties)</div><div class="line">...</div></pre></td></tr></table></figure></p>
+<h3 id="Step-3-Create-a-topic"><a href="#Step-3-Create-a-topic" class="headerlink" title="Step 3 : Create a topic"></a>Step 3 : Create a topic</h3><p>创建一个名为”test”的topic，该topic只有一个partition，并且只有一个备份：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic <span class="built_in">test</span></div></pre></td></tr></table></figure></p>
+<p>如果你运行列出topic的命令，你将看到上面的topic：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --list --zookeeper localhost:2181</div><div class="line"><span class="built_in">test</span></div></pre></td></tr></table></figure></p>
+<h3 id="Step-4-Send-some-messages"><a href="#Step-4-Send-some-messages" class="headerlink" title="Step 4 : Send some messages"></a>Step 4 : Send some messages</h3><p>Kafka带有一个命令行客户端可以从一个文件或标准输入来获取输入，并将它作为messages发送给Kafka集群。默认每一行作为一个单独的message来发送。<br>运行producer并输入一些message到控制台来将它发送给server：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic <span class="built_in">test</span></div><div class="line">This is a message</div><div class="line">This is another message</div></pre></td></tr></table></figure></p>
+<h3 id="Step-5-Start-a-consumer"><a href="#Step-5-Start-a-consumer" class="headerlink" title="Step 5 : Start a consumer"></a>Step 5 : Start a consumer</h3><p>Kafka还有一个命令行consumer，它将会消费message并将message转到标准输出。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic <span class="built_in">test</span> --from-beginning</div><div class="line">This is a message</div><div class="line">This is another message</div></pre></td></tr></table></figure></p>
+<p>如果上面的每个命令运行在不同的terminal中，那么现在你能够在producer terminal中键入messages，然后能够看到这些message会出现在consumer terminal中。<br>所有这些命令行工具有额外的参数；以无参数方式运行这些命令将会以更加细节的方式列出命令的使用文档。</p>
+<h3 id="Step-6-Setting-up-a-multi-broker-cluster"><a href="#Step-6-Setting-up-a-multi-broker-cluster" class="headerlink" title="Step 6 : Setting up a multi-broker cluster"></a>Step 6 : Setting up a multi-broker cluster</h3><p>到现在为止，我们已经针对单个broker进行运行，但是那并不好玩。对于Kafka，单个broker只一个size为1的cluster，因此除了启动稍微多一些borker实例，没有什么太多改变。只是为了感受，将我们的节点扩展到3个节点（仍然全部在本机上）。<br>首先我们为每个broker创建一个配置文件：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">&gt; cp config/server.properties config/server-1.properties</div><div class="line">&gt; cp config/server.properties config/server-2.properties</div></pre></td></tr></table></figure></p>
+<p>现在，编辑这些新文件，并如下设置属性：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">config/server-1.properties:</div><div class="line">    broker.id=1</div><div class="line">    listeners=PLAINTEXT://:9093</div><div class="line">    log.dir=/tmp/kafka-logs-1</div><div class="line"></div><div class="line">config/server-2.properties:</div><div class="line">    broker.id=2</div><div class="line">    listeners=PLAINTEXT://:9094</div><div class="line">    log.dir=/tmp/kafka-logs-2</div></pre></td></tr></table></figure></p>
+<p>这个属性<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">broker.id</div></pre></td></tr></table></figure></p>
+<p>在集群中是每个节点唯一且永久的名称。我们只是重写了端口和日志目录，因为我们要在相同的机器上运行这些，为了避免它们都尝试注册相同的端口或重写了其他节点的数据。<br>我们已经有Zookeeper了，并且已经启动了一个节点，因此我们只需要启动两个新的的节点：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-server-start.sh config/server-1.properties &amp;</div><div class="line">...</div><div class="line">&gt; bin/kafka-server-start.sh config/server-2.properties &amp;</div><div class="line">...</div></pre></td></tr></table></figure></p>
+<p>现在，创建一个复制因子为3的新的topic：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic</div></pre></td></tr></table></figure></p>
+<p>好了，现在我们已经有一个集群了，但是我们如何能够知道哪个borker在做什么呢？要想看到这些信息需要运行”describe topics”命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic</div><div class="line">Topic:my-replicated-topic	PartitionCount:1	ReplicationFactor:3	Configs:</div><div class="line">	Topic: my-replicated-topic	Partition: 0	Leader: 1	Replicas: 1,2,0	Isr: 1,2,0</div></pre></td></tr></table></figure></p>
+<p>以下是一个输出说明。第一行，给出了所有partitions的一个汇总，每条额外的行给出一个partition的信息。因为这个topic只有一个partition，所以这里只有一行。</p>
+<ul>
+<li>“leader”是负责对给定的partition进行所有读和写的节点。partitions中的每个节点通过随机选取将可能成为leader。</li>
+<li>“replicas”<br>+</li>
+</ul>
+<p>注意，在我的例子中，节点1是topic仅有partition的leader。<br>我们能够在原来topic上运行相同的命令，我们将看到：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic <span class="built_in">test</span></div><div class="line">Topic:<span class="built_in">test</span>	PartitionCount:1	ReplicationFactor:1	Configs:</div><div class="line">	Topic: <span class="built_in">test</span>	Partition: 0	Leader: 0	Replicas: 0	Isr: 0</div></pre></td></tr></table></figure></p>
+<p>因此没有什么可惊讶的 - 原来的topic在server0上没有备份，server0是我们集群中唯一的server。<br>publish一些message到我们的新topic中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-producer.sh --broker-list localhost:9092 --topic my-replicated-topic</div><div class="line">...</div><div class="line">my <span class="built_in">test</span> message 1</div><div class="line">my <span class="built_in">test</span> message 2</div><div class="line">^C</div></pre></td></tr></table></figure></p>
+<p>我们消费这些message：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic my-replicated-topic</div><div class="line">...</div><div class="line">my <span class="built_in">test</span> message 1</div><div class="line">my <span class="built_in">test</span> message 2</div><div class="line">^C</div></pre></td></tr></table></figure></p>
+<p>现在测试我们的容灾。borker 1扮演了leader的角色，因此我们kill掉它：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; ps | grep server-1.properties</div><div class="line">7564 ttys002    0:15.91 /System/Library/Frameworks/JavaVM.framework/Versions/1.8/Home/bin/java...</div><div class="line">&gt; <span class="built_in">kill</span> -9 7564</div></pre></td></tr></table></figure></p>
+<p>leader关系已经切换到某一个slave，node1不再位于同步备份集合中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic</div><div class="line">Topic:my-replicated-topic	PartitionCount:1	ReplicationFactor:3	Configs:</div><div class="line">	Topic: my-replicated-topic	Partition: 0	Leader: 2	Replicas: 1,2,0	Isr: 2,0</div></pre></td></tr></table></figure></p>
+<p>但是messages对于消费依然是可用的，尽管原来写message的leader已经关闭：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-consumer.sh --zookeeper localhost:2181 --from-beginning --topic my-replicated-topic</div><div class="line">...</div><div class="line">my <span class="built_in">test</span> message 1</div><div class="line">my <span class="built_in">test</span> message 2</div><div class="line">^C</div></pre></td></tr></table></figure></p>
+<h3 id="Step-7-Use-Kafka-Connect-to-import-export-data"><a href="#Step-7-Use-Kafka-Connect-to-import-export-data" class="headerlink" title="Step 7 : Use Kafka Connect to import/export data"></a>Step 7 : Use Kafka Connect to import/export data</h3><p>从控制台写入数据然后再将数据写出到控制台对于开始学习是很方便的，但是你很可能想要从其他数据源写入数据或从Kafka将数据到处到其他系统。对于很多系统，除了写自定义代码，你能够使用Kafka连接来导入和到处数据。Kafka Connect是包含在Kafka中的一个工具用来导入数据到Kafka或从Kafka中导出数据。它是一个可扩展的用来运行connectors的工具，它实现自定义逻辑来和一个外部系统进行交互。在快速开始中我们将看到如何使用一个简单的连接来运行Kafka，这个连接将从文件中导入数据到一个Kafka topic然后从这个topic中导出数据到一个文件中。首先，我们先创建用来测试的数据：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; <span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"foo\nbar"</span> &gt; test.txt</div></pre></td></tr></table></figure></p>
+<p>接下来，我们将以standalone模式启动了connectors，这意味着他们运行在单个、本地的进程中。我们提供了三个配置文件作为参数。第一个总是Kafka Connect进程的配置，包含常用的配置，诸如连接到的Kafka brokers、数据的序列化格式。剩下的配置文件每个指定了一个connector的创建。这些文件包含了一个唯一的connector名称，要实例化的connector类和任何被connector需要的配置。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; bin/connect-standalone.sh config/connect-standalone.properties config/connect-file-source.properties config/connect-file-sink.properties</div></pre></td></tr></table></figure></p>
+<p>这些简单的配置文件包含在Kafka中，之前使用默认本地集群配置启动的Kafka Connect，会创建两个connectors：第一个是一个数据源connector，用来从给一个输入文件中读入行并将读到行数据产出到一个Kafka topic；第二个是一个sink connector，用来从Kafka topic读取messages并将每个message作为一行产出到一个输出文件中。在启动期间，你将会看到一定数量的日志信息，包括一些connectors已经被启动的提示。一旦Kafka Connect进程被启动，source connector将开始从下面文件中读取行数据：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test.txt</div></pre></td></tr></table></figure></p>
+<p>并且产出这些行数据到下面topic中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">connect-test</div></pre></td></tr></table></figure></p>
+<p>，而且sink conector将会从下面topic中读取message：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">connect-test</div></pre></td></tr></table></figure></p>
+<p>并将读到的message写到下面文件中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">test.sink.txt</div></pre></td></tr></table></figure></p>
+<p>。通过检查输出文件的内容，我们能够检查由整个pipeline传递的数据：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&gt; cat test.sink.txt</div><div class="line">foo</div><div class="line">bar</div></pre></td></tr></table></figure></p>
+<p>注意，在Kafka topic中存储的数据<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">connect-test</div></pre></td></tr></table></figure></p>
+<p>，因此我们还能运行一个控制台consumer来查看topic中的数据（或使用自定义consumer代码来处理它）：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic connect-test --from-beginning</div><div class="line">&#123;<span class="string">"schema"</span>:&#123;<span class="string">"type"</span>:<span class="string">"string"</span>,<span class="string">"optional"</span>:<span class="literal">false</span>&#125;,<span class="string">"payload"</span>:<span class="string">"foo"</span>&#125;</div><div class="line">&#123;<span class="string">"schema"</span>:&#123;<span class="string">"type"</span>:<span class="string">"string"</span>,<span class="string">"optional"</span>:<span class="literal">false</span>&#125;,<span class="string">"payload"</span>:<span class="string">"bar"</span>&#125;</div><div class="line">...</div></pre></td></tr></table></figure></p>
+<p>connectors继续处理数据，因此我们能够添加数据到文件，病看到它通过pipeline移动：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; <span class="built_in">echo</span> <span class="string">"Another line"</span> &gt;&gt; test.txt</div></pre></td></tr></table></figure></p>
+<p>你应该能够看到这行数据出现在控制台consumer中和sink文件中。</p>
+<h3 id="Step-8-Use-Kafka-Streams-to-process-data"><a href="#Step-8-Use-Kafka-Streams-to-process-data" class="headerlink" title="Step 8 : Use Kafka Streams to process data"></a>Step 8 : Use Kafka Streams to process data</h3><p>Kafka Streams是一个Kafka客户端库，用于实时的处理和分析存储在Kafka brokers中的数据。这个快速开始的例子将演示如何运行一个通过这个库编码的streaming application。这里是WordCountDemo例子代码的要点（）。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">KTable wordCounts = textLines</div><div class="line">    <span class="comment">// Split each text line, by whitespace, into words.</span></div><div class="line">    .flatMapValues(value -&gt; Arrays.asList(value.toLowerCase().split(<span class="string">"\\W+"</span>)))</div><div class="line"></div><div class="line">    <span class="comment">// Ensure the words are available as record keys for the next aggregate operation.</span></div><div class="line">    .map((key, value) -&gt; <span class="keyword">new</span> KeyValue&lt;&gt;(value, value))</div><div class="line"></div><div class="line">    <span class="comment">// Count the occurrences of each word (record key) and store the results into a table named "Counts".</span></div><div class="line">    .countByKey(<span class="string">"Counts"</span>)</div></pre></td></tr></table></figure></p>
+<p>它实现WordCount算法，计算每个word在输入文本中出现的频率。然而，不像其他之前你见过的WordCount例子，那些例子的操作有限的数据上，WordCount实例application表现的略微不同因为它被设计操作一个无穷大的、无限的数据流上。与绑定变量类似，它是一个状态化算法，它跟踪并更新word的计数。然而，因为它必须假设未绑定的输入数据，在持续处理更多数据的同时它将周期性的输出它的当前状态和结果，因为它不知道何时能够处理完“所有”数据。<br>现在，我们将准备输入数据到一个Kafka topic，这些数据将随后被一个Kafka Streams application所处理。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; <span class="built_in">echo</span> <span class="_">-e</span> <span class="string">"all streams lead to kafka\nhello kafka streams\njoin kafka summit"</span> &gt; file-input.txt</div></pre></td></tr></table></figure></p>
+<p>接下来，我们使用console producer将这些输入数据发送到一个名为streams-file-input的输入topic中（在实践中， 流数据像持续流入到Kafka中application启动并运行的地方）：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-topics.sh --create \</div><div class="line">            --zookeeper localhost:2181 \</div><div class="line">            --replication-factor 1 \</div><div class="line">            --partitions 1 \</div><div class="line">            --topic streams-file-input</div></pre></td></tr></table></figure></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; cat file-input.txt | bin/kafka-console-producer.sh --broker-list localhost:9092 --topic streams-file-input</div></pre></td></tr></table></figure>
+<p>现在我们可以运行WorkCount application来处理输入数据：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-run-class.sh org.apache.kafka.streams.examples.wordcount.WordCountDemo</div></pre></td></tr></table></figure></p>
+<p>这里将不会有任何的标准输出，除了日志会作为结果持续的回写到Kafka中另一名为streams-wordcount-output的topic中。这个例子将运行一会儿并且不像通常的处理程序那样自动终止。<br>现在，我们通过application的输出topic中读取数据来检查WordCount application的输出：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">&gt; bin/kafka-console-consumer.sh --zookeeper localhost:2181 \</div><div class="line">            --topic streams-wordcount-output \</div><div class="line">            --from-beginning \</div><div class="line">            --formatter kafka.tools.DefaultMessageFormatter \</div><div class="line">            --property print.key=<span class="literal">true</span> \</div><div class="line">            --property print.value=<span class="literal">true</span> \</div><div class="line">            --property key.deserializer=org.apache.kafka.common.serialization.StringDeserializer \</div><div class="line">            --property value.deserializer=org.apache.kafka.common.serialization.LongDeserializer</div></pre></td></tr></table></figure></p>
+<p>将会有如下的输出数据被打印到控制台：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">all     1</div><div class="line">streams 1</div><div class="line">lead    1</div><div class="line">to      1</div><div class="line">kafka   1</div><div class="line">hello   1</div><div class="line">kafka   2</div><div class="line">streams 2</div><div class="line">join    1</div><div class="line">kafka   3</div><div class="line">summit  1</div></pre></td></tr></table></figure></p>
+<p>第一列是Kafka message key，第二列是message value，它们都使用java.lang.String格式。注意这里的输出实际上是一个持续的更新流，其中每条数据记录是单个word的更新后的数，记录的key诸如”Kafka”。对于使用相同key的多条记录，后面的记录更新前一条。<br>现在你能够写更多的输入message到streams-file-input这个topic中并且另外的messages添加到streams-wordcount-output topic中，显示被更新的word的数量（例如，像上面描述的使用console producer和console consumer）。<br>通过Ctrl-C来停止console consumer。</p>
+<h2 id="1-4-Ecosystem"><a href="#1-4-Ecosystem" class="headerlink" title="1.4 Ecosystem"></a>1.4 Ecosystem</h2><p>有大量工具可以和Kafka进行集成。<a href="https://cwiki.apache.org/confluence/display/KAFKA/Ecosystem" title="Ecosystem" target="_blank" rel="external">ecosystem page</a>列出了这些工具中的一些，包括流处理系统、Hadoop集成、监控和部署工具。</p>
+<h2 id="Upgrading"><a href="#Upgrading" class="headerlink" title="Upgrading"></a>Upgrading</h2><p>升级暂时不考虑。</p>
+<h1 id="2-API"><a href="#2-API" class="headerlink" title="2 API"></a>2 API</h1><p>Kafka包含了四个核心APIs：<br>1、 Producer API：允许applications发送数据流到Kafka集群中的topics。<br>2、 Consumer API：允许applications从Kafka集群中读取数据流。<br>3、 Streams API：允许将输入topics中的数据流转换到输出topics。<br>4、 Connect API：允许实现connectors，从一些数据源系统或application拉取数据到Kafka，或从Kafka中将数据推送到一些sink系统或applicaion。<br>Kafka在一个独立于一种语言的协议上公开了它的所有功能，在很多编程语言中都有client可用。然而只有Java客户端作为主要Kafka项目的一部分，其他的作为一个独立的开源项目可用。非Java clients的可用列表<a href="https://cwiki.apache.org/confluence/display/KAFKA/Clients" title="Clients" target="_blank" rel="external">在这里</a>。</p>
+<h2 id="2-1-Procucer-API"><a href="#2-1-Procucer-API" class="headerlink" title="2.1 Procucer API"></a>2.1 Procucer API</h2><p>Producer API允许applications发送数据流到Kafka集群中的topics。<br>在<a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/producer/KafkaProducer.html" title="KafkaProducer" target="_blank" rel="external">javadocs</a>中给出的producer如何使用的例子。<br>要使用producer，你可以使用下面的maven依赖：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;0.10.0.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="2-2-Consumer-API"><a href="#2-2-Consumer-API" class="headerlink" title="2.2 Consumer API"></a>2.2 Consumer API</h2><p>Consumer API允许applications从Kafka集群的topics中读取数据流。<br>在<a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/clients/consumer/KafkaConsumer.html" title="KafkaConsumer" target="_blank" rel="external">javadocs</a>中给出了consumer如何使用的例子。<br>要使用consumer，你需要使用下面的mava依赖：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">   &lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;kafka-clients&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;0.10.0.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="2-3-Streams-API"><a href="#2-3-Streams-API" class="headerlink" title="2.3 Streams API"></a>2.3 Streams API</h2><p>Streams API允许来自输入topics的数据流转换到输出topics。<br>如何使用这个库的例子在<a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/streams/KafkaStreams.html" title="KafkaStreams" target="_blank" rel="external">javadoc</a>中进行了展示。<br>使用Streams API的其他文档可以在<a href="http://kafka.apache.org/documentation.html#streams" title="KAFKA STREAMS" target="_blank" rel="external">这里</a>找到。<br>要是用Kafka Streams，你可以使用如下的maven依赖：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">    &lt;groupId&gt;org.apache.kafka&lt;/groupId&gt;</div><div class="line">    &lt;artifactId&gt;kafka-streams&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;0.10.0.0&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="2-4-Connect-API"><a href="#2-4-Connect-API" class="headerlink" title="2.4 Connect API"></a>2.4 Connect API</h2><p>Connect API允许来实现connectors来持续从源数据系统拉取数据到Kafka或从Kafka拉取数据到一些sink数据系统。<br>很多Connect的用户不需要直接使用这个API，他们能够使用预先构建的connectors，而不需要写任何代码。使用Connect的额外信息在<a href="http://kafka.apache.org/documentation.html#connect" title="KAFKA CONNECT" target="_blank" rel="external">这里</a>是可用的。<br>想要实现自定义connectors的用户可以看<a href="http://kafka.apache.org/0100/javadoc/index.html?org/apache/kafka/connect" title="kafka 0.10.0.1 API" target="_blank" rel="external">这里</a>。</p>
+<h2 id="2-5-Legacy-APIs"><a href="#2-5-Legacy-APIs" class="headerlink" title="2.5 Legacy APIs"></a>2.5 Legacy APIs</h2><p>更多遗留的producer和consumer api也包含在Kafka中。这些老的Scala API已经被废弃了，只是为了兼容性的目的而存在。它们的信息可以在这里找到。</p>
+<h1 id="3-Configuration"><a href="#3-Configuration" class="headerlink" title="3 Configuration"></a>3 Configuration</h1><p>Kafka使用Key-Value对格式的属性文件进行配置。这些值能够通过文件或代码来提供。</p>
+<h2 id="3-1-Broker-Configs"><a href="#3-1-Broker-Configs" class="headerlink" title="3.1 Broker Configs"></a>3.1 Broker Configs</h2><p>必不可少的配置如下：</p>
+<ul>
+<li>broker.id</li>
+<li>log.dirs</li>
+<li>zookeeper.connect<br>Topic级别配置和默认值将在下面更加详细的讨论。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Name</th>
+<th style="text-align:left">DESCRIPTION</th>
+<th style="text-align:left">TYPE</th>
+<th style="text-align:left">DEFAULT</th>
+<th style="text-align:left">VALID VALUES</th>
+<th style="text-align:left">IMPORTANCE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">zookeeper.connect</td>
+<td style="text-align:left">Zookeeper主机名的字符串</td>
+<td style="text-align:left">string</td>
+<td style="text-align:left"></td>
+<td style="text-align:left"></td>
+<td style="text-align:left">high</td>
+</tr>
+<tr>
+<td style="text-align:left">advertised.host.name</td>
+<td style="text-align:left">废弃的：只有当’advertised.listeners’或’listeners’都没有设置时使用。使用’advertised.listeners’代替。</td>
+<td style="text-align:left">string</td>
+<td style="text-align:left">null</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">high</td>
+</tr>
+</tbody>
+</table>
+<p>暂停翻译</p>
+<h2 id="Producer-Configs"><a href="#Producer-Configs" class="headerlink" title="Producer Configs"></a>Producer Configs</h2><h2 id="Consumer-Configs"><a href="#Consumer-Configs" class="headerlink" title="Consumer Configs"></a>Consumer Configs</h2><h3 id="Old-Consumer-Configs"><a href="#Old-Consumer-Configs" class="headerlink" title="Old Consumer Configs"></a>Old Consumer Configs</h3><h3 id="New-Consumer-Configs"><a href="#New-Consumer-Configs" class="headerlink" title="New Consumer Configs"></a>New Consumer Configs</h3><h2 id="Kafka-Connect-Configs"><a href="#Kafka-Connect-Configs" class="headerlink" title="Kafka Connect Configs"></a>Kafka Connect Configs</h2><h2 id="Kafka-Streams-Configs"><a href="#Kafka-Streams-Configs" class="headerlink" title="Kafka Streams Configs"></a>Kafka Streams Configs</h2><h1 id="Design"><a href="#Design" class="headerlink" title="Design"></a>Design</h1><h2 id="Motivation"><a href="#Motivation" class="headerlink" title="Motivation"></a>Motivation</h2><h2 id="Persistence"><a href="#Persistence" class="headerlink" title="Persistence"></a>Persistence</h2><h2 id="Efficiency"><a href="#Efficiency" class="headerlink" title="Efficiency"></a>Efficiency</h2><h2 id="The-Procucer"><a href="#The-Procucer" class="headerlink" title="The Procucer"></a>The Procucer</h2><h2 id="The-Consumer"><a href="#The-Consumer" class="headerlink" title="The Consumer"></a>The Consumer</h2><h2 id="Message-Delivery-Semantics"><a href="#Message-Delivery-Semantics" class="headerlink" title="Message Delivery Semantics"></a>Message Delivery Semantics</h2><h2 id="Replication"><a href="#Replication" class="headerlink" title="Replication"></a>Replication</h2><h2 id="Log-Compaction"><a href="#Log-Compaction" class="headerlink" title="Log Compaction"></a>Log Compaction</h2><h2 id="Quotas"><a href="#Quotas" class="headerlink" title="Quotas"></a>Quotas</h2><h1 id="Implementation"><a href="#Implementation" class="headerlink" title="Implementation"></a>Implementation</h1><h2 id="API-Design"><a href="#API-Design" class="headerlink" title="API Design"></a>API Design</h2><h2 id="Network-Layer"><a href="#Network-Layer" class="headerlink" title="Network Layer"></a>Network Layer</h2><h2 id="Messages"><a href="#Messages" class="headerlink" title="Messages"></a>Messages</h2><h2 id="Message-format"><a href="#Message-format" class="headerlink" title="Message format"></a>Message format</h2><h2 id="Log"><a href="#Log" class="headerlink" title="Log"></a>Log</h2><h2 id="Distribution-1"><a href="#Distribution-1" class="headerlink" title="Distribution"></a>Distribution</h2><h1 id="Operations"><a href="#Operations" class="headerlink" title="Operations"></a>Operations</h1><h2 id="Basic-Kafka-Operations"><a href="#Basic-Kafka-Operations" class="headerlink" title="Basic Kafka Operations"></a>Basic Kafka Operations</h2><h3 id="Adding-and-removing-topics"><a href="#Adding-and-removing-topics" class="headerlink" title="Adding and removing topics"></a>Adding and removing topics</h3><h3 id="Modifying-topics"><a href="#Modifying-topics" class="headerlink" title="Modifying topics"></a>Modifying topics</h3><h3 id="Graceful-shutdown"><a href="#Graceful-shutdown" class="headerlink" title="Graceful shutdown"></a>Graceful shutdown</h3><h3 id="Balancing-leadership"><a href="#Balancing-leadership" class="headerlink" title="Balancing leadership"></a>Balancing leadership</h3><h3 id="Checking-consumer-position"><a href="#Checking-consumer-position" class="headerlink" title="Checking consumer position"></a>Checking consumer position</h3><h3 id="Mirroring-data-between-clusters"><a href="#Mirroring-data-between-clusters" class="headerlink" title="Mirroring data between clusters"></a>Mirroring data between clusters</h3><h3 id="Expanding-your-cluster"><a href="#Expanding-your-cluster" class="headerlink" title="Expanding your cluster"></a>Expanding your cluster</h3><h3 id="Decommissioning-brokers"><a href="#Decommissioning-brokers" class="headerlink" title="Decommissioning brokers"></a>Decommissioning brokers</h3><h3 id="Decommissioning-brokers-1"><a href="#Decommissioning-brokers-1" class="headerlink" title="Decommissioning brokers"></a>Decommissioning brokers</h3><h3 id="Increasing-replication-factor"><a href="#Increasing-replication-factor" class="headerlink" title="Increasing replication factor"></a>Increasing replication factor</h3><h2 id="Datacenters"><a href="#Datacenters" class="headerlink" title="Datacenters"></a>Datacenters</h2><h2 id="Important-Configs"><a href="#Important-Configs" class="headerlink" title="Important Configs"></a>Important Configs</h2><h3 id="Important-Server-Configs"><a href="#Important-Server-Configs" class="headerlink" title="Important Server Configs"></a>Important Server Configs</h3><h3 id="Important-Client-Configs"><a href="#Important-Client-Configs" class="headerlink" title="Important Client Configs"></a>Important Client Configs</h3><h3 id="A-Production-Server-Configs"><a href="#A-Production-Server-Configs" class="headerlink" title="A Production Server Configs"></a>A Production Server Configs</h3><h2 id="Java-Version"><a href="#Java-Version" class="headerlink" title="Java Version"></a>Java Version</h2><h2 id="Hardware-and-OS"><a href="#Hardware-and-OS" class="headerlink" title="Hardware and OS"></a>Hardware and OS</h2><h3 id="OS"><a href="#OS" class="headerlink" title="OS"></a>OS</h3><h3 id="Disks-and-Filesystems"><a href="#Disks-and-Filesystems" class="headerlink" title="Disks and Filesystems"></a>Disks and Filesystems</h3><h3 id="Application-vs-OS-Flush-Management"><a href="#Application-vs-OS-Flush-Management" class="headerlink" title="Application vs OS Flush Management"></a>Application vs OS Flush Management</h3><h3 id="Linux-Flush-Behavior"><a href="#Linux-Flush-Behavior" class="headerlink" title="Linux Flush Behavior"></a>Linux Flush Behavior</h3><h3 id="Ext4-Notes"><a href="#Ext4-Notes" class="headerlink" title="Ext4 Notes"></a>Ext4 Notes</h3><h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><h2 id="ZooKeeper"><a href="#ZooKeeper" class="headerlink" title="ZooKeeper"></a>ZooKeeper</h2><h3 id="Stable-Version"><a href="#Stable-Version" class="headerlink" title="Stable Version"></a>Stable Version</h3><h3 id="Operationalization"><a href="#Operationalization" class="headerlink" title="Operationalization"></a>Operationalization</h3><h1 id="Security"><a href="#Security" class="headerlink" title="Security"></a>Security</h1><h2 id="Security-Overview"><a href="#Security-Overview" class="headerlink" title="Security Overview"></a>Security Overview</h2><h2 id="Encryption-and-Authentication-using-SSL"><a href="#Encryption-and-Authentication-using-SSL" class="headerlink" title="Encryption and Authentication using SSL"></a>Encryption and Authentication using SSL</h2><h2 id="Authentication-using-SASL"><a href="#Authentication-using-SASL" class="headerlink" title="Authentication using SASL"></a>Authentication using SASL</h2><h2 id="Authorization-and-ACLs"><a href="#Authorization-and-ACLs" class="headerlink" title="Authorization and ACLs"></a>Authorization and ACLs</h2><h2 id="Incorporating-Security-Features-in-a-Running-Cluster"><a href="#Incorporating-Security-Features-in-a-Running-Cluster" class="headerlink" title="Incorporating Security Features in a Running Cluster"></a>Incorporating Security Features in a Running Cluster</h2><h2 id="ZooKeeper-Authentication"><a href="#ZooKeeper-Authentication" class="headerlink" title="ZooKeeper Authentication"></a>ZooKeeper Authentication</h2><h3 id="New-Clusters"><a href="#New-Clusters" class="headerlink" title="New Clusters"></a>New Clusters</h3><h3 id="Migrating-Clusters"><a href="#Migrating-Clusters" class="headerlink" title="Migrating Clusters"></a>Migrating Clusters</h3><h3 id="Migrating-the-ZooKeeper-Ensemble"><a href="#Migrating-the-ZooKeeper-Ensemble" class="headerlink" title="Migrating the ZooKeeper Ensemble"></a>Migrating the ZooKeeper Ensemble</h3><h1 id="Kafka-Connect"><a href="#Kafka-Connect" class="headerlink" title="Kafka Connect"></a>Kafka Connect</h1><h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><h2 id="User-Guide"><a href="#User-Guide" class="headerlink" title="User Guide"></a>User Guide</h2><h2 id="Connector-Development-Guide"><a href="#Connector-Development-Guide" class="headerlink" title="Connector Development Guide"></a>Connector Development Guide</h2><h1 id="Kafka-Streams"><a href="#Kafka-Streams" class="headerlink" title="Kafka Streams"></a>Kafka Streams</h1><h2 id="Overview-1"><a href="#Overview-1" class="headerlink" title="Overview"></a>Overview</h2><h2 id="Developer-Guide"><a href="#Developer-Guide" class="headerlink" title="Developer Guide"></a>Developer Guide</h2><h3 id="Core-Concepts"><a href="#Core-Concepts" class="headerlink" title="Core Concepts"></a>Core Concepts</h3><h3 id="Low-Level-Processor-API"><a href="#Low-Level-Processor-API" class="headerlink" title="Low-Level Processor API"></a>Low-Level Processor API</h3><h3 id="High-Level-Streams-DSL"><a href="#High-Level-Streams-DSL" class="headerlink" title="High-Level Streams DSL"></a>High-Level Streams DSL</h3>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/kafka-document/" rel="tag">#kafka document</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/09/21/flume-install/" rel="next" title="Flume Install">
+                <i class="fa fa-chevron-left"></i> Flume Install
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/11/10/log4j-configuration/" rel="prev" title="Log4j Configuration">
+                Log4j Configuration <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-Getting-Started"><span class="nav-number">1.</span> <span class="nav-text">1 Getting Started</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-Introduction"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 Introduction</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Topics-and-Logs"><span class="nav-number">1.1.1.</span> <span class="nav-text">Topics and Logs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Distribution"><span class="nav-number">1.1.2.</span> <span class="nav-text">Distribution</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Producers"><span class="nav-number">1.1.3.</span> <span class="nav-text">Producers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Consumers"><span class="nav-number">1.1.4.</span> <span class="nav-text">Consumers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Guarantees"><span class="nav-number">1.1.5.</span> <span class="nav-text">Guarantees</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-Use-Cases"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 Use Cases</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Log-Aggregation"><span class="nav-number">1.2.1.</span> <span class="nav-text">Log Aggregation</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Stream-Processing"><span class="nav-number">1.2.2.</span> <span class="nav-text">Stream Processing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Event-Sourcing"><span class="nav-number">1.2.3.</span> <span class="nav-text">Event Sourcing</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Commit-Log"><span class="nav-number">1.2.4.</span> <span class="nav-text">Commit Log</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-Quick-Start"><span class="nav-number">1.3.</span> <span class="nav-text">1.3 Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-1-Download-the-code"><span class="nav-number">1.3.1.</span> <span class="nav-text">Step 1 : Download the code</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-2-Start-the-server"><span class="nav-number">1.3.2.</span> <span class="nav-text">Step 2 : Start the server</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-3-Create-a-topic"><span class="nav-number">1.3.3.</span> <span class="nav-text">Step 3 : Create a topic</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-4-Send-some-messages"><span class="nav-number">1.3.4.</span> <span class="nav-text">Step 4 : Send some messages</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-5-Start-a-consumer"><span class="nav-number">1.3.5.</span> <span class="nav-text">Step 5 : Start a consumer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-6-Setting-up-a-multi-broker-cluster"><span class="nav-number">1.3.6.</span> <span class="nav-text">Step 6 : Setting up a multi-broker cluster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-7-Use-Kafka-Connect-to-import-export-data"><span class="nav-number">1.3.7.</span> <span class="nav-text">Step 7 : Use Kafka Connect to import/export data</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Step-8-Use-Kafka-Streams-to-process-data"><span class="nav-number">1.3.8.</span> <span class="nav-text">Step 8 : Use Kafka Streams to process data</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-4-Ecosystem"><span class="nav-number">1.4.</span> <span class="nav-text">1.4 Ecosystem</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Upgrading"><span class="nav-number">1.5.</span> <span class="nav-text">Upgrading</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-API"><span class="nav-number">2.</span> <span class="nav-text">2 API</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#2-1-Procucer-API"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 Procucer API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-2-Consumer-API"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 Consumer API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-3-Streams-API"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 Streams API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-4-Connect-API"><span class="nav-number">2.4.</span> <span class="nav-text">2.4 Connect API</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-5-Legacy-APIs"><span class="nav-number">2.5.</span> <span class="nav-text">2.5 Legacy APIs</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-Configuration"><span class="nav-number">3.</span> <span class="nav-text">3 Configuration</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-Broker-Configs"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 Broker Configs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Producer-Configs"><span class="nav-number">3.2.</span> <span class="nav-text">Producer Configs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Consumer-Configs"><span class="nav-number">3.3.</span> <span class="nav-text">Consumer Configs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Old-Consumer-Configs"><span class="nav-number">3.3.1.</span> <span class="nav-text">Old Consumer Configs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#New-Consumer-Configs"><span class="nav-number">3.3.2.</span> <span class="nav-text">New Consumer Configs</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka-Connect-Configs"><span class="nav-number">3.4.</span> <span class="nav-text">Kafka Connect Configs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kafka-Streams-Configs"><span class="nav-number">3.5.</span> <span class="nav-text">Kafka Streams Configs</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Design"><span class="nav-number">4.</span> <span class="nav-text">Design</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Motivation"><span class="nav-number">4.1.</span> <span class="nav-text">Motivation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Persistence"><span class="nav-number">4.2.</span> <span class="nav-text">Persistence</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Efficiency"><span class="nav-number">4.3.</span> <span class="nav-text">Efficiency</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Procucer"><span class="nav-number">4.4.</span> <span class="nav-text">The Procucer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Consumer"><span class="nav-number">4.5.</span> <span class="nav-text">The Consumer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Message-Delivery-Semantics"><span class="nav-number">4.6.</span> <span class="nav-text">Message Delivery Semantics</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Replication"><span class="nav-number">4.7.</span> <span class="nav-text">Replication</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log-Compaction"><span class="nav-number">4.8.</span> <span class="nav-text">Log Compaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Quotas"><span class="nav-number">4.9.</span> <span class="nav-text">Quotas</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Implementation"><span class="nav-number">5.</span> <span class="nav-text">Implementation</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#API-Design"><span class="nav-number">5.1.</span> <span class="nav-text">API Design</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Network-Layer"><span class="nav-number">5.2.</span> <span class="nav-text">Network Layer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Messages"><span class="nav-number">5.3.</span> <span class="nav-text">Messages</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Message-format"><span class="nav-number">5.4.</span> <span class="nav-text">Message format</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Log"><span class="nav-number">5.5.</span> <span class="nav-text">Log</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Distribution-1"><span class="nav-number">5.6.</span> <span class="nav-text">Distribution</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Operations"><span class="nav-number">6.</span> <span class="nav-text">Operations</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Basic-Kafka-Operations"><span class="nav-number">6.1.</span> <span class="nav-text">Basic Kafka Operations</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Adding-and-removing-topics"><span class="nav-number">6.1.1.</span> <span class="nav-text">Adding and removing topics</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Modifying-topics"><span class="nav-number">6.1.2.</span> <span class="nav-text">Modifying topics</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Graceful-shutdown"><span class="nav-number">6.1.3.</span> <span class="nav-text">Graceful shutdown</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Balancing-leadership"><span class="nav-number">6.1.4.</span> <span class="nav-text">Balancing leadership</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Checking-consumer-position"><span class="nav-number">6.1.5.</span> <span class="nav-text">Checking consumer position</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Mirroring-data-between-clusters"><span class="nav-number">6.1.6.</span> <span class="nav-text">Mirroring data between clusters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Expanding-your-cluster"><span class="nav-number">6.1.7.</span> <span class="nav-text">Expanding your cluster</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decommissioning-brokers"><span class="nav-number">6.1.8.</span> <span class="nav-text">Decommissioning brokers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Decommissioning-brokers-1"><span class="nav-number">6.1.9.</span> <span class="nav-text">Decommissioning brokers</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Increasing-replication-factor"><span class="nav-number">6.1.10.</span> <span class="nav-text">Increasing replication factor</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Datacenters"><span class="nav-number">6.2.</span> <span class="nav-text">Datacenters</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Important-Configs"><span class="nav-number">6.3.</span> <span class="nav-text">Important Configs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Important-Server-Configs"><span class="nav-number">6.3.1.</span> <span class="nav-text">Important Server Configs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Important-Client-Configs"><span class="nav-number">6.3.2.</span> <span class="nav-text">Important Client Configs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#A-Production-Server-Configs"><span class="nav-number">6.3.3.</span> <span class="nav-text">A Production Server Configs</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Java-Version"><span class="nav-number">6.4.</span> <span class="nav-text">Java Version</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hardware-and-OS"><span class="nav-number">6.5.</span> <span class="nav-text">Hardware and OS</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OS"><span class="nav-number">6.5.1.</span> <span class="nav-text">OS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Disks-and-Filesystems"><span class="nav-number">6.5.2.</span> <span class="nav-text">Disks and Filesystems</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Application-vs-OS-Flush-Management"><span class="nav-number">6.5.3.</span> <span class="nav-text">Application vs OS Flush Management</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Linux-Flush-Behavior"><span class="nav-number">6.5.4.</span> <span class="nav-text">Linux Flush Behavior</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Ext4-Notes"><span class="nav-number">6.5.5.</span> <span class="nav-text">Ext4 Notes</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring"><span class="nav-number">6.6.</span> <span class="nav-text">Monitoring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper"><span class="nav-number">6.7.</span> <span class="nav-text">ZooKeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Stable-Version"><span class="nav-number">6.7.1.</span> <span class="nav-text">Stable Version</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Operationalization"><span class="nav-number">6.7.2.</span> <span class="nav-text">Operationalization</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Security"><span class="nav-number">7.</span> <span class="nav-text">Security</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Security-Overview"><span class="nav-number">7.1.</span> <span class="nav-text">Security Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Encryption-and-Authentication-using-SSL"><span class="nav-number">7.2.</span> <span class="nav-text">Encryption and Authentication using SSL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Authentication-using-SASL"><span class="nav-number">7.3.</span> <span class="nav-text">Authentication using SASL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Authorization-and-ACLs"><span class="nav-number">7.4.</span> <span class="nav-text">Authorization and ACLs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Incorporating-Security-Features-in-a-Running-Cluster"><span class="nav-number">7.5.</span> <span class="nav-text">Incorporating Security Features in a Running Cluster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper-Authentication"><span class="nav-number">7.6.</span> <span class="nav-text">ZooKeeper Authentication</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#New-Clusters"><span class="nav-number">7.6.1.</span> <span class="nav-text">New Clusters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Migrating-Clusters"><span class="nav-number">7.6.2.</span> <span class="nav-text">Migrating Clusters</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Migrating-the-ZooKeeper-Ensemble"><span class="nav-number">7.6.3.</span> <span class="nav-text">Migrating the ZooKeeper Ensemble</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Kafka-Connect"><span class="nav-number">8.</span> <span class="nav-text">Kafka Connect</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">8.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#User-Guide"><span class="nav-number">8.2.</span> <span class="nav-text">User Guide</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Connector-Development-Guide"><span class="nav-number">8.3.</span> <span class="nav-text">Connector Development Guide</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Kafka-Streams"><span class="nav-number">9.</span> <span class="nav-text">Kafka Streams</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview-1"><span class="nav-number">9.1.</span> <span class="nav-text">Overview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Developer-Guide"><span class="nav-number">9.2.</span> <span class="nav-text">Developer Guide</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Core-Concepts"><span class="nav-number">9.2.1.</span> <span class="nav-text">Core Concepts</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Low-Level-Processor-API"><span class="nav-number">9.2.2.</span> <span class="nav-text">Low-Level Processor API</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#High-Level-Streams-DSL"><span class="nav-number">9.2.3.</span> <span class="nav-text">High-Level Streams DSL</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

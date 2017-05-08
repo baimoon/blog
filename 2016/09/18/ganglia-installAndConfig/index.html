@@ -1,0 +1,1163 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ganglia," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是ganglia的安装和配置的笔记
+Ganglia的安装首先，ganglia由gmond、gmetad和gweb三部分组成。
+gmondgmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和A">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ganglia Install And Config">
+<meta property="og:url" content="http://baimoon.github.io/2016/09/18/ganglia-installAndConfig/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是ganglia的安装和配置的笔记
+Ganglia的安装首先，ganglia由gmond、gmetad和gweb三部分组成。
+gmondgmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和A">
+<meta property="og:updated_time" content="2016-09-24T08:05:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ganglia Install And Config">
+<meta name="twitter:description" content="本文是ganglia的安装和配置的笔记
+Ganglia的安装首先，ganglia由gmond、gmetad和gweb三部分组成。
+gmondgmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和A">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/09/18/ganglia-installAndConfig/"/>
+
+  <title> Ganglia Install And Config | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Ganglia Install And Config
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-18T17:30:07+08:00" content="2016-09-18">
+              2016-09-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/ganglia/" itemprop="url" rel="index">
+                    <span itemprop="name">ganglia</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是ganglia的安装和配置的笔记</p>
+<h1 id="Ganglia的安装"><a href="#Ganglia的安装" class="headerlink" title="Ganglia的安装"></a>Ganglia的安装</h1><p>首先，ganglia由gmond、gmetad和gweb三部分组成。</p>
+<h2 id="gmond"><a href="#gmond" class="headerlink" title="gmond"></a>gmond</h2><p>gmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。<br>gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和APR等在大多数现行的linux上都有安装。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmond</div></pre></td></tr></table></figure></p>
+<h2 id="gmetad"><a href="#gmetad" class="headerlink" title="gmetad"></a>gmetad</h2><p>gmetad （Ganglia Meta Daemon）是一种从其他gmetad或gmond源收集指标数据，并将数据以RRD格式存储到磁盘的服务。gmetad为从主机组收集的特定指标信息提供了简单的查询机制，并支持分级授权，使得创建联合检测域成为可能。<br>gmetad除了需要安装gmond所需的依赖之外，还需要RDDtool库。它用来存储和显示从其他gmetad和gmond源收集的时间序列数据。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmetad</div></pre></td></tr></table></figure></p>
+<h2 id="gweb"><a href="#gweb" class="headerlink" title="gweb"></a>gweb</h2><p>完整的Ganglia不能缺少网络接口：gweb（Ganglia Web）。gweb是一种利用浏览器显示gmetad所存储数据的PHP前端。<br>Ganglia 3.4的Web接口是一个独立的发布包，其源代码也是独立的。gweb 3.4支持gmond/gmetad 3.4.x及以上版本；gweb未来版本可能需要与gmond/gmetad未来版本相匹配。建议安装或更新gweb的时候查看安装文档，以获取更多信息。<br>安装gweb需要如下需求：</p>
+<ul>
+<li>Apache Web Server</li>
+<li>PHP 5.2级更新版本</li>
+<li>PHP JSON扩展的安装和启用</li>
+</ul>
+<p>首先安装Apache和PHP<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install httpd php</div></pre></td></tr></table></figure></p>
+<p>用户还需要启用PHP的JSON扩展，通过检查/etc/php.d/json.ini文件来检查JSON的扩展状态，如果已经启用扩展，文件中应该包含下面的语句：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">extension=json.ini</div></pre></td></tr></table></figure></p>
+<p>下载最新的gweb(<a href="https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2" target="_blank" rel="external">https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2</a>:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">tar -xvzf ganglia-web-major.minor.release.tar.gz</div><div class="line"><span class="built_in">cd</span> ganglia-web-major.minor.release</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<p>编译Makfile并设置变量DESTDIR和APACHE_USER:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">DESTDIR = /var/www/html/ganglia2</div><div class="line">APACHE_USER = apache</div></pre></td></tr></table></figure></p>
+<p>最后运行下面的命令：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">make install</div></pre></td></tr></table></figure></p>
+<h1 id="Ganglia的配置"><a href="#Ganglia的配置" class="headerlink" title="Ganglia的配置"></a>Ganglia的配置</h1><h2 id="gmond-1"><a href="#gmond-1" class="headerlink" title="gmond"></a>gmond</h2><p>gmond通过与主机操作系统交互以获取指标数据，并与同一集群内的其他主机共享数据。集群内的每个gmond以及同一个集群内其他主机所收集的数据，并默认向任意连接gmond端口的客户端提供整个集群状态的XML格式的dump文件。</p>
+<h3 id="拓扑结构"><a href="#拓扑结构" class="headerlink" title="拓扑结构"></a>拓扑结构</h3><p>gmond默认拓扑为多播模式，也就是说集群内所有节点都收发指标数据，每个节点维护一个内存数据库–以哈希表的形式存储集群内所有节点的指标。gmond内部的发送和接收两部分互不相连。Gmond自身并不交互信息，而只是和网络进行交互。指标模块收集的本地数据通过发送部分直接传送到网络，而接收部分的内部数据库只存储网络中收集的指标数据。<br>单发节点的使用消除了大型集群的运行开销。单发和单收参数的出现使得一些gmond节点可以充当其他gmond节点的专用汇聚器和中继器。单收指的是那些不传送数据的节点，它甚至不收集本节点的指标数据，但是缺汇聚集群内其他gmond的指标数据。单发指的是那些不接收网络中任何指标数据，也不侦听多播成员状态信息的节点。</p>
+<p>在多播不适用的情况下，这种单发/单收拓扑可以使用UDB单播来实现。</p>
+<p>更进一步，将单发/单收拓扑和默认拓扑混合，创建一种更适合特定情形的系统结构。<br>1、至少存在一个收集集群内所有节点指标数据的gmond。<br>2、gmetad必须周期性轮询以保存整个集群状态gmond。</p>
+<h3 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h3><p>运行下面的命令可以生成gmond默认配置：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gmond -t</div></pre></td></tr></table></figure></p>
+<p>配置文件由大括号括起来的截个section组成。这些section可以大致分为两类：处理主机和集群的配置；处理指标数据收集和调度的特定问题。所有的section名和属性是不区分大小写的，有些section是可选的，有些是必选的；有的可以出现多次，有的只能出现一次；有的section还可以包含section。<br>在需要大型复杂配置的情况下，include指令可以将gmond.conf文件划分为多个文件。如下列命令标识gmond可以加载/etc/ganglia/conf.d/中的所有的.conf文件：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">include(<span class="string">'/etc/ganglia/conf.d/*.conf'</span>)</div></pre></td></tr></table></figure></p>
+<p>有8个section处理主机自身配置。</p>
+<h4 id="section-globals"><a href="#section-globals" class="headerlink" title="section:globals"></a>section:globals</h4><p>globals配置守护进程本身的通用特征，只出现一次。如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">globals &#123;</div><div class="line">    daemonize = yes</div><div class="line">    setuid = yes</div><div class="line">    user = nobody</div><div class="line">    debug_level = 0</div><div class="line">    max_udp_msg_len = 1472</div><div class="line">    mute = no</div><div class="line">    deaf = no</div><div class="line">    allow_extra_data = yes</div><div class="line">    host_dmax = 86400</div><div class="line">    host_tmax = 20</div><div class="line">    cleanup_threshold = 300</div><div class="line">    gexec = no</div><div class="line">    send_metadata_interval = 0</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">daemonize</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为true时，gmond将后台分散运行。</td>
+</tr>
+<tr>
+<td style="text-align:left">setuid</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为true时，gmond将user属性指定的特定用户的UID作为有效UID；当值为false时，gmond将不会改变其有效用户。</td>
+</tr>
+<tr>
+<td style="text-align:left">debug_level</td>
+<td style="text-align:left">整数</td>
+<td style="text-align:left">当为0时，gmond将正常运行。当值大于0时，gmond将在前台运行并输出调试信息。值越大，输出的信息越详细。</td>
+</tr>
+<tr>
+<td style="text-align:left">max_udp_msg_len</td>
+<td style="text-align:left">整数</td>
+<td style="text-align:left">gmond发送包的最大长度。一般使用默认值即可。</td>
+</tr>
+<tr>
+<td style="text-align:left">mute</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为true时，不管其他配置指令如何，gmond将不能发送数据。单收gmond只是不向其他gmond进程发送数据，但仍然会响应诸如gmetad的外部轮询。</td>
+</tr>
+<tr>
+<td style="text-align:left">deaf</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为true时，不管其他配置指令如何，gmond将不能接收数据。在一些情况下，某些特定的节点会被预设为为单收，此时这些节点的性能指标将不会被测量，因为这些节点的任务是汇集，所以他们的性能数据会“污染”集群内其他的功能部分</td>
+</tr>
+<tr>
+<td style="text-align:left">allow_extra_data</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为false时，gmond将不会发送XML的EXTRA_ELEMENT和EXTRA_DATA部分。该值主要应用于用户使用自己的前端并希望节省带宽时。</td>
+</tr>
+<tr>
+<td style="text-align:left">host_dmax</td>
+<td style="text-align:left">整型（秒）</td>
+<td style="text-align:left">dmax是delete max的缩写。当值为0时，即使远程主机停止报告，gmond也不会从列表中将该主机删除。如果为正值，当gmond在该值指定的时间内如果没有得到某台主机的数据，gmond会认为对应的主机已经崩溃。</td>
+</tr>
+<tr>
+<td style="text-align:left">host_tmax</td>
+<td style="text-align:left">整型（秒）</td>
+<td style="text-align:left">tmax是timeout max的缩写。代表gmond等待一台主机更新的最长时间。因为消息可能会在网络中丢失，所以如果在4倍的host_tmax时间接收不到某台机器的任何消息，则认为对应主机crash。</td>
+</tr>
+<tr>
+<td style="text-align:left">cleanup_threshold</td>
+<td style="text-align:left">整数（秒）</td>
+<td style="text-align:left">gmond清理过期数据的最小时间间隔。</td>
+</tr>
+<tr>
+<td style="text-align:left">gexec</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">当值为true时，gmond允许主机运行gexec任务。郑重方式需要运行gexecd并安装合适的验证码。</td>
+</tr>
+<tr>
+<td style="text-align:left">send_metadata_interval</td>
+<td style="text-align:left">整数（秒）</td>
+<td style="text-align:left">gmond两次发送元数据包的时间间隔。元数据包是用来描述所有激活指标的数据包。默认为0，表示gmond只有在出事启动和收到其他远程运行的gmond的节点的请求是才会发送元数据包。如果向集群中添加一台运行gmond的主机，则该主机节点需要向其他节点公布自身信息，并告知目前支持的指标标准。在多播模式下，由于任何一个节点都可以向集群内的其他节点请求发送元数据，因此该问题并不存在。然而在单播模式下，必须设重发间隔。间隔值是两次重发之间的最少秒数。</td>
+</tr>
+<tr>
+<td style="text-align:left">module_dir</td>
+<td style="text-align:left">路径（可选）</td>
+<td style="text-align:left">该指令用来标识已找到的指标收集模块的路径。如果省略，则认为编译时选项值：–with-moduledir。该选值为libganglia安装目录下名为ganglia的子目录。为了在特定gmond中找到该指令的默认值，可以通过下面的命令生成一个简单的配置文件：gmond -t。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-cluster"><a href="#section-cluster" class="headerlink" title="section:cluster"></a>section:cluster</h4><p>每个gmond守护进程会使用在cluster中定义的属性来报告它所属集群的信息。默认为”unspecified”。使用默认值即可以正常工作。该配置在文件中只能出现一次，下面为默认值：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">cluster &#123;</div><div class="line">    name = <span class="string">"unspecified"</span></div><div class="line">    owner = <span class="string">"unspecified"</span></div><div class="line">    latlong = <span class="string">"unspedified"</span></div><div class="line">    url = <span class="string">"unspedified"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">name</td>
+<td style="text-align:left">文本</td>
+<td>指定集群名称。当轮询节点的集群状态的XML聚合时，把该名称插入CLUSTER元素内。轮询该节点的gmetad会使用该值来命名存储集群数据的rrd文件。该指令将取代gmetad.conf配置文件中指定的集群名称。</td>
+</tr>
+<tr>
+<td style="text-align:left">owner</td>
+<td style="text-align:left">文本</td>
+<td>指定集群管理员。</td>
+</tr>
+<tr>
+<td style="text-align:left">latlong</td>
+<td style="text-align:left">文本</td>
+<td>指定该集群在地区上的GPS坐标。</td>
+</tr>
+<tr>
+<td style="text-align:left">url</td>
+<td style="text-align:left">文本</td>
+<td>指定携带集群特定信息（如用途和使用细节）的URL。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-host"><a href="#section-host" class="headerlink" title="section:host"></a>section:host</h4><p>host提供运行gmond主机相关信息。目前只支持地址字符串属性。默认为：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">host &#123;</div><div class="line">    location = <span class="string">"unspecified"</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">location</td>
+<td style="text-align:left">文本</td>
+<td>用来标识主机位置。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-UDP-channels"><a href="#section-UDP-channels" class="headerlink" title="section:UDP channels"></a>section:UDP channels</h4><p>UDP发送通道和接收通道确定gmond节点间的交互方式。集群是由UDP通信通道所定义的，也就是说，集群只不过是共享同样发送和接收通道的一些gmond节点。<br>gmond集群内每个节点默认通过UDP将自身指标数据多播至其他节点，同时侦听其他节点的UDP多播。这种方式易于设置和维护：集群内每个节点共享多播地址，而且每个心节点可自动被发现。然而，有时需要通过单播地址指定某些节点。因此，任意数量的gmond发送和接收通道可以独立配置以满足特定需求。每个发送通道都可以定义gmond发布自己的指标数据的方式，而且每个接收通道都可以定义gmond接收其他节点指标数据的方式，可能单播，也可能多播。<br>gmond节点不能配置为向多个Ganglia集群发送指标数据。<br>UDP通道通过udp_(send|receive)_channel创建。</p>
+<h5 id="udp-send-channel"><a href="#udp-send-channel" class="headerlink" title="udp_send_channel"></a>udp_send_channel</h5><p>默认的UDP发送通道如下定义：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">udp_send_channel &#123;</div><div class="line">    <span class="comment">#bind_hostname = yes</span></div><div class="line">    mcast_join = 239.2.11.1</div><div class="line">    port = 8649</div><div class="line">    ttl = 1</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">bind_hostname</td>
+<td style="text-align:left">布尔类型（可选，多播或单播）</td>
+<td style="text-align:left">通知gmond使用源地hi解析主机名。</td>
+</tr>
+<tr>
+<td style="text-align:left">mcast_join</td>
+<td style="text-align:left">IP（可选，仅多播）</td>
+<td style="text-align:left">当指定该选项时，gmond将创建UDP套接字，并加入由IP地址指定的多播租。该选项创建一个多播通道，并与host互斥。</td>
+</tr>
+<tr>
+<td style="text-align:left">mcast_if</td>
+<td style="text-align:left">文本（可选，仅多播）</td>
+<td style="text-align:left">当指定该选项时，gmond将发送来自指定接口（如eth0）的数据。</td>
+</tr>
+<tr>
+<td style="text-align:left">host</td>
+<td style="text-align:left">文本格式或IP（可选，仅单播）</td>
+<td style="text-align:left">当指定该选项时，gmond将向已命名主机发送数据。该选项将创建一个单播通道，并与mcast_join互斥。</td>
+</tr>
+<tr>
+<td style="text-align:left">port</td>
+<td style="text-align:left">数值（可选，单播或多播）</td>
+<td style="text-align:left">指定gmond发送数据的端口号。如果未指定，则使用默认值8649。</td>
+</tr>
+<tr>
+<td style="text-align:left">ttl</td>
+<td style="text-align:left">数值（可选，单播或多播）</td>
+<td style="text-align:left">time-to-live的缩写。该设置在多播环境中尤其重要，因为该值限制了指标数据所允许传播的越点数。当该值设置得比实际所需的更大时，指标数据将能够通过WAN连接传输到多个站点，甚至跳出WAN进入全局Internet。</td>
+</tr>
+</tbody>
+</table>
+<h5 id="udp-recv-channel"><a href="#udp-recv-channel" class="headerlink" title="udp_recv_channel"></a>udp_recv_channel</h5><p>默认的UDP接收通道<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">udp_recv_channel &#123;</div><div class="line">    mcast_join = 239.2.11.71</div><div class="line">    port = 8649</div><div class="line">    <span class="built_in">bind</span> = 239.2.11.71</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">mcast_join</td>
+<td style="text-align:left">IP（可选，仅多播）</td>
+<td style="text-align:left">指定该选项时，gmond将侦听指定IP的多播组所发送的多播数据包。如果未指定多播属性，gmond将在指定端口创建单播UDP服务。</td>
+</tr>
+<tr>
+<td style="text-align:left">mcast_if</td>
+<td style="text-align:left">文本（可选，仅多播）</td>
+<td style="text-align:left">当指定该选项时，gmond将侦听指定接口（如eth0）上的数据。</td>
+</tr>
+<tr>
+<td style="text-align:left">bind</td>
+<td style="text-align:left">IP（可选，多播或单播）</td>
+<td style="text-align:left">当指定该选项时，gmond将绑定到指定的本地地址。</td>
+</tr>
+<tr>
+<td style="text-align:left">port</td>
+<td style="text-align:left">数字（可选，多播或单播）</td>
+<td style="text-align:left">指定gmond接收数据的端口。如果为指定，则使用默认值8649。</td>
+</tr>
+<tr>
+<td style="text-align:left">family</td>
+<td style="text-align:left">inet4或inet6（可选，多播或单播）</td>
+<td style="text-align:left">默认IP版本为inet4.Ganglia不允许 IPv6 =&gt; IPv4的映射。如果用户想要同时对一个端口进行inet4和inet6，请为该端口定义两个分离的接收通道。</td>
+</tr>
+<tr>
+<td style="text-align:left">acl</td>
+<td style="text-align:left">Ac定义（可选，多播或单播）</td>
+<td style="text-align:left">通过指定接入的控制列表，可以对接收通道进行精确的接入空中。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-TCP-Accept-Channel"><a href="#section-TCP-Accept-Channel" class="headerlink" title="section: TCP Accept Channel"></a>section: TCP Accept Channel</h4><p>TCP接收通道是gmond节点创建向gmetad或其他外部轮询器汇报集群状态的通道。用户可以配置任意选项。默认TCP接收通道为：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">tcp_accept_channel &#123;</div><div class="line">    port = 8649</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">bind</td>
+<td style="text-align:left">IP（可选）</td>
+<td style="text-align:left">当指定该选项时，gmond将绑定到指定的本地地址。</td>
+</tr>
+<tr>
+<td style="text-align:left">port</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">gmond接受连接的端口号。</td>
+</tr>
+<tr>
+<td style="text-align:left">family</td>
+<td style="text-align:left">inet4或inet6（可选，多播或单播）</td>
+<td style="text-align:left">默认IP版本为inet4。如果想要将端口绑定到inet6，设置inet6即可。Ganglia不允许IPv6 =&gt; IPv4的映射。如果用户想要同时对一个端口进行inet4和inet6，请为该端口定义两个分离的接收通道。</td>
+</tr>
+<tr>
+<td style="text-align:left">interface</td>
+<td style="text-align:left">文本（可选）</td>
+<td style="text-align:left">当指定该选项时，gmond将侦听指定接口（例如eth0）数据。</td>
+</tr>
+<tr>
+<td style="text-align:left">acl</td>
+<td style="text-align:left">ACL（可选，多播或单播）</td>
+<td style="text-align:left">通过指定接入的访问控制列表可以对接收通道进行精细的控制。</td>
+</tr>
+</tbody>
+</table>
+<h5 id="Access-control"><a href="#Access-control" class="headerlink" title="Access control"></a>Access control</h5><p>udp_recv_channel指令和tcp_accept_channel指令可以包含一个接入控制列表。该列表允许用户指定gmond接收或拒绝连接的地址和地址范围。示例如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">acl &#123;</div><div class="line">    default = <span class="string">"deny"</span></div><div class="line">    access &#123;</div><div class="line">        ip = 192.168.0.0</div><div class="line">        mask = 24</div><div class="line">        action = <span class="string">"allow"</span></div><div class="line">    &#125;</div><div class="line">    access &#123;</div><div class="line">        ip = ::ff:1.2.3.0</div><div class="line">        mask = 120</div><div class="line">        action = <span class="string">"deny"</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>default属性为整个ACL定义了默认方式。任意的access模块可以指定主机或ip地址，以及这些地址是allow还是deny。mask属性是以CIDR记法定义的子网掩码，允许用户指定地址范围而非一个一个的具体地址。当ACL冲突时，以第一个匹配为准。</p>
+<h4 id="section-sFlow"><a href="#section-sFlow" class="headerlink" title="section:sFlow"></a>section:sFlow</h4><p>sFlow适用于监测高速路由网络的工业标准技术，现在服务于通用操作系统和诸如Tomcat、memcached和Apache Web Server等流行应用。gmond可以通过配置来充当网络中sFlow代理聚合器，收集sFlow代理的数据并实现对gmetad的透明传输。下面是sFlow的默认配置：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#sflow &#123;</span></div><div class="line"><span class="comment">#    udp_port = 6343</span></div><div class="line"><span class="comment">#    accept_vm_metrics = yes</span></div><div class="line"><span class="comment">#    accept_jvm_metrics = yes</span></div><div class="line"><span class="comment">#    multiple_jvm_instances = no</span></div><div class="line"><span class="comment">#    accept_http_metrics = yes</span></div><div class="line"><span class="comment">#    multiple_http_instances = no</span></div><div class="line"><span class="comment">#    accept_memcache_metrics = yes</span></div><div class="line"><span class="comment">#    multiple_memcache_instances = no</span></div><div class="line"><span class="comment">#&#125;</span></div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">udp_port</td>
+<td style="text-align:left">数字（可选）</td>
+<td style="text-align:left">gmond接收sFlow数据的端口。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-modules"><a href="#section-modules" class="headerlink" title="section:modules"></a>section:modules</h4><p>该模块包含了加载指标模块的必要参数。指标模块是动态可加载的共享目标文件，用于扩展gmond可收集的指标。<br>每个modules必须至少包含一个module subsection。module subsection由5个属性组成。默认配置包含了默认安装中所有可用模块（module），如果不添加新模块则无需更改该内容。如下是配置示例：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">modules &#123;</div><div class="line">    module &#123;</div><div class="line">        name= <span class="string">"example_module"</span></div><div class="line">        language = <span class="string">"C/C++"</span></div><div class="line">        <span class="built_in">enable</span> = yes</div><div class="line">        path = <span class="string">"modexample.so"</span></div><div class="line">        params = <span class="string">"An extra raw parameter"</span></div><div class="line">        param RandomMax &#123;</div><div class="line">            value = 75</div><div class="line">        &#125;</div><div class="line">        param ConstantValue &#123;</div><div class="line">            value = 25</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">name</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">如果模块由C/C++开发，则模块名由模块结构所决定。如果模块由诸如Python解释型语言开发完成，则模块名与源文件名相同。</td>
+</tr>
+<tr>
+<td style="text-align:left">language</td>
+<td style="text-align:left">文本（可选）</td>
+<td style="text-align:left">如果未指定，则默认为C/C++。目前只支持C、C++和Python。</td>
+</tr>
+<tr>
+<td style="text-align:left">enabled</td>
+<td style="text-align:left">布尔（可选）</td>
+<td style="text-align:left">通过配置文件设置模块是否可用。默认为yes。</td>
+</tr>
+<tr>
+<td style="text-align:left">path</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">指示gmond预设的加载路径。如果path不是绝对路径，则该值将附加到globals section的module_path上。</td>
+</tr>
+<tr>
+<td style="text-align:left">param</td>
+<td style="text-align:left">文本格式（可选）</td>
+<td style="text-align:left">用来将字符串参数传送到模块初始化函数。通过包含多个param，可以将多个参数传递给模块初始化函数。每个param section必须命名，并包含一条value指令。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="section-collection-group"><a href="#section-collection-group" class="headerlink" title="section: collection_group"></a>section: collection_group</h4><p>collection_group指定了gmond包含的指标以及gmond手机和广播这些指标的周期。用户可以定义任意多的收集组，每个收集组必须包含至少一种metric section。<br>这些逻辑指标分组基于相同的收集间隔。这些在gmond.conf中定义的分组并不影响用于Web接口中的分组，也不能用这种方式来指定Web接口分组名称。部分默认配置如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">collection_group &#123;</div><div class="line">    collect_once = yes</div><div class="line">    time_threshold = 1200</div><div class="line">    metric &#123;</div><div class="line">        name = <span class="string">"cpu_num"</span></div><div class="line">        title = <span class="string">"CPU Count"</span></div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line">collection_group &#123;</div><div class="line">    collect_every = 20</div><div class="line">    time_threshold = 90</div><div class="line">    metric &#123;</div><div class="line">        name = <span class="string">"cpu_user"</span></div><div class="line">        value_threshold = <span class="string">"1.0"</span></div><div class="line">        title = <span class="string">"CPU User"</span></div><div class="line">    &#125;</div><div class="line">    metric &#123;</div><div class="line">        name = <span class="string">"cpu_system"</span></div><div class="line">        value_threshold = <span class="string">"1.0"</span></div><div class="line">        title = <span class="string">"CPU Sustem"</span></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性名</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">collect_once</td>
+<td style="text-align:left">布尔</td>
+<td style="text-align:left">有些指标不变，也就是说重启之间不存在变化。这些指标包括OS类型和系统CPU数量等，只在初始启动时收集一次，并将其collect_once属性设置为yes。该属性与collect_every相互排斥。</td>
+</tr>
+<tr>
+<td style="text-align:left">collect_every</td>
+<td style="text-align:left">整数（秒）</td>
+<td style="text-align:left">指定收集组轮询的间隔。</td>
+</tr>
+<tr>
+<td style="text-align:left">time_threshold</td>
+<td style="text-align:left">整数（秒）</td>
+<td style="text-align:left">gmond发送collection_group所指定的指标数据到所有已配置的udp_send_channels的最大时间。</td>
+</tr>
+<tr>
+<td style="text-align:left">name</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">指标收集模块定义的单个指标标准名称。每个加载模块一般定义好几种单独的指标。name可以由name_match参数替换。</td>
+</tr>
+<tr>
+<td style="text-align:left">value_threshold</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">每次收集到指标数据时，会将新值与上一次的数值进行比较。当二者差别大于value_threshold时，整个收集组被发送至已定义的udp_send_channels。在不同的指标模块中，该值表示不同的指标单位。</td>
+</tr>
+<tr>
+<td style="text-align:left">title</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">一种用户化的用于Web前端的指标名称。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="gmetad-1"><a href="#gmetad-1" class="headerlink" title="gmetad"></a>gmetad</h3><p>gmetad（Ganglia Meta Daemon）是一种安装在主机上用来收集和汇聚gmond所收集的指标数据的守护进程。gmetad默认使用RRD文件收集和汇聚指标数据，然而也可以通过配置gmetad将指标数据传送到助于Graphite的外部系统。<br>gmetad通过tcp端口8651侦听远程gmetad连接，并向授权主机提供XML格式的网络状态。gmetad也通过tcp端口8652对交互式请求做出应答。这种交互功能不仅可以看到网格状态XML树的总体结构，也可以看到简单的局部内容。gweb使用这种交互式查询方式来标识那些不适合RRD文件的信息。</p>
+<h4 id="gmetad拓扑"><a href="#gmetad拓扑" class="headerlink" title="gmetad拓扑"></a>gmetad拓扑</h4><p>最简单的gmetad拓扑结构为一个gmetad进程轮询一个或多个gmond。gmetad并不局限于轮询gmond，gmetad也可以通过轮询另外的gmetad来创建层次化的gmetad结构。</p>
+<h4 id="gmetad-conf配置文件"><a href="#gmetad-conf配置文件" class="headerlink" title="gmetad.conf配置文件"></a>gmetad.conf配置文件</h4><p>gmetad.conf配置文件由单行属性及相应值组成。属性名不区分大小写，但是值区分。有些属性是可选的，有些属性是必须的；有些属性可有多个，有些属性只能有一个。</p>
+<h5 id="data-source"><a href="#data-source" class="headerlink" title="data_source"></a>data_source</h5><p>data_source属性是gmetad配置的核心。每一行data_source描述一个gmetad收集信息的gmond集群或gmetad网格。gmetad能够自动区别集群和网格，所以二者的data_source语法相同。当gmetad检测到data_source引用一个集群时，gmetad将为data_source保留一整套轮询数据库。当gmetad检测到data_source引用一个网格时，gmetad只会保留概要性的RRD。<br>默认配置文件中合法data_source示例：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">data_source <span class="string">"my cluster"</span> 10 localhost my.machine.edu:8649 1.2.3.5:8655</div></pre></td></tr></table></figure></p>
+<p>每个data_source由3个字段组成。第一个字段是唯一标识data_source的字符串。第二个字段是指定轮询间隔（单位秒）的时长。第三个字段以空格分隔的所要轮询数据的主机列表，这些地址以IP地址或DNS主机名的形式指定，并可以添加端口号后缀，如果为指明端口号，则使用默认值8649。</p>
+<h5 id="gmetad守护进程行为"><a href="#gmetad守护进程行为" class="headerlink" title="gmetad守护进程行为"></a>gmetad守护进程行为</h5><table>
+<thead>
+<tr>
+<th style="text-align:left">属性</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">gridname</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">能唯一标识网格的字符串。该字符串应该与gmond中所设置的标识不同。在gmond.conf的CLUSTER标识中，用来标识gmond实例能收集到所有的主机，而gridname属性则标识由GRID标识符指定的所有数据源，可以理解为在data_source中定义一个集群集合。</td>
+</tr>
+<tr>
+<td style="text-align:left">authority</td>
+<td style="text-align:left">URL</td>
+<td style="text-align:left">网格的授权URL，被其他gmetad用来查找当前gmetad数据源的图表位置。默认值为”<a href="http://hostname/ganglia&quot;。" target="_blank" rel="external">http://hostname/ganglia&quot;。</a></td>
+</tr>
+<tr>
+<td style="text-align:left">trusted_hosts</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">当前gmetad允许数据共享的主机列表，以空格作为分隔符。Localhost总是可信的。</td>
+</tr>
+<tr>
+<td style="text-align:left">all_trusted</td>
+<td style="text-align:left">on或off</td>
+<td style="text-align:left">当值设置为on时，将重写trusted_host属性，允许数据与任意主机共享。</td>
+</tr>
+<tr>
+<td style="text-align:left">setuid_username</td>
+<td style="text-align:left">UID</td>
+<td style="text-align:left">gmetad设置UID的用户名。默认为nobody。</td>
+</tr>
+<tr>
+<td style="text-align:left">setuid</td>
+<td style="text-align:left">on或off</td>
+<td style="text-align:left">当该值设置为off时，将不能设置UID。</td>
+</tr>
+<tr>
+<td style="text-align:left">xml_port</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">gmetad侦听端口，默认为8651。</td>
+</tr>
+<tr>
+<td style="text-align:left">interactive_port</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">gmetad交互式侦听端口。默认为8652。</td>
+</tr>
+<tr>
+<td style="text-align:left">server_threads</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">允许同时连接到侦听端口的连接数，默认为4。</td>
+</tr>
+<tr>
+<td style="text-align:left">case_sensitive_hostnames</td>
+<td style="text-align:left">1或0</td>
+<td style="text-align:left">在gmetad之前版本中，RRD文件区分主机名大小写，但是现在已经有所改变。如果希望使用Ganglia 3.2之前版本创建RRD，设置为1即可。</td>
+</tr>
+</tbody>
+</table>
+<h5 id="RRDtool属性"><a href="#RRDtool属性" class="headerlink" title="RRDtool属性"></a>RRDtool属性</h5><table>
+<thead>
+<tr>
+<th style="text-align:left">属性</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">RRA</td>
+<td style="text-align:left">文本格式</td>
+<td style="text-align:left">代表自定义的罗宾环存档值。默认为（15秒步进）”RRD:AVERAGE:0.5:1:5856” “RRA:AVERAGE:0.5:4:20160” “RRA:AVERAGE:0.5:40:52704”。</td>
+</tr>
+<tr>
+<td style="text-align:left">umask</td>
+<td style="text-align:left">数字</td>
+<td style="text-align:left">指定已创建RRD文件及其目录的umask。默认为022。</td>
+</tr>
+<tr>
+<td style="text-align:left">rrd_rootdir</td>
+<td style="text-align:left">路径</td>
+<td style="text-align:left">指定RRD文件在本地文件系统存储的基本目录。</td>
+</tr>
+</tbody>
+</table>
+<h5 id="Graphite支持"><a href="#Graphite支持" class="headerlink" title="Graphite支持"></a>Graphite支持</h5><p>通过如下的设置，可以将gmetad收集到的指标数据输出到Graphite。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">carbon_server</td>
+<td style="text-align:left">地址</td>
+<td style="text-align:left">远程carbon守护进程的主机名或IP。</td>
+</tr>
+<tr>
+<td style="text-align:left">carbon_port</td>
+<td style="text-align:left">数字（可选）</td>
+<td style="text-align:left">carbon端口号，默认为2003。</td>
+</tr>
+<tr>
+<td style="text-align:left">graphite_prefix</td>
+<td style="text-align:left">文本</td>
+<td style="text-align:left">Graphite使用点分隔的路径来管理和查阅指标数据，所以可以在指标数据前面加上诸如datacenter1.gmetad的描述内容，以便Graphite更好的管理这些指标数据。</td>
+</tr>
+<tr>
+<td style="text-align:left">carbon_timeout</td>
+<td style="text-align:left">数字（毫秒）</td>
+<td style="text-align:left">gmetad等待Graphite服务器响应的毫秒数。这个设置很重要，因为gmetad的carbon发送器不是线程的，需要收到来自下游carbon守护进程的响应后才能进行后续发送。默认为500。</td>
+</tr>
+</tbody>
+</table>
+<h5 id="gmetad交互式端口查询语法"><a href="#gmetad交互式端口查询语法" class="headerlink" title="gmetad交互式端口查询语法"></a>gmetad交互式端口查询语法</h5><p>gmetad通过TCP端口8652侦听交互式查询。这种交互式查询功能使得客户端程序可以用XML方式只查询某一部分的网格状态。<br>交互式查询通过一种文本协议（类似于SMTP或HTTP）来完成，是一种以斜线开始的层次话查询方式。例如，下面的查询将返回整个网格状态的XML数据：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/</div></pre></td></tr></table></figure></p>
+<p>为了缩减查询结果，可以指定集群名：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/cluster1</div></pre></td></tr></table></figure></p>
+<p>为了进一步缩减查询结果，还可以指定集群内的主机名：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/cluster1/host1</div></pre></td></tr></table></figure></p>
+<p>还可以在查询词后面添加过滤器来修改返回的指标数据类型（目前过滤器只有summary）：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">/cluster1?filter=summary</div></pre></td></tr></table></figure></p>
+<h3 id="gweb-1"><a href="#gweb-1" class="headerlink" title="gweb"></a>gweb</h3><p>无需改变gweb的任何配置，gweb就可以启动并运行功能齐全的web客户端。</p>
+<h4 id="Apache虚拟主机配置"><a href="#Apache虚拟主机配置" class="headerlink" title="Apache虚拟主机配置"></a>Apache虚拟主机配置</h4><p>详情参考<a href="http://httpd.apache.org/docs/2.0/vhosts" title="Apache" target="_blank" rel="external">http://httpd.apache.org/docs/2.0/vhosts</a>。</p>
+<h4 id="gweb可选项"><a href="#gweb可选项" class="headerlink" title="gweb可选项"></a>gweb可选项</h4><p>gweb是由conf.php文件进行配置的，其实该文件重写并扩展了conf_default.php中的默认配置。conf.php位于Web跟目录下。</p>
+<h4 id="应用设置"><a href="#应用设置" class="headerlink" title="应用设置"></a>应用设置</h4><p>该类中的属性会影响gewb的功能参数，用户很少需要修改这些属性，但是有一些值得注意：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">属性</th>
+<th style="text-align:left">类型</th>
+<th style="text-align:left">表示</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">templates</td>
+<td style="text-align:left">路径</td>
+<td style="text-align:left">指定gweb搜索模板文件的目录。</td>
+</tr>
+<tr>
+<td style="text-align:left">graphdir</td>
+<td style="text-align:left">路径</td>
+<td style="text-align:left">代表用户放置JSON格式的定制图表的路径。用户可能会以JSON格式定制报告图表，并保存在该目录，而且这些报告会显示在UI上。</td>
+</tr>
+<tr>
+<td style="text-align:left">rrds</td>
+<td style="text-align:left">路径</td>
+<td style="text-align:left">指定RRD文件目录。</td>
+</tr>
+</tbody>
+</table>
+<h4 id="外观和感觉"><a href="#外观和感觉" class="headerlink" title="外观和感觉"></a>外观和感觉</h4><p>gweb可以功过配置(max_graphs)来限制一次显示的图表数目，也可以指定网络和主机的显示列数。一些布尔选项也可以影响初次启动时UI的展示形式。<br>conf.php文件中定义了许多修改UI图表功能属性的设置。</p>
+<h3 id="检查安装"><a href="#检查安装" class="headerlink" title="检查安装"></a>检查安装</h3><p>gmond和gmetad都是通过TCP socket侦听入站连接的。为了检查gmond是否在指定主机上工作，telnet到gmond的TCP端口：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">telnet localhost 8649</div></pre></td></tr></table></figure></p>
+<p>gmond会输出以XML格式的指标数据作为应答。如果gmond是单发或单收节点，它会反水一个仅携带CLUSTER标识符的空的XML文档。姜茶gmetad可以通过如下指令telnet：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">telnet localhost 8651</div></pre></td></tr></table></figure></p>
+<p>正常运行的gmetad会输出XML格式的指标数据。</p>
+<h1 id="安装实例"><a href="#安装实例" class="headerlink" title="安装实例"></a>安装实例</h1><p>安装使用的是安装包，而非自己编译。</p>
+<h2 id="安装gmetad节点"><a href="#安装gmetad节点" class="headerlink" title="安装gmetad节点"></a>安装gmetad节点</h2><p>安装gmetad的节点需要安装gmetad、gmond、gweb、rrdtool、apache web server以及各自的依赖。依赖主要有：<br>gmetad节点需要同时配置gmetad.conf(/etc/ganglia/gmond.conf)、gmond.conf(/etc/ganglia/gmond.conf)和gweb的配置。gmond主要用于收集，gmetad主要用于轮询和存储。</p>
+<h3 id="配置ganglia-conf"><a href="#配置ganglia-conf" class="headerlink" title="配置ganglia.conf"></a>配置ganglia.conf</h3><p>配置文件位于/etc/httpd/conf.d/ganglia.conf。主要为了修改ganglia集群的访问规则。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">cation /ganglia&gt;</div><div class="line">  <span class="comment">#Order deny,allow</span></div><div class="line">  Allow from all <span class="comment">#来自任何位置的请求都允许</span></div><div class="line">  Allow from 127.0.0.1</div><div class="line">  Allow from ::1</div><div class="line">  <span class="comment"># Allow from .example.com</span></div><div class="line">&lt;/Location&gt;</div></pre></td></tr></table></figure></p>
+<h3 id="配置gmetad-conf"><a href="#配置gmetad-conf" class="headerlink" title="配置gmetad.conf"></a>配置gmetad.conf</h3><p>这里配置该文件(/etc/ganglia/gmetad.conf)，主要是为了定义数据源、gmetad轮询的间隔和轮询的主机以及其他关于rrd存储的配置。配置如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">data_source <span class="string">"hadoop"</span> 10 server-001.yz  <span class="comment">#定义数据源、轮询间隔、轮询的主机</span></div><div class="line">rrd_rootdir <span class="string">"/data10/ganglia/rrds"</span>     <span class="comment">#定义rrd文件的存储位置，需要放在一个较大空间的磁盘</span></div></pre></td></tr></table></figure></p>
+<h3 id="配置gmond"><a href="#配置gmond" class="headerlink" title="配置gmond"></a>配置gmond</h3><p>这里配置该文件(/etc/ganglia/gmond.conf)，主要是配置指标数据汇聚节点，用于gmetad的轮询。配置如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#集群信息</span></div><div class="line">cluster &#123;</div><div class="line">  name = <span class="string">"hadoop"</span></div><div class="line">  owner = <span class="string">"unspecified"</span></div><div class="line">  latlong = <span class="string">"unspecified"</span></div><div class="line">  url = <span class="string">"unspecified"</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">#指标接收</span></div><div class="line">udp_recv_channel &#123;</div><div class="line">  port = 9649</div><div class="line">  <span class="built_in">bind</span> = server-001.yz</div><div class="line">  retry_bind = <span class="literal">true</span></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">#用户gmetad的轮询</span></div><div class="line">tcp_accept_channel &#123;</div><div class="line">  port = 8649</div><div class="line">  gzip_output = no</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="配置gweb"><a href="#配置gweb" class="headerlink" title="配置gweb"></a>配置gweb</h3><p>这里配置该文件(/etc/ganglia/conf.php)，主要是设置web的信息，如果rrdtool的位置、rrd的位置等。该文件是/usr/share/ganglia/conf_default.php的扩展。配置信息如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$conf</span>[<span class="string">'gweb_confdir'</span>] = <span class="string">"/data10/ganglia/"</span>;  <span class="comment">#gweb的根目录</span></div><div class="line"><span class="variable">$conf</span>[<span class="string">'gmetad_root'</span>] = <span class="string">"/data10/ganglia/"</span>;   <span class="comment">#gmetad的根目录</span></div><div class="line"><span class="variable">$conf</span>[<span class="string">'rrdtool'</span>] = <span class="string">"/usr/bin/rrdtool"</span>;       <span class="comment">#rrdtool的位置</span></div></pre></td></tr></table></figure></p>
+<p>这里需要注意”gmetad_root”的目录需要是ganglia用户的，且有写权限。并且目录应该包含conf和dwoo。这两个目录中包含了有关gweb的数据显示等各种文件，该文件不应该由用户自己创建，可以从/var/lib/ganglia进行拷贝。</p>
+<h3 id="启动服务"><a href="#启动服务" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">service gmond start</div><div class="line">service gmetad start</div><div class="line">service httpd start</div></pre></td></tr></table></figure>
+<h2 id="安装gmond节点"><a href="#安装gmond节点" class="headerlink" title="安装gmond节点"></a>安装gmond节点</h2><p>安装gmond节点需要安装gmond以及依赖。依赖和gmetad的相同。gmond主要用于收集节点的指标数据。</p>
+<h3 id="配置gmond-conf"><a href="#配置gmond-conf" class="headerlink" title="配置gmond.conf"></a>配置gmond.conf</h3><p>这里配置该文件(/etc/ganglia/gmond.conf)，主要是为了收集指标数据，并将数据以udp的方式发送给汇聚用的gmond。配置如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">cluster &#123;</div><div class="line">  name = <span class="string">"hadoop"</span></div><div class="line">  owner = <span class="string">"unspecified"</span></div><div class="line">  latlong = <span class="string">"unspecified"</span></div><div class="line">  url = <span class="string">"unspecified"</span></div><div class="line">&#125;</div><div class="line"></div><div class="line">udp_send_channel &#123;</div><div class="line">  host = server-001.yz</div><div class="line">  port = 9649</div><div class="line">  ttl = 1</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="启动服务-1"><a href="#启动服务-1" class="headerlink" title="启动服务"></a>启动服务</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">service gmond start</div></pre></td></tr></table></figure>
+<p>访问<a href="http://server-001.yz/ganglia" target="_blank" rel="external">http://server-001.yz/ganglia</a> 就可以看到页面效果了。</p>
+<h1 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h1><h2 id="图表没有数据或者数据不可读"><a href="#图表没有数据或者数据不可读" class="headerlink" title="图表没有数据或者数据不可读"></a>图表没有数据或者数据不可读</h2><p>首先要确定是真的没有数据，还是gweb没有读到数据。是否有数据可以通过telnet gmetad或在rrd目录中查看来进行核实。本例中遇到的问题是有数据，但是gweb没有读到。<br>通过各种查询发现gweb配置文件中rdd和gweb配置的根目录与存放RDD的实际目录不相符，修改后可以正常显示。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/ganglia/" rel="tag">#ganglia</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/09/10/spark-tuningSpark/" rel="next" title="Tuning Spark">
+                <i class="fa fa-chevron-left"></i> Tuning Spark
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/09/21/flume-install/" rel="prev" title="Flume Install">
+                Flume Install <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Ganglia的安装"><span class="nav-number">1.</span> <span class="nav-text">Ganglia的安装</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gmond"><span class="nav-number">1.1.</span> <span class="nav-text">gmond</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gmetad"><span class="nav-number">1.2.</span> <span class="nav-text">gmetad</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#gweb"><span class="nav-number">1.3.</span> <span class="nav-text">gweb</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Ganglia的配置"><span class="nav-number">2.</span> <span class="nav-text">Ganglia的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#gmond-1"><span class="nav-number">2.1.</span> <span class="nav-text">gmond</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#拓扑结构"><span class="nav-number">2.1.1.</span> <span class="nav-text">拓扑结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置文件"><span class="nav-number">2.1.2.</span> <span class="nav-text">配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#section-globals"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">section:globals</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-cluster"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">section:cluster</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-host"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">section:host</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-UDP-channels"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">section:UDP channels</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#udp-send-channel"><span class="nav-number">2.1.2.4.1.</span> <span class="nav-text">udp_send_channel</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#udp-recv-channel"><span class="nav-number">2.1.2.4.2.</span> <span class="nav-text">udp_recv_channel</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-TCP-Accept-Channel"><span class="nav-number">2.1.2.5.</span> <span class="nav-text">section: TCP Accept Channel</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Access-control"><span class="nav-number">2.1.2.5.1.</span> <span class="nav-text">Access control</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-sFlow"><span class="nav-number">2.1.2.6.</span> <span class="nav-text">section:sFlow</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-modules"><span class="nav-number">2.1.2.7.</span> <span class="nav-text">section:modules</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#section-collection-group"><span class="nav-number">2.1.2.8.</span> <span class="nav-text">section: collection_group</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gmetad-1"><span class="nav-number">2.1.3.</span> <span class="nav-text">gmetad</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#gmetad拓扑"><span class="nav-number">2.1.3.1.</span> <span class="nav-text">gmetad拓扑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gmetad-conf配置文件"><span class="nav-number">2.1.3.2.</span> <span class="nav-text">gmetad.conf配置文件</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#data-source"><span class="nav-number">2.1.3.2.1.</span> <span class="nav-text">data_source</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#gmetad守护进程行为"><span class="nav-number">2.1.3.2.2.</span> <span class="nav-text">gmetad守护进程行为</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#RRDtool属性"><span class="nav-number">2.1.3.2.3.</span> <span class="nav-text">RRDtool属性</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Graphite支持"><span class="nav-number">2.1.3.2.4.</span> <span class="nav-text">Graphite支持</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#gmetad交互式端口查询语法"><span class="nav-number">2.1.3.2.5.</span> <span class="nav-text">gmetad交互式端口查询语法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#gweb-1"><span class="nav-number">2.1.4.</span> <span class="nav-text">gweb</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Apache虚拟主机配置"><span class="nav-number">2.1.4.1.</span> <span class="nav-text">Apache虚拟主机配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#gweb可选项"><span class="nav-number">2.1.4.2.</span> <span class="nav-text">gweb可选项</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#应用设置"><span class="nav-number">2.1.4.3.</span> <span class="nav-text">应用设置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#外观和感觉"><span class="nav-number">2.1.4.4.</span> <span class="nav-text">外观和感觉</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#检查安装"><span class="nav-number">2.1.5.</span> <span class="nav-text">检查安装</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装实例"><span class="nav-number">3.</span> <span class="nav-text">安装实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装gmetad节点"><span class="nav-number">3.1.</span> <span class="nav-text">安装gmetad节点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置ganglia-conf"><span class="nav-number">3.1.1.</span> <span class="nav-text">配置ganglia.conf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置gmetad-conf"><span class="nav-number">3.1.2.</span> <span class="nav-text">配置gmetad.conf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置gmond"><span class="nav-number">3.1.3.</span> <span class="nav-text">配置gmond</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置gweb"><span class="nav-number">3.1.4.</span> <span class="nav-text">配置gweb</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动服务"><span class="nav-number">3.1.5.</span> <span class="nav-text">启动服务</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装gmond节点"><span class="nav-number">3.2.</span> <span class="nav-text">安装gmond节点</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#配置gmond-conf"><span class="nav-number">3.2.1.</span> <span class="nav-text">配置gmond.conf</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动服务-1"><span class="nav-number">3.2.2.</span> <span class="nav-text">启动服务</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见问题"><span class="nav-number">4.</span> <span class="nav-text">常见问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#图表没有数据或者数据不可读"><span class="nav-number">4.1.</span> <span class="nav-text">图表没有数据或者数据不可读</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

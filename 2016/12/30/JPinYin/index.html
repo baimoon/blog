@@ -1,0 +1,679 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="汉字转拼音," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文主要介绍JPinYin的使用和配置，github的地址。
+简单介绍Jpinyin是一个开源的用于将汉字转换为拼音的java库。
+主要特性1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为10">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JPinYin">
+<meta property="og:url" content="http://baimoon.github.io/2016/12/30/JPinYin/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文主要介绍JPinYin的使用和配置，github的地址。
+简单介绍Jpinyin是一个开源的用于将汉字转换为拼音的java库。
+主要特性1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为10">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/Jpinyin_java_source.png">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/Jpinyin_resource.png">
+<meta property="og:updated_time" content="2017-01-15T13:54:40.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JPinYin">
+<meta name="twitter:description" content="本文主要介绍JPinYin的使用和配置，github的地址。
+简单介绍Jpinyin是一个开源的用于将汉字转换为拼音的java库。
+主要特性1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为10">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/Jpinyin_java_source.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/12/30/JPinYin/"/>
+
+  <title> JPinYin | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                JPinYin
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-30T16:28:15+08:00" content="2016-12-30">
+              2016-12-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/NLP/" itemprop="url" rel="index">
+                    <span itemprop="name">NLP</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文主要介绍JPinYin的使用和配置，<a href="https://github.com/stuxuhai/jpinyin" title="Jpinyin" target="_blank" rel="external">github的地址</a>。</p>
+<h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><p>Jpinyin是一个开源的用于将汉字转换为拼音的java库。</p>
+<h2 id="主要特性"><a href="#主要特性" class="headerlink" title="主要特性"></a>主要特性</h2><p>1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。<br>2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为100毫秒。<br>3、支持多种拼音格式：Jpinyin支持多种拼音输出格式：带声调、不带声调、数字表示声调以及拼音首字母格式输出。<br>4、常见多音字识别：Jpinyin支持常见多音字的识别，其中包括词组、成语、地名等；<br>5、简繁体中文互转。<br>6、支持用户自定义字典。</p>
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;com.github.stuxuhai&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;jpinyin&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.1.8&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">String str = <span class="string">"你好世界"</span>;</div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_MARK); <span class="comment">// nǐ,hǎo,shì,jiè</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_NUMBER); <span class="comment">// ni3,hao3,shi4,jie4</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITHOUT_TONE); <span class="comment">// ni,hao,shi,jie</span></div><div class="line">PinyinHelper.getShortPinyin(str); <span class="comment">// nhsj</span></div><div class="line">PinyinHelper.addPinyinDict(<span class="string">"user.dict"</span>);  <span class="comment">// 添加用户自定义字典</span></div></pre></td></tr></table></figure>
+<a id="more"></a>
+<h1 id="源码分析"><a href="#源码分析" class="headerlink" title="源码分析"></a>源码分析</h1><p>下面的部分，试着从源码来理解Jpinyin，以便更好的使用它。</p>
+<h2 id="结构"><a href="#结构" class="headerlink" title="结构"></a>结构</h2><p><img src="http://oaavtz33a.bkt.clouddn.com/Jpinyin_java_source.png" alt="源代码部分" title="图-1 java代码"><br>根据(图-1)中可以看出，Jpinyin的实现主要由6个Java类来实现，其中PinyinException是一个异常类，定义了Pinyin异常；PinyinFormat为枚举类，用于定义汉字转拼音的格式（前面提到的：带声调、不带声调和数字表示声调三种），主要作为PinyinHelper类中方法的参数；PinyinHelper类，用来将汉字转换为不同格式的拼音，以及将汉字转换为拼音首字母缩写；PinyinResource类，用来加载拼音资源，主要是提供了从文件加载字典数据，并将数据以字典(Map)类型的数据结构保存在内存中；ChinesHelper类，用来是实现汉字繁简互转的功能；DoubleArrayTrie类，是Double-Array trie的实现，用来将词组装配成一棵，并使用这棵树来检测词组。</p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/Jpinyin_resource.png" alt="资源部分" title="图-2 资源"><br>根据(图-2)中可以看出，Jpinyin的资源中有三个数据文件，分别为chinese.dict、mutil_pinyin.dict和pinyin.dict。其中，chinese.dict存储的是繁体字与简体字之间的对应关系；mutil_pinyin.dict存储的是词组；pinyin.dict存储的是单字的读音（如果是多音字则对一个多个拼音，多个拼音之间使用逗号分隔，如：重=zhòng,chóng）。</p>
+<h2 id="代码"><a href="#代码" class="headerlink" title="代码"></a>代码</h2><p>了解了项目工程的结构，我们来具体的看一下Jpinyin的实现</p>
+<h3 id="PinyinException类"><a href="#PinyinException类" class="headerlink" title="PinyinException类"></a>PinyinException类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">PinyinException</span> <span class="keyword">extends</span> <span class="title">Exception</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">1L</span>;</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="title">PinyinException</span><span class="params">(String message)</span> </span>&#123;</div><div class="line">        <span class="keyword">super</span>(message);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>该类主要就是定义了一个异常类，用于区分普通异常和该项目的异常。</p>
+<h3 id="pinyinFormat类"><a href="#pinyinFormat类" class="headerlink" title="pinyinFormat类"></a>pinyinFormat类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">enum</span> PinyinFormat &#123;</div><div class="line">    WITH_TONE_MARK, WITHOUT_TONE, WITH_TONE_NUMBER;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>该类为枚举类型，用来定义拼音的格式。主要作为PyinHelper类中方法的参数，用来在汉字转换为拼音时的格式，如：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_MARK);</div></pre></td></tr></table></figure></p>
+<p>其中WITH_TONE_MARK表示带声调的拼音格式，如nǐ,hǎo,shì,jiè；WITHOUT_TONE表示不带声调的拼音格式，如ni,hao,shi,jie；WITH_TONE_NUMBER表示使用数字表示声调的拼音格式，如ni3,hao3,shi4,jie4。</p>
+<h3 id="PinyinResource类"><a href="#PinyinResource类" class="headerlink" title="PinyinResource类"></a>PinyinResource类</h3><p>PinyinResource类主要用来加载资源文件（resource/data目录中的数据文件），并将资源文件以Map为数据结构保存到内存中。该类提供了6个方法：<br>两个方法用于获取资源的输入，并以UTF-8格式读入：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//以当前类的类加载器的输入来获取资源文件的输入</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Reader <span class="title">newClassPathReader</span><span class="params">(String classpath)</span> </span>&#123;</div><div class="line">    InputStream is = PinyinResource.class.getResourceAsStream(classpath);</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> InputStreamReader(is, <span class="string">"UTF-8"</span>);</div><div class="line">    &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"><span class="comment">//以文件的输入来获取资源文件的输入</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Reader <span class="title">newFileReader</span><span class="params">(String path)</span> <span class="keyword">throws</span> FileNotFoundException </span>&#123;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">new</span> InputStreamReader(<span class="keyword">new</span> FileInputStream(path), <span class="string">"UTF-8"</span>);</div><div class="line">    &#125; <span class="keyword">catch</span> (UnsupportedEncodingException e) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>一个资源加载方法，并以Map作为数据结构进行存储：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//根据输入源，将资源文件加载到内存中（以Map作为数据结构）</span></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">getResource</span><span class="params">(Reader reader)</span> </span>&#123;</div><div class="line">    Map&lt;String, String&gt; map = <span class="keyword">new</span> ConcurrentHashMap&lt;String, String&gt;();</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        BufferedReader br = <span class="keyword">new</span> BufferedReader(reader);</div><div class="line">        String line = <span class="keyword">null</span>;</div><div class="line">        <span class="comment">//循环读取资源文件中的每一行</span></div><div class="line">        <span class="keyword">while</span> ((line = br.readLine()) != <span class="keyword">null</span>) &#123;</div><div class="line">        	<span class="comment">//由此可以看出，资源文件的格式必须是key=value，并且数据以key和value的方式加载到内存中</span></div><div class="line">            String[] tokens = line.trim().split(<span class="string">"="</span>);</div><div class="line">            map.put(tokens[<span class="number">0</span>], tokens[<span class="number">1</span>]);</div><div class="line">        &#125;</div><div class="line">        br.close();</div><div class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(e);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> map;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>三个资源加载调用方法，分别加载pinyin.dict、mutil_pinyin.dict、chinese.dict：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">getPinyinResource</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> getResource(newClassPathReader(<span class="string">"/data/pinyin.dict"</span>));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">getMutilPinyinResource</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> getResource(newClassPathReader(<span class="string">"/data/mutil_pinyin.dict"</span>));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">getChineseResource</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> getResource(newClassPathReader(<span class="string">"/data/chinese.dict"</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="ChineseHelper类"><a href="#ChineseHelper类" class="headerlink" title="ChineseHelper类"></a>ChineseHelper类</h3><p>ChineseHelper类主要用于繁体字和简体字之间的转换、体字的检测，并提供了一个方法用来扩展用户自定义的繁体字对应简体字的字库（字库的格式必须是key=value，因为它使用的是PinyinResource中的资源加载方式）。<br>首先是两个类变量：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//汉字的正则表达式，这个值范围内的表示为汉字</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String CHINESE_REGEX = <span class="string">"[\\u4e00-\\u9fa5]"</span>;</div><div class="line"><span class="comment">//加载资源文件“/data/chinese.dict”中的数据，由这里看，好像由繁体转换为简体速度应该会很快</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, String&gt; CHINESE_MAP = PinyinResource.getChineseResource();</div></pre></td></tr></table></figure></p>
+<p>简体字和繁体字之间的互转，包括单个字和多个字：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//将繁体字转换为简体字，因为CHINESE_MAP就是繁体字-&gt;简体字的映射，因此直接在该Map中查找</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">char</span> <span class="title">convertToSimplifiedChinese</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</div><div class="line">	<span class="comment">//因为CHINESE_MAP中存储的是字符串，因此需要将字节转换为字符串，然后进行查找</span></div><div class="line">    String simplifiedChinese = CHINESE_MAP.get(String.valueOf(c));</div><div class="line">    <span class="keyword">if</span> (simplifiedChinese != <span class="keyword">null</span>) &#123;</div><div class="line">    	<span class="comment">//要求返回的是char类型</span></div><div class="line">        <span class="keyword">return</span> simplifiedChinese.charAt(<span class="number">0</span>);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> c;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/* 将简体字转换为繁体字，该方法效率很低，因为CHINESE_MAP是繁体字到简体字的转换，</span></div><div class="line"> * 而没有简体字到繁体字之间的映射数据，因此只能对CHINESE_MAP进行遍历，然后匹配每个entry的值来判断</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">char</span> <span class="title">convertToTraditionalChinese</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</div><div class="line">	<span class="comment">//因为CHINESE_MAP中存储的是字符串，因此需要将字符转换为字符串</span></div><div class="line">    String simplifiedChinese = String.valueOf(c);</div><div class="line">    <span class="comment">//循环CHINESE_MAP中的所有entry，并对entry的value进行判断</span></div><div class="line">    <span class="keyword">for</span> (Entry&lt;String, String&gt; entry : CHINESE_MAP.entrySet()) &#123;</div><div class="line">        <span class="keyword">if</span> (entry.getValue().equals(simplifiedChinese)) &#123;</div><div class="line">            <span class="keyword">return</span> entry.getKey().charAt(<span class="number">0</span>);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> c;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//将繁体字符串转换为简体字符串，其实现就是循环字符串的每个字符的转换，然后拼接在一起</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">convertToSimplifiedChinese</span><span class="params">(String str)</span> </span>&#123;</div><div class="line">    StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, len = str.length(); i &lt; len; i++) &#123;</div><div class="line">        <span class="keyword">char</span> c = str.charAt(i);</div><div class="line">        sb.append(convertToSimplifiedChinese(c));</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sb.toString();</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">/* 将简体字符串转换为繁体字符串，效率很低，每个字的转换都需要遍历整个CHINESE_MAP，如果频繁使用需要优化</span></div><div class="line"> * 其实现就是循环简体字符串的每个字符，然后拼接在一起</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">convertToTraditionalChinese</span><span class="params">(String str)</span> </span>&#123;</div><div class="line">    StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, len = str.length(); i &lt; len; i++) &#123;</div><div class="line">        <span class="keyword">char</span> c = str.charAt(i);</div><div class="line">        sb.append(convertToTraditionalChinese(c));</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> sb.toString();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>字体检测：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* 检测是否是繁体字，因为该方法是从CHINESE_MAP中的keys中查找，如果chinese.dict数据文件中有遗漏，则检测是不准的</span></div><div class="line"> * 其实现就是判断CHINESE_MAP中是否包含了指定的key</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isTraditionalChinese</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> CHINESE_MAP.containsKey(String.valueOf(c));</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//判断给定的字符是否是中文，其实现是判断字符是否在CHINESE_REGEX所指定的范围内，或者是否等于'〇'</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">isChinese</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="string">'〇'</span> == c || String.valueOf(c).matches(CHINESE_REGEX);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//判断给定的字符串是否包含中文，循环字符串中的每个字符，逐个判断</span></div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">containsChinese</span><span class="params">(String str)</span> </span>&#123;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, len = str.length(); i &lt; len; i++) &#123;</div><div class="line">        <span class="keyword">if</span> (isChinese(str.charAt(i))) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>添加用户自定义的繁体字对应简体字的字库：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*将指定路径的数据资源添加到繁体字与简体字映射关系的数据结构中，要求path指定的数据文件必须是key=value格式，并且key为繁体字</span></div><div class="line"> * 其实现就是将要添加的数据资源的Map添加到已有映射关系的Map中</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addChineseDict</span><span class="params">(String path)</span> <span class="keyword">throws</span> FileNotFoundException </span>&#123;</div><div class="line">    CHINESE_MAP.putAll(PinyinResource.getResource(PinyinResource.newFileReader(path)));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="PinyinHelper类"><a href="#PinyinHelper类" class="headerlink" title="PinyinHelper类"></a>PinyinHelper类</h3><p>PinyinHelper类主要用于将中文的汉字转换为拼音（支持三种格式），并提供了添加用户自定义的汉字与拼音关系（单字和词组）的资源库的功能。<br>首先是类变量：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> List&lt;String&gt; dict = <span class="keyword">new</span> ArrayList&lt;String&gt;();</div><div class="line"></div><div class="line"><span class="comment">//存储了汉字到拼音之间的映射关系</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, String&gt; PINYIN_TABLE = PinyinResource.getPinyinResource();</div><div class="line"></div><div class="line"><span class="comment">//存储了词组（汉字）到拼音之间的映射关系</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, String&gt; MUTIL_PINYIN_TABLE = PinyinResource.getMutilPinyinResource();</div><div class="line"></div><div class="line"><span class="comment">//一个double数组结构------------------------------干啥用的呢</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> DoubleArrayTrie DOUBLE_ARRAY_TRIE = <span class="keyword">new</span> DoubleArrayTrie();</div><div class="line"></div><div class="line"><span class="comment">//拼音的默认分隔符，用户在调用转换的时候可以自定义</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PINYIN_SEPARATOR = <span class="string">","</span>; <span class="comment">// 拼音分隔符</span></div><div class="line"></div><div class="line"><span class="comment">//没有在4E00-9FA5范围之间的第20903个汉字</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">char</span> CHINESE_LING = <span class="string">'〇'</span>;</div><div class="line"></div><div class="line"><span class="comment">//</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ALL_UNMARKED_VOWEL = <span class="string">"aeiouv"</span>;</div><div class="line"></div><div class="line"><span class="comment">//所有可以标声调的字母</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String ALL_MARKED_VOWEL = <span class="string">"āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ"</span>; <span class="comment">// 所有带声调的拼音字母</span></div></pre></td></tr></table></figure></p>
+<p>静态块：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> &#123;</div><div class="line">	<span class="comment">//循环词组或短语库中的所有汉字，添加dict（ArrayList）中</span></div><div class="line">	<span class="keyword">for</span> (String word : MUTIL_PINYIN_TABLE.keySet()) &#123;</div><div class="line">		dict.add(word);</div><div class="line">	&#125;</div><div class="line">	<span class="comment">//将所有的词组进行排序，并使用排序后的词组集合构建一棵前缀树</span></div><div class="line">	Collections.sort(dict);</div><div class="line">	DOUBLE_ARRAY_TRIE.build(dict);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将声调格式的拼音转换为以数字表示声调的拼音<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] convertWithToneNumber(String pinyinArrayString) &#123;</div><div class="line">	<span class="comment">//将拼音字符串按照指定的分隔符进行拆分，拆分后的每个数组项是一个单独的拼音</span></div><div class="line">	String[] pinyinArray = pinyinArrayString.split(PINYIN_SEPARATOR);</div><div class="line"></div><div class="line">	<span class="comment">//循环拼音字符串的每个拼音</span></div><div class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = pinyinArray.length - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</div><div class="line"></div><div class="line">		<span class="comment">//用来记录是否有带声调的拼音字母，如果为false，可以是轻声的读音</span></div><div class="line">		<span class="keyword">boolean</span> hasMarkedChar = <span class="keyword">false</span>;</div><div class="line"></div><div class="line">		<span class="comment">//将ü替换为v，因为在英文键盘中，是没有ü的，而是使用v代替</span></div><div class="line">		<span class="comment">//这里的pinyinArray是拼音字符串中单个字的拼音</span></div><div class="line">		String originalPinyin = pinyinArray[i].replace(<span class="string">"ü"</span>, <span class="string">"v"</span>); <span class="comment">// 将拼音中的ü替换为v，注意这里没有替换ǖǘǚǜ</span></div><div class="line"></div><div class="line">		<span class="comment">//循环单个字的拼音中的每个字母</span></div><div class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> j = originalPinyin.length() - <span class="number">1</span>; j &gt;= <span class="number">0</span>; j--) &#123;</div><div class="line"></div><div class="line">			<span class="keyword">char</span> originalChar = originalPinyin.charAt(j);</div><div class="line"></div><div class="line">			<span class="comment">// 搜索带声调的拼音字母，如果存在则替换为对应不带声调的英文字母</span></div><div class="line">			<span class="comment">// 这里之所以使用(&lt; 'a' || &gt; 'z')这个条件来判断，是因为"āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ"没有在a-z之间，而其他的拼音均在，所以如果有</span></div><div class="line">			<span class="comment">// 不在这个范围内的字符，则表示有带声调的字母</span></div><div class="line">			<span class="keyword">if</span> (originalChar &lt; <span class="string">'a'</span> || originalChar &gt; <span class="string">'z'</span>) &#123;</div><div class="line"></div><div class="line">				<span class="comment">//查找声调字母在āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ中的位置，通过位置可以在下面可以计算出声调的值（是一声、二声、三声还是四声）</span></div><div class="line">				<span class="keyword">int</span> indexInAllMarked = ALL_MARKED_VOWEL.indexOf(originalChar);</div><div class="line"></div><div class="line">				<span class="comment">//利用上面索引位置与4取模，可以可以计算声调，但是声调是从1到4，因此需要加1</span></div><div class="line">				<span class="keyword">int</span> toneNumber = indexInAllMarked % <span class="number">4</span> + <span class="number">1</span>; <span class="comment">// 声调数</span></div><div class="line"></div><div class="line">				<span class="comment">//计算需要将声调字母替换成为的不带声调的字母，这里使用了一个计算公式，将ALL_MARKED_VOWEL中的字母转化为ALL_UNMARKED_VOWEL中的一个</span></div><div class="line">				<span class="keyword">char</span> replaceChar = ALL_UNMARKED_VOWEL.charAt((indexInAllMarked - indexInAllMarked % <span class="number">4</span>) / <span class="number">4</span>);</div><div class="line"></div><div class="line">				<span class="comment">//对字拼音中的声调字母进行替换，并在末尾添加声调所对应的数字</span></div><div class="line">				pinyinArray[i] = originalPinyin.replace(String.valueOf(originalChar), String.valueOf(replaceChar))</div><div class="line">						+ toneNumber;</div><div class="line">				<span class="comment">//替换成功则退出循环，因为拼音中只可能有一个声调，因此可以避免无谓的循环</span></div><div class="line">				hasMarkedChar = <span class="keyword">true</span>;</div><div class="line">				<span class="keyword">break</span>;</div><div class="line">			&#125;</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">//如果在上面没有发生带声调字母的替换，则标记为5，表示轻声</span></div><div class="line">		<span class="keyword">if</span> (!hasMarkedChar) &#123;</div><div class="line">			<span class="comment">// 找不到带声调的拼音字母说明是轻声，用数字5表示</span></div><div class="line">			pinyinArray[i] = originalPinyin + <span class="string">"5"</span>;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> pinyinArray;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将带声调的拼音转换为不带声调的拼音，并以数组的形式返回，每个数组项是一个字的拼音<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] convertWithoutTone(String pinyinArrayString) &#123;</div><div class="line">	String[] pinyinArray;</div><div class="line">	<span class="comment">//循环"āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ"中的每个字母</span></div><div class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = ALL_MARKED_VOWEL.length() - <span class="number">1</span>; i &gt;= <span class="number">0</span>; i--) &#123;</div><div class="line">		<span class="comment">//计算"āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ"中的每个字母与"aeiouv"中字母的对应关系，并用"aeiouv"的字母来替换"āáǎàēéěèīíǐìōóǒòūúǔùǖǘǚǜ"中的字母</span></div><div class="line">		<span class="keyword">char</span> originalChar = ALL_MARKED_VOWEL.charAt(i);</div><div class="line">		<span class="keyword">char</span> replaceChar = ALL_UNMARKED_VOWEL.charAt((i - i % <span class="number">4</span>) / <span class="number">4</span>);</div><div class="line">		pinyinArrayString = pinyinArrayString.replace(String.valueOf(originalChar), String.valueOf(replaceChar));</div><div class="line">	&#125;</div><div class="line">	<span class="comment">// 将拼音中的ü替换为v</span></div><div class="line">	pinyinArray = pinyinArrayString.replace(<span class="string">"ü"</span>, <span class="string">"v"</span>).split(PINYIN_SEPARATOR);</div><div class="line">	<span class="keyword">return</span> pinyinArray;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将拼音字符串按照给定的格式进行格式化，并以数组的形式返回，需要注意的是，这个方法只是提供格式化，提供的字符串已经是拼音了<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> String[] formatPinyin(String pinyinString, PinyinFormat pinyinFormat) &#123;</div><div class="line">	<span class="comment">//如果指定为带声调的字母的格式，则直接将字符串按照给定的分隔符进行拆分</span></div><div class="line">	<span class="keyword">if</span> (pinyinFormat == PinyinFormat.WITH_TONE_MARK) &#123;</div><div class="line">		<span class="keyword">return</span> pinyinString.split(PINYIN_SEPARATOR);</div><div class="line">	&#125; </div><div class="line"></div><div class="line">	<span class="comment">//如果指定为以数字表示声调的格式，则调用convertWithToneNumber方法进行格式化</span></div><div class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (pinyinFormat == PinyinFormat.WITH_TONE_NUMBER) &#123;</div><div class="line">		<span class="keyword">return</span> convertWithToneNumber(pinyinString);</div><div class="line">	&#125; </div><div class="line"></div><div class="line">	<span class="comment">//如果指定为不带声调格式的拼音，则调用converWithoutTone方法进行格式化</span></div><div class="line">	<span class="keyword">else</span> <span class="keyword">if</span> (pinyinFormat == PinyinFormat.WITHOUT_TONE) &#123;</div><div class="line">		<span class="keyword">return</span> convertWithoutTone(pinyinString);</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">new</span> String[<span class="number">0</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将单个汉字以pinyinFormat指定的格式进行转换，以数组的方式返回，是为了兼容多音字，多音字会返回多个拼音<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> String[] convertToPinyinArray(<span class="keyword">char</span> c, PinyinFormat pinyinFormat) &#123;</div><div class="line"></div><div class="line">	<span class="comment">//获取c字符的拼音，PINYIN_TABLE表示的是/data/pinyin.dict中的数据，是单个字与拼音的对应关系</span></div><div class="line">	String pinyin = PINYIN_TABLE.get(String.valueOf(c));</div><div class="line"></div><div class="line">	<span class="comment">//如果有对应的拼音信息，则将拼音按照指定的格式进行格式化（调用formatPinyin方法来实现）</span></div><div class="line">	<span class="keyword">if</span> ((pinyin != <span class="keyword">null</span>) &amp;&amp; (!<span class="string">"null"</span>.equals(pinyin))) &#123;</div><div class="line"></div><div class="line">		<span class="comment">//这里使用set来接收，是为了防止有多音字的情况，多音字会返回多个拼音</span></div><div class="line">		Set&lt;String&gt; set = <span class="keyword">new</span> LinkedHashSet&lt;String&gt;();</div><div class="line">		<span class="keyword">for</span> (String str : formatPinyin(pinyin, pinyinFormat)) &#123;</div><div class="line">			set.add(str);</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">//以数组的方式返回字的拼音，因为可能是多音字</span></div><div class="line">		<span class="keyword">return</span> set.toArray(<span class="keyword">new</span> String[set.size()]);</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">new</span> String[<span class="number">0</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将字转换为带有声调的拼音，通过调用convertToPinyinArray<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> String[] convertToPinyinArray(<span class="keyword">char</span> c) &#123;</div><div class="line">	<span class="keyword">return</span> convertToPinyinArray(c, PinyinFormat.WITH_TONE_MARK);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将字符串转换为指定格式的拼音字符串，并且品字符串中各个字的拼音之间使用separator指定的分隔符分隔<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">convertToPinyinString</span><span class="params">(String str, String separator, PinyinFormat pinyinFormat)</span> <span class="keyword">throws</span> PinyinException </span>&#123;</div><div class="line">	<span class="comment">//首先将字符串转换简体汉字</span></div><div class="line">	str = ChineseHelper.convertToSimplifiedChinese(str);</div><div class="line"></div><div class="line">	StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line">	<span class="keyword">int</span> i = <span class="number">0</span>;</div><div class="line">	<span class="keyword">int</span> strLen = str.length();</div><div class="line">	<span class="comment">//从字符串第一个字符开始循环</span></div><div class="line">	<span class="keyword">while</span> (i &lt; strLen) &#123;</div><div class="line"></div><div class="line">		<span class="comment">//获取字符串的第一个字符</span></div><div class="line">		String substr = str.substring(i);</div><div class="line"></div><div class="line">		<span class="comment">//-----这里应该是使用的前缀树进行查找，这里查找的应该是词组或这短语</span></div><div class="line">		List&lt;Integer&gt; commonPrefixList = DOUBLE_ARRAY_TRIE.commonPrefixSearch(substr);</div><div class="line"></div><div class="line">		<span class="comment">//如果通过上面的方法没有查找到以该字开头的词组，则进行单字的转换</span></div><div class="line">		<span class="keyword">if</span> (commonPrefixList.size() == <span class="number">0</span>) &#123;</div><div class="line"></div><div class="line">			<span class="comment">//获取要进行转换的字符</span></div><div class="line">			<span class="keyword">char</span> c = str.charAt(i);</div><div class="line"></div><div class="line">			<span class="comment">// 判断是否为汉字或者〇，如果是，则调用上面的convertToPinyinArray方法将字符转化为拼音，由于存在多音字，转换后的结果可能为数组</span></div><div class="line">			<span class="keyword">if</span> (ChineseHelper.isChinese(c) || c == CHINESE_LING) &#123;</div><div class="line">				String[] pinyinArray = convertToPinyinArray(c, pinyinFormat);</div><div class="line"></div><div class="line">				<span class="comment">//单字转换拼音时，如果结果不为空，则将拼音添加到拼音字符串的后面，如果返回的结果表示是多音字，则只取第一个读音</span></div><div class="line">				<span class="keyword">if</span> (pinyinArray != <span class="keyword">null</span>) &#123;</div><div class="line">					<span class="keyword">if</span> (pinyinArray.length &gt; <span class="number">0</span>) &#123;</div><div class="line">						sb.append(pinyinArray[<span class="number">0</span>]);</div><div class="line">					&#125; </div><div class="line">					<span class="comment">// 如果在单个字中没有找到对应的拼音，这里只会抛出异常信息，应该想办法收集没有拼音的汉字，并进行补充</span></div><div class="line">					<span class="keyword">else</span> &#123;</div><div class="line">						<span class="keyword">throw</span> <span class="keyword">new</span> PinyinException(<span class="string">"Can't convert to pinyin: "</span> + c);</div><div class="line">					&#125;</div><div class="line">				&#125; </div><div class="line">				<span class="comment">// 如果转换拼音失败，则表示字符可能46个异体字中的一个，直接添加到拼音字符串的后面</span></div><div class="line">				<span class="comment">//  -- 这里存在一个问题：假设任何符号都有拼音对应的意义，应该想办法收集起来，将这些符号转换为拼音</span></div><div class="line">				<span class="keyword">else</span> &#123;</div><div class="line">					sb.append(str.charAt(i));</div><div class="line">				&#125;</div><div class="line">			&#125; </div><div class="line">			<span class="comment">//如果不是汉字，则直接添加拼音字符串的后面</span></div><div class="line">			/  -- 这里存在一个问题：假设任何符号都有拼音对应的意义，应该想办法收集起来，将这些符号转换为拼音</div><div class="line">			<span class="keyword">else</span> &#123;</div><div class="line">				sb.append(c);</div><div class="line">			&#125;</div><div class="line">			<span class="comment">//将转换的索引加一</span></div><div class="line">			i++;</div><div class="line">		&#125; </div><div class="line">		<span class="comment">//表示通过前缀树，已经查找到了词组或短语</span></div><div class="line">		<span class="keyword">else</span> &#123;</div><div class="line"></div><div class="line">			<span class="comment">//获取从前缀树中查找到的词组或短语</span></div><div class="line">			String words = dict.get(commonPrefixList.get(commonPrefixList.size() - <span class="number">1</span>));</div><div class="line"></div><div class="line">			<span class="comment">//将查找到的词组到词组拼音表中获取对应的拼音，并调用formatPinyin方法，按照指定的格式对拼音进行格式化</span></div><div class="line">			String[] pinyinArray = formatPinyin(MUTIL_PINYIN_TABLE.get(words), pinyinFormat);</div><div class="line"></div><div class="line">			<span class="comment">//将格式化后的拼音添加到拼音字符串中，并且每个字的拼音之间使用分隔符进行分隔</span></div><div class="line">			<span class="keyword">for</span> (<span class="keyword">int</span> j = <span class="number">0</span>, l = pinyinArray.length; j &lt; l; j++) &#123;</div><div class="line">				sb.append(pinyinArray[j]);</div><div class="line">				<span class="keyword">if</span> (j &lt; l - <span class="number">1</span>) &#123;</div><div class="line">					sb.append(separator);</div><div class="line">				&#125;</div><div class="line">			&#125;</div><div class="line"></div><div class="line">			<span class="comment">//将汉字循环的索引进行前进</span></div><div class="line">			i += words.length();</div><div class="line">		&#125;</div><div class="line"></div><div class="line">		<span class="comment">//转换一部分拼音后，使用指定的分隔符进行分隔</span></div><div class="line">		<span class="keyword">if</span> (i &lt; strLen) &#123;</div><div class="line">			sb.append(separator);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> sb.toString();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将汉字字符串转换为带声调格式的拼音，调用convertToPinyinString方法，并指定转换的格式<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">convertToPinyinString</span><span class="params">(String str, String separator)</span> <span class="keyword">throws</span> PinyinException </span>&#123;</div><div class="line">	<span class="keyword">return</span> convertToPinyinString(str, separator, PinyinFormat.WITH_TONE_MARK);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>判断一个汉字是否是多音字，其实现就是将单个汉字转换为拼音数组，并判断返回的数组的元素的个数<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">boolean</span> <span class="title">hasMultiPinyin</span><span class="params">(<span class="keyword">char</span> c)</span> </span>&#123;</div><div class="line"></div><div class="line">	<span class="comment">//如果是多音字，convertToPinyinArray会返回一个长度大于1的数组</span></div><div class="line">	String[] pinyinArray = convertToPinyinArray(c);</div><div class="line">	<span class="keyword">if</span> (pinyinArray != <span class="keyword">null</span> &amp;&amp; pinyinArray.length &gt; <span class="number">1</span>) &#123;</div><div class="line">		<span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="keyword">false</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将汉字字符串转换拼音首字母<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">getShortPinyin</span><span class="params">(String str)</span> <span class="keyword">throws</span> PinyinException </span>&#123;</div><div class="line">	<span class="comment">//作为汉字字符串转换拼音时，拼音的分隔符</span></div><div class="line">	String separator = <span class="string">"#"</span>; <span class="comment">// 使用#作为拼音分隔符</span></div><div class="line"></div><div class="line">	<span class="comment">//该对象用来存储需要转换的汉字字符串，会去除汉字字符串中前面不属于汉字的那些字符，如 "*你好"，sb在计算完成之后应该为"你好"</span></div><div class="line">	StringBuilder sb = <span class="keyword">new</span> StringBuilder();</div><div class="line"></div><div class="line">	<span class="comment">//用来存储字符串拼音的首字母</span></div><div class="line">	<span class="keyword">char</span>[] charArray = <span class="keyword">new</span> <span class="keyword">char</span>[str.length()];</div><div class="line"></div><div class="line">	<span class="comment">//循环汉字字符串中的每个汉字，该部分代码逻辑比较复杂</span></div><div class="line">	<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, len = str.length(); i &lt; len; i++) &#123;</div><div class="line">		<span class="keyword">char</span> c = str.charAt(i);</div><div class="line"></div><div class="line">		<span class="comment">// 首先判断是否为汉字或者〇，不是的话直接将该字符返回，还可能是其他的字符，这里应该做一个收集并进行分析以便丰富词库</span></div><div class="line">		<span class="keyword">if</span> (!ChineseHelper.isChinese(c) &amp;&amp; c != CHINESE_LING) &#123;</div><div class="line">			charArray[i] = c;</div><div class="line">		&#125; </div><div class="line"></div><div class="line">		<span class="comment">//到这里，则表示字符是汉字或着〇</span></div><div class="line">		<span class="keyword">else</span> &#123;</div><div class="line">			<span class="keyword">int</span> j = i + <span class="number">1</span>;</div><div class="line">			sb.append(c);</div><div class="line"></div><div class="line">			<span class="comment">// 从str第一个汉字字符之后，连续提取汉字字符，并将汉字添加到sb中，遇到非汉字后，则终止该循环</span></div><div class="line">			<span class="keyword">while</span> (j &lt; len &amp;&amp; (ChineseHelper.isChinese(str.charAt(j)) || str.charAt(j) == CHINESE_LING)) &#123;</div><div class="line">				sb.append(str.charAt(j));</div><div class="line">				j++;</div><div class="line">			&#125;</div><div class="line"></div><div class="line">			<span class="comment">//将上面提取出来的汉字字符串转换为拼音（没有声调的拼音）</span></div><div class="line">			String hanziPinyin = convertToPinyinString(sb.toString(), separator, PinyinFormat.WITHOUT_TONE);</div><div class="line"></div><div class="line">			<span class="comment">//将拼音按照指定的分隔符进行拆分，然后提取才分后，各个数组元素的首字母</span></div><div class="line">			String[] pinyinArray = hanziPinyin.split(separator);</div><div class="line">			<span class="keyword">for</span> (String string : pinyinArray) &#123;</div><div class="line">				charArray[i] = string.charAt(<span class="number">0</span>);</div><div class="line">				i++;</div><div class="line">			&#125;</div><div class="line"></div><div class="line">			<span class="comment">//如果在while循环中遇到了非汉字后，会走到这里从而再次进入for循环</span></div><div class="line">			i--;</div><div class="line">			sb.setLength(<span class="number">0</span>);</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="comment">//返回拼音首字母缩写</span></div><div class="line">	<span class="keyword">return</span> String.valueOf(charArray);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>添加用户自定义汉字与拼音的对应关系数据，要求添加的文件的格式必须是key=value，其中key是汉字，value是拼音。因为使用的统一的资源加载器。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addPinyinDict</span><span class="params">(String path)</span> <span class="keyword">throws</span> FileNotFoundException </span>&#123;</div><div class="line">	PINYIN_TABLE.putAll(PinyinResource.getResource(PinyinResource.newFileReader(path)));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>添加用户自定义的词组与拼音的对应关系数据，要求数据文件的格式必须是key=value，其中key是词组，value是对应的拼音。因为它使用的是统一的资源加载器。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">addMutilPinyinDict</span><span class="params">(String path)</span> <span class="keyword">throws</span> FileNotFoundException </span>&#123;</div><div class="line">	<span class="comment">//将自定义数据的汉字词组与拼音的对应关系添加到MUTIL_PINYIN_TABLE中，以便根据词组查找对应的拼音</span></div><div class="line">	MUTIL_PINYIN_TABLE.putAll(PinyinResource.getResource(PinyinResource.newFileReader(path)));</div><div class="line"></div><div class="line">	<span class="comment">//将ArrayList清空，该ArrayList用来构建前缀树</span></div><div class="line">	dict.clear();</div><div class="line"></div><div class="line">	<span class="comment">//清空前缀树中的数据</span></div><div class="line">	DOUBLE_ARRAY_TRIE.clear();</div><div class="line"></div><div class="line">	<span class="comment">//重新构建前缀树</span></div><div class="line">	<span class="keyword">for</span> (String word : MUTIL_PINYIN_TABLE.keySet()) &#123;</div><div class="line">		dict.add(word);</div><div class="line">	&#125;</div><div class="line">	Collections.sort(dict);</div><div class="line">	DOUBLE_ARRAY_TRIE.build(dict);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="DoubleArrayTrie类"><a href="#DoubleArrayTrie类" class="headerlink" title="DoubleArrayTrie类"></a>DoubleArrayTrie类</h3><p>DoubleArrayTrie类是一个前缀树的实现，主要用来查找词组或短语：<br>累的定义如下，首先是类变量和类的私有类：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="comment">//用来从文件中读取trie数据的缓冲区大小</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">int</span> BUF_SIZE = <span class="number">16384</span>;</div><div class="line"></div><div class="line"><span class="comment">//定义了数据单元的大小，主要在将Double-Array trie从文件中加载的时候使用，来判断trie的size</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">int</span> UNIT_SIZE = <span class="number">8</span>; <span class="comment">// size of int + int</span></div><div class="line"></div><div class="line"><span class="comment">//私有类，作为Double-Array trie节点的对象</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> code;</div><div class="line"></div><div class="line">    <span class="comment">//表示节点的深度</span></div><div class="line">    <span class="keyword">int</span> depth;</div><div class="line"></div><div class="line">    <span class="comment">// 与right配合，标记出子节点的范围</span></div><div class="line">    <span class="keyword">int</span> left;</div><div class="line"></div><div class="line">    <span class="comment">// 与left配合，标记出子节点的范围</span></div><div class="line">    <span class="keyword">int</span> right;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">//双数组树的核心check数组和base数组</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> check[];</div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> base[];</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">boolean</span> used[];</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> size;</div><div class="line"></div><div class="line"><span class="comment">//核心数组check和base所分配的大小</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> allocSize;</div><div class="line"></div><div class="line"><span class="comment">//用来生成Double-Array trie的数据，是完整的数据集</span></div><div class="line"><span class="keyword">private</span> List&lt;String&gt; key;</div><div class="line"></div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> keySize;</div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> length[];</div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> value[];</div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> progress;</div><div class="line"></div><div class="line"><span class="comment">//插入节点时使用的位置起始点</span></div><div class="line"><span class="keyword">private</span> <span class="keyword">int</span> nextCheckPos;</div><div class="line"></div><div class="line"><span class="comment">// boolean no_delete_;</span></div><div class="line"><span class="keyword">int</span> error_;</div></pre></td></tr></table></figure></p>
+<p>重新分配Double-Array trie内部核心数组check和base的方法，根据指定的大小生成新的数组，并将原来数组的数据完整的拷贝的新数组中：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line"> * 重新将数据进行扩容</div><div class="line"> */</div><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">resize</span><span class="params">(<span class="keyword">int</span> newSize)</span> </span>&#123;</div><div class="line">    <span class="comment">//以指定的大小来生成所需大小的数组</span></div><div class="line">    <span class="keyword">int</span>[] base2 = <span class="keyword">new</span> <span class="keyword">int</span>[newSize];</div><div class="line">    <span class="keyword">int</span>[] check2 = <span class="keyword">new</span> <span class="keyword">int</span>[newSize];</div><div class="line">    <span class="keyword">boolean</span> used2[] = <span class="keyword">new</span> <span class="keyword">boolean</span>[newSize];</div><div class="line"></div><div class="line">    <span class="comment">//判断数据数组分配的大小是否有效，如果有，则将原来分配的数据数组的内容拷贝到新分配的数组中</span></div><div class="line">    <span class="keyword">if</span> (allocSize &gt; <span class="number">0</span>) &#123;</div><div class="line">        System.arraycopy(base, <span class="number">0</span>, base2, <span class="number">0</span>, allocSize);</div><div class="line">        System.arraycopy(check, <span class="number">0</span>, check2, <span class="number">0</span>, allocSize);</div><div class="line">        System.arraycopy(used2, <span class="number">0</span>, used2, <span class="number">0</span>, allocSize);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//更改Double-Array trie内部check、base和used的引用关系</span></div><div class="line">    base = base2;</div><div class="line">    check = check2;</div><div class="line">    used = used2;</div><div class="line"></div><div class="line">    <span class="comment">// 记录当前数据数组的分配大小</span></div><div class="line">    <span class="keyword">return</span> allocSize = newSize;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>根据父节点提取子节点数据的方法，并返回子节点的个数，所有子节点的数据通过参数siblings进行返回：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">fetch</span><span class="params">(Node parent, List&lt;Node&gt; siblings)</span> </span>&#123;</div><div class="line">    <span class="comment">//如果发生错误，直接返回，如果keys（数据集）没有排序，error的值为-3，因为没有排序的话，在构建树数据的时候会乱，因此需要数据集是排序后的</span></div><div class="line">    <span class="keyword">if</span> (error_ &lt; <span class="number">0</span>)</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//用来存储前一个节点的code值</span></div><div class="line">    <span class="keyword">int</span> prev = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//其实就是查找具有相同前缀的一组词</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = parent.left; i &lt; parent.right; i++) &#123;</div><div class="line">        <span class="keyword">if</span> ((length != <span class="keyword">null</span> ? length[i] : key.get(i).length()) &lt; parent.depth)</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line"></div><div class="line">        <span class="comment">//获取下一个词语</span></div><div class="line">        String tmp = key.get(i);</div><div class="line"></div><div class="line">        <span class="comment">//用来记录当前的层次深度</span></div><div class="line">        <span class="keyword">int</span> cur = <span class="number">0</span>;</div><div class="line"></div><div class="line">        <span class="comment">//当前的层次深度是父级深度+1</span></div><div class="line">        <span class="keyword">if</span> ((length != <span class="keyword">null</span> ? length[i] : tmp.length()) != parent.depth)</div><div class="line">            <span class="comment">//注意这里使用的tmp，tmp是父节点的字节点的第i个词，因为所有的词都是从根节点过来的，因此</span></div><div class="line">            <span class="comment">//词中的第N个字，就位于树中的第N层，因为数组和树都是从0开始算，因此当前层级=当前层级-1=父级的层级</span></div><div class="line">            <span class="comment">//其实这里就是获取节点的常量值--使用的是char的值</span></div><div class="line">            cur = (<span class="keyword">int</span>) tmp.charAt(parent.depth) + <span class="number">1</span>;</div><div class="line"></div><div class="line">        <span class="comment">//if代码块是要求key或length中的数据应该是排序后（升序）的数据，否则就会出错，error_是类全局错误，如果error_小于0，则所有的方法都会出错而退出</span></div><div class="line">        <span class="keyword">if</span> (prev &gt; cur) &#123;</div><div class="line">            error_ = -<span class="number">3</span>;</div><div class="line">            <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">/**</span></div><div class="line">         * 该部分代码用来判断是否找到了新的节点，前节点值与当前节点值不相同或第一个节点(siblings.size == 0)，表示找到了新节点。新节点使用Node来表示</div><div class="line">         */</div><div class="line">        <span class="keyword">if</span> (cur != prev || siblings.size() == <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">//生成一个新的树节点</span></div><div class="line">            Node tmp_node = <span class="keyword">new</span> Node();</div><div class="line"></div><div class="line">            <span class="comment">//depth表示节点从根节点开始算，所处层次</span></div><div class="line">            tmp_node.depth = parent.depth + <span class="number">1</span>;</div><div class="line"></div><div class="line">            <span class="comment">//用来表示当前节点字的code值</span></div><div class="line">            tmp_node.code = cur;</div><div class="line"></div><div class="line">            <span class="comment">//用来记录子节点在数据集中的左边界</span></div><div class="line">            tmp_node.left = i;</div><div class="line"></div><div class="line">            <span class="comment">//用来记录子节点在数据集中的右边界</span></div><div class="line">            <span class="keyword">if</span> (siblings.size() != <span class="number">0</span>)</div><div class="line">                siblings.get(siblings.size() - <span class="number">1</span>).right = i;</div><div class="line"></div><div class="line">            <span class="comment">//siblings中存储的是去重后的字节点，但是每个字节点中包含有取词范围</span></div><div class="line">            siblings.add(tmp_node);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        prev = cur;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//如果循环到了结尾，则parent最后一个字节点的最右边的界限为父节点的界限，将上面Mark-1中最后一个节点Node.right进行填充</span></div><div class="line">    <span class="keyword">if</span> (siblings.size() != <span class="number">0</span>)</div><div class="line">        siblings.get(siblings.size() - <span class="number">1</span>).right = parent.right;</div><div class="line"></div><div class="line">    <span class="comment">//返回父节点拥有子节点的个数</span></div><div class="line">    <span class="keyword">return</span> siblings.size();</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Double-Array trie的构建方法，通过上面的fetch获取子节点，然后利用本方法来构建两个数组的数据：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">int</span> <span class="title">insert</span><span class="params">(List&lt;Node&gt; siblings)</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (error_ &lt; <span class="number">0</span>)</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//用来寻找base[i] + c(常量) = t的那个初始值，这个值会保存在base[i]中</span></div><div class="line">    <span class="comment">//注意这里是一个局部变量</span></div><div class="line">    <span class="keyword">int</span> begin = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//nextCheckPost用来存储下一个检查点的值，根节点进入的时候，值为0</span></div><div class="line">    <span class="comment">//pos表示从这个位置开始进行检查</span></div><div class="line">    <span class="comment">//这里为什么要做这个检查呢？</span></div><div class="line">    <span class="comment">//因为，在双数组树中，每个字都有一个变量（一个固定的值），Node.code就是这个变量的值，在对根节点进行定位的时候，下标就是这个变量值来定位的</span></div><div class="line">    <span class="comment">//注意这里是一个局部变量</span></div><div class="line">    <span class="keyword">int</span> pos = ((siblings.get(<span class="number">0</span>).code + <span class="number">1</span> &gt; nextCheckPos) ? siblings.get(<span class="number">0</span>).code + <span class="number">1</span> : nextCheckPos) - <span class="number">1</span>;</div><div class="line"></div><div class="line">    <span class="comment">//用来计算check数组中，从pos开始到pos + siblings.size()之间，非0元素的个数，并用该值去计算 nextCheckPos的值</span></div><div class="line">    <span class="keyword">int</span> nonzero_num = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//用来表示是否是对siblings中的元素第一次找到check[pos]=0的pos值</span></div><div class="line">    <span class="keyword">int</span> first = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//如果pos大于allocSize，则表示"状态"（每个字称为状态）超出了check数组和base数组的界限了，需要扩容</span></div><div class="line">    <span class="keyword">if</span> (allocSize &lt;= pos)</div><div class="line">        resize(pos + <span class="number">1</span>);</div><div class="line"></div><div class="line">    <span class="comment">//这段代码就是为siblings中的Node寻找在check数组中那些连续的空间的起始值</span></div><div class="line">    outer: <span class="keyword">while</span> (<span class="keyword">true</span>) &#123;</div><div class="line"></div><div class="line">        <span class="comment">//增加下标值，用来寻找满足所有子节点在base数组中能够连续存储的起始位置</span></div><div class="line">        pos++;</div><div class="line"></div><div class="line">        <span class="comment">//检查下标是否超出了check数组和base数组的界限</span></div><div class="line">        <span class="keyword">if</span> (allocSize &lt;= pos)</div><div class="line">            resize(pos + <span class="number">1</span>);</div><div class="line"></div><div class="line">        <span class="comment">//判断check中下标位置的值是否为0，</span></div><div class="line">        <span class="comment">// 如果不是0，则表示该位置已经被使用，因此需要增加回到开头，对pos进行前进</span></div><div class="line">        <span class="comment">// 为0则表示可以用</span></div><div class="line">        <span class="keyword">if</span> (check[pos] != <span class="number">0</span>) &#123;</div><div class="line">            nonzero_num++;</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (first == <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">//nextCheckPos用来表示，下一次应该从这个位置开始检查check</span></div><div class="line">            <span class="comment">//另外为啥要从nextCheckPos这个位置开始呢，因为构建双数组树的数据集是已经排过序的了，</span></div><div class="line">            <span class="comment">// 所以以后的值都会比最最第一个字的code大，因此无论怎么加，都会比这个值要大</span></div><div class="line">            nextCheckPos = pos;</div><div class="line">            <span class="comment">//已经寻找第一个check[pos]为0的pos位置</span></div><div class="line">            first = <span class="number">1</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">//pos-(siblings.get(0).code)(这个值相当于字的变量值)，也就是说base中要存储的值可能为begin，最起码要从这个值开始尝试</span></div><div class="line">        <span class="comment">//begin相当于base[s] + c = t公式中，base[s]中存储的值，用来计算当前字应该存储的下标t</span></div><div class="line">        begin = pos - siblings.get(<span class="number">0</span>).code;</div><div class="line"></div><div class="line">        <span class="comment">//继续判断check数组和base数组是否能够容纳当前字，如果不能够容纳，则需要根据 字的个数与progress的比值来扩容</span></div><div class="line">        <span class="keyword">if</span> (allocSize &lt;= (begin + siblings.get(siblings.size() - <span class="number">1</span>).code)) &#123;</div><div class="line">            <span class="comment">// progress can be zero</span></div><div class="line">            <span class="comment">// 通过keySize和progress，可以计算base和check扩容的比率</span></div><div class="line">            <span class="keyword">double</span> l = (<span class="number">1.05</span> &gt; <span class="number">1.0</span> * keySize / (progress + <span class="number">1</span>)) ? <span class="number">1.05</span> : <span class="number">1.0</span> * keySize / (progress + <span class="number">1</span>);</div><div class="line">            resize((<span class="keyword">int</span>) (allocSize * l));</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        <span class="comment">//判断used[begin]位置是否为true，used的作用是什么呢？？？？总之如果used[begin]==true就需要进行循环</span></div><div class="line">        <span class="keyword">if</span> (used[begin])</div><div class="line">            <span class="keyword">continue</span>;</div><div class="line"></div><div class="line">        <span class="comment">//这一段代码是在寻找 base[s] + c = t公式中，base[s]的值，使得siblings中的所有Node都满足check[begin + Node.code] = 0</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">1</span>; i &lt; siblings.size(); i++)</div><div class="line"></div><div class="line">            <span class="comment">//在循环判断的过程中，只要siblings中的某个Node不满足check[begin + Node.code] = 0，则说明begin不好使，需要回到outer继续寻找</span></div><div class="line">            <span class="keyword">if</span> (check[begin + siblings.get(i).code] != <span class="number">0</span>)</div><div class="line">                <span class="keyword">continue</span> outer;</div><div class="line"></div><div class="line">        <span class="comment">//如果程序运行到了这里，则表示找到了使得siblings中的所有Node都满足check[begin + Node.code] = 0的begin</span></div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">//------------如果运行到了这里，则表示base[s] + c = t，中base[s]的值已经找到，即为begin-----------------</span></div><div class="line">    <span class="comment">// -- Simple heuristics --</span></div><div class="line">    <span class="comment">// if the percentage of non-empty contents in check between the</span></div><div class="line">    <span class="comment">// index</span></div><div class="line">    <span class="comment">// 'next_check_pos' and 'check' is greater than some constant value</span></div><div class="line">    <span class="comment">// (e.g. 0.9),</span></div><div class="line">    <span class="comment">// new 'next_check_pos' index is written by 'check'.</span></div><div class="line">    <span class="comment">//这块代码的意思就是计算当前位置和之前位置之间check中有多少位置已经不是0了，</span></div><div class="line">    <span class="comment">// 如果比例超过了一个比率，就说明干[nextCheckPos, pos]区间几乎不可以使用了，</span></div><div class="line">    <span class="comment">// 如果比例低于这个比率，则说明还有可以使用的空间</span></div><div class="line">    <span class="keyword">if</span> (<span class="number">1.0</span> * nonzero_num / (pos - nextCheckPos + <span class="number">1</span>) &gt;= <span class="number">0.95</span>)</div><div class="line">        nextCheckPos = pos;</div><div class="line"></div><div class="line">    <span class="comment">//干啥的？？？--似乎没怎么用到</span></div><div class="line">    used[begin] = <span class="keyword">true</span>;</div><div class="line"></div><div class="line">    <span class="comment">//size用来记录了数组的有效长度（默认数组中的值为0，有效长度就是最后一个不是0的位置）</span></div><div class="line">    <span class="comment">//begin代表了Node在check中寻找位置时的那个常量</span></div><div class="line">    size = (size &gt; begin + siblings.get(siblings.size() - <span class="number">1</span>).code + <span class="number">1</span>) ? size : begin + siblings.get(siblings.size() - <span class="number">1</span>).code + <span class="number">1</span>;</div><div class="line"></div><div class="line">    <span class="comment">//上面寻找到了常量，siblings中的字在check数组中对应位置的值设置为begin，begin</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; siblings.size(); i++)</div><div class="line">        check[begin + siblings.get(i).code] = begin;</div><div class="line"></div><div class="line">    <span class="comment">//循环siblings中的所有Node，每个Node称为当前节点</span></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; siblings.size(); i++) &#123;</div><div class="line">        List&lt;Node&gt; new_siblings = <span class="keyword">new</span> ArrayList&lt;Node&gt;();</div><div class="line"></div><div class="line">        <span class="comment">//获取当前节点的子节点，返回0则表示当前节点没有子节点，如果有字节点则插入子节点，这是一个迭代处理</span></div><div class="line">        <span class="keyword">if</span> (fetch(siblings.get(i), new_siblings) == <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">//base用来记录什么？？？？？？？</span></div><div class="line">            System.out.println(value);</div><div class="line">            base[begin + siblings.get(i).code] = (value != <span class="keyword">null</span>) ? (-value[siblings.get(i).left] - <span class="number">1</span>) : (-siblings.get(i).left - <span class="number">1</span>);</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (value != <span class="keyword">null</span> &amp;&amp; (-value[siblings.get(i).left] - <span class="number">1</span>) &gt;= <span class="number">0</span>) &#123;</div><div class="line">                error_ = -<span class="number">2</span>;</div><div class="line">                <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            progress++;</div><div class="line">            <span class="comment">// if (progress_func_) (*progress_func_) (progress,</span></div><div class="line">            <span class="comment">// keySize);</span></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">//为当前节点插入子节点，并记录子节点的位置</span></div><div class="line">            <span class="keyword">int</span> h = insert(new_siblings);</div><div class="line">            base[begin + siblings.get(i).code] = h;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> begin;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Double-Array trie类的默认构造方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="title">DoubleArrayTrie</span><span class="params">()</span> </span>&#123;</div><div class="line">    check = <span class="keyword">null</span>;</div><div class="line">    base = <span class="keyword">null</span>;</div><div class="line">    used = <span class="keyword">null</span>;</div><div class="line">    size = <span class="number">0</span>;</div><div class="line">    allocSize = <span class="number">0</span>;</div><div class="line">    <span class="comment">// no_delete_ = false;</span></div><div class="line">    error_ = <span class="number">0</span>;</div><div class="line">&#125;</div><div class="line">``</div><div class="line">用来清理Double-Array trie的方法：</div><div class="line">``` <span class="function">Java</span></div><div class="line"><span class="keyword">void</span> <span class="title">clear</span><span class="params">()</span> &#123;</div><div class="line">    <span class="comment">// if (! no_delete_)</span></div><div class="line">    check = <span class="keyword">null</span>;</div><div class="line">    base = <span class="keyword">null</span>;</div><div class="line">    used = <span class="keyword">null</span>;</div><div class="line">    allocSize = <span class="number">0</span>;</div><div class="line">    size = <span class="number">0</span>;</div><div class="line">    <span class="comment">// no_delete_ = false;</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>计算数组存储的基本单元的大小：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getUnitSize</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> UNIT_SIZE;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>计算Double-Array tire的有效大小，和分配的大小不同：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getSize</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> size;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>计算Double-Array trie所占用的有效空间：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getTotalSize</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> size * UNIT_SIZE;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>计算Double-Array trie中核心数组check和base中真正存储了数据的数据单元个数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getNonzeroSize</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> result = <span class="number">0</span>;</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++)</div><div class="line">        <span class="keyword">if</span> (check[i] != <span class="number">0</span>)</div><div class="line">            result++;</div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>构建Double-Array trie的方法，key是一个挣序排序后的集合，集合中包含了所需的所有数据：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">build</span><span class="params">(List&lt;String&gt; key)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> build(key, <span class="keyword">null</span>, <span class="keyword">null</span>, key.size());</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>构建Double-Array tire的方法，本方法为实际操作方法，并且提供了更加丰富的参数：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">build</span><span class="params">(List&lt;String&gt; _key, <span class="keyword">int</span> _length[], <span class="keyword">int</span> _value[], <span class="keyword">int</span> _keySize)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (_keySize &gt; _key.size() || _key == <span class="keyword">null</span>)</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">// progress_func_ = progress_func;</span></div><div class="line">    key = _key;</div><div class="line">    length = _length;</div><div class="line">    keySize = _keySize;</div><div class="line">    value = _value;</div><div class="line">    progress = <span class="number">0</span>;</div><div class="line"></div><div class="line">    resize(<span class="number">65536</span> * <span class="number">32</span>); </div><div class="line"></div><div class="line">    base[<span class="number">0</span>] = <span class="number">1</span>;</div><div class="line">    nextCheckPos = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//生成double-array trie的根节点，根节点的left=0，right=keySize, depth=0，left和right指定的字节点的范围，因为是根节点，所以是所有数据</span></div><div class="line">    Node root_node = <span class="keyword">new</span> Node();</div><div class="line">    root_node.left = <span class="number">0</span>;</div><div class="line">    root_node.right = keySize;</div><div class="line">    root_node.depth = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="comment">//siblings用来存储根节点的字节点（去重后的）</span></div><div class="line">    List&lt;Node&gt; siblings = <span class="keyword">new</span> ArrayList&lt;Node&gt;();</div><div class="line"></div><div class="line">    <span class="comment">//查找根节点的子节点（去重）</span></div><div class="line">    fetch(root_node, siblings);</div><div class="line"></div><div class="line">    <span class="comment">//构建根节点的子节点，内部有迭代查询，当根节点的字节点构造完成后，整棵树就构造完成了</span></div><div class="line">    insert(siblings);</div><div class="line"></div><div class="line">    <span class="comment">// size += (1 &lt;&lt; 8 * 2) + 1; // ???</span></div><div class="line">    <span class="comment">// if (size &gt;= allocSize) resize (size);</span></div><div class="line"></div><div class="line">    used = <span class="keyword">null</span>;</div><div class="line">    key = <span class="keyword">null</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> error_;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从文件中加载已有的Double-Array trie的数据，并重新构建成可用的Double-Array trie：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">open</span><span class="params">(String fileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    File file = <span class="keyword">new</span> File(fileName);</div><div class="line"></div><div class="line">    <span class="comment">//base和check是分别作为int写到文件的，因此两个int代表一个数据，文件的大小与两个int大小的比值就是数据的个数</span></div><div class="line">    size = (<span class="keyword">int</span>) file.length() / UNIT_SIZE;</div><div class="line"></div><div class="line">    <span class="comment">//实例化空的check和base，数据为空，但是不是null</span></div><div class="line">    check = <span class="keyword">new</span> <span class="keyword">int</span>[size];</div><div class="line">    base = <span class="keyword">new</span> <span class="keyword">int</span>[size];</div><div class="line"></div><div class="line">    DataInputStream is = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">//打开文件，并将读取的数据填充到base和check中</span></div><div class="line">        is = <span class="keyword">new</span> DataInputStream(<span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> FileInputStream(file), BUF_SIZE));</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</div><div class="line">            base[i] = is.readInt();</div><div class="line">            check[i] = is.readInt();</div><div class="line">        &#125;</div><div class="line"></div><div class="line">    <span class="comment">//关闭输入流</span></div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="keyword">if</span> (is != <span class="keyword">null</span>)</div><div class="line">            is.close();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将现有的Double-Array trie保存到文件：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">save</span><span class="params">(String fileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</div><div class="line">    DataOutputStream out = <span class="keyword">null</span>;</div><div class="line">    <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">//打开文件的输入流</span></div><div class="line">        out = <span class="keyword">new</span> DataOutputStream(<span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(fileName)));</div><div class="line"></div><div class="line">        <span class="comment">//将base和check对应元素的值作为一条数据写出到文件</span></div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</div><div class="line">            out.writeInt(base[i]);</div><div class="line">            out.writeInt(check[i]);</div><div class="line">        &#125;</div><div class="line">        out.close();</div><div class="line"></div><div class="line">    <span class="comment">//关闭输出流</span></div><div class="line">    &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="keyword">if</span> (out != <span class="keyword">null</span>)</div><div class="line">            out.close();</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在Double-Array trie中精确匹配搜索给定的词组：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">exactMatchSearch</span><span class="params">(String key)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> exactMatchSearch(key, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在Double-Array trie中精确匹配搜索，该方法为实际搜索方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">exactMatchSearch</span><span class="params">(String key, <span class="keyword">int</span> pos, <span class="keyword">int</span> len, <span class="keyword">int</span> nodePos)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (len &lt;= <span class="number">0</span>)</div><div class="line">        len = key.length();</div><div class="line">    <span class="keyword">if</span> (nodePos &lt;= <span class="number">0</span>)</div><div class="line">        nodePos = <span class="number">0</span>;</div><div class="line"></div><div class="line">    <span class="keyword">int</span> result = -<span class="number">1</span>;</div><div class="line"></div><div class="line">    <span class="keyword">char</span>[] keyChars = key.toCharArray();</div><div class="line"></div><div class="line">    <span class="comment">//获取第一个下标值，应该为1</span></div><div class="line">    <span class="keyword">int</span> b = base[nodePos];</div><div class="line">    <span class="keyword">int</span> p;</div><div class="line"></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = pos; i &lt; len; i++) &#123;</div><div class="line">        p = b + (<span class="keyword">int</span>) (keyChars[i]) + <span class="number">1</span>;</div><div class="line">        <span class="keyword">if</span> (b == check[p])</div><div class="line">            b = base[p];</div><div class="line">        <span class="keyword">else</span></div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    p = b;</div><div class="line">    <span class="keyword">int</span> n = base[p];</div><div class="line">    <span class="keyword">if</span> (b == check[p] &amp;&amp; n &lt; <span class="number">0</span>) &#123;</div><div class="line">        result = -n - <span class="number">1</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>该方法主要用来精确匹配搜索的，理解该方法也是理解inster方法的关键，接下来我们将详细介绍并举例该方法。<br>……<br>常用前缀搜索方法：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;Integer&gt; <span class="title">commonPrefixSearch</span><span class="params">(String key)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> commonPrefixSearch(key, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>常用前缀搜索方法的具体实现：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> List&lt;Integer&gt; <span class="title">commonPrefixSearch</span><span class="params">(String key, <span class="keyword">int</span> pos, <span class="keyword">int</span> len, <span class="keyword">int</span> nodePos)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (len &lt;= <span class="number">0</span>)</div><div class="line">        len = key.length();</div><div class="line">    <span class="keyword">if</span> (nodePos &lt;= <span class="number">0</span>)</div><div class="line">        nodePos = <span class="number">0</span>;</div><div class="line"></div><div class="line">    List&lt;Integer&gt; result = <span class="keyword">new</span> ArrayList&lt;Integer&gt;();</div><div class="line"></div><div class="line">    <span class="comment">//将要搜索的字符串拆成字符数组</span></div><div class="line">    <span class="keyword">char</span>[] keyChars = key.toCharArray();</div><div class="line"></div><div class="line">    <span class="keyword">int</span> b = base[nodePos];</div><div class="line">    <span class="keyword">int</span> n;</div><div class="line">    <span class="keyword">int</span> p;</div><div class="line"></div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = pos; i &lt; len; i++) &#123;</div><div class="line">        p = b;</div><div class="line">        n = base[p];</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (b == check[p] &amp;&amp; n &lt; <span class="number">0</span>) &#123;</div><div class="line">            result.add(-n - <span class="number">1</span>);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        p = b + (<span class="keyword">int</span>) (keyChars[i]) + <span class="number">1</span>;</div><div class="line">        <span class="keyword">if</span> (b == check[p])</div><div class="line">            b = base[p];</div><div class="line">        <span class="keyword">else</span></div><div class="line">            <span class="keyword">return</span> result;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    p = b;</div><div class="line">    n = base[p];</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (b == check[p] &amp;&amp; n &lt; <span class="number">0</span>) &#123;</div><div class="line">        result.add(-n - <span class="number">1</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>理解该方法也是理解前缀搜索的关键，更加有助于理解insert方法的实现。……</p>
+<p>调试方法，会将Double-Array trie的关键数组check和base打印出来：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">dump</span><span class="params">()</span> </span>&#123;</div><div class="line">    System.out.print(<span class="string">"index:\t\t"</span>);</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</div><div class="line">        System.out.print(i + <span class="string">"\t\t"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    System.out.print(<span class="string">"\r\nbase:\t\t"</span>);</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</div><div class="line">        System.out.print(base[i] + <span class="string">"\t\t"</span>);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    System.out.print(<span class="string">"\r\ncheck:\t\t"</span>);</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; size; i++) &#123;</div><div class="line">        System.out.print(check[i] + <span class="string">"\t\t"</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>通过源码分析，Jpinyin可以方便的将汉字转换为拼音，也可以方便的将繁体字转换为简体字，但是不足之处是，在将简体字转换为繁体子的时候，效率会非常的低。另外，对于特殊的46个异体字，没有明确的指出，从而加以区分。<br>单单从汉字转拼音的角度来说，该功能比较好用，但是如果考虑到自然语言处理的应用，还是有很多不足的地方。例如，表情符号也可以代表汉字，也就对应着拼音；unicode其实也是汉字的另一种表示，也应该有对应的拼音；等等。</p>
+<h1 id="其他备注"><a href="#其他备注" class="headerlink" title="其他备注"></a>其他备注</h1><p>moji表情一般是两个unicode，但也有一部分是一个unicode<br>String pattern = “[\ud83c\udc00-\ud83c\udfff]|[\ud83d\udc00-\ud83d\udfff]|[\u2600-\u27ff]”</p>
+<p><a href="http://oaavtz33a.bkt.clouddn.com/emoji_unicode.txt" title="moji表情与unicode的对应" target="_blank" rel="external">moji表情与unicode的对应</a><br>moji表情和unicode字符串之间的相互转换可以使用apache的commons-lang包中StringEscapeUtils类的escapeJava(String)和unescapeJava(String)来进行相互转换。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/汉字转拼音/" rel="tag">#汉字转拼音</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/" rel="next" title="scikit image - a crash course on NumPy for images">
+                <i class="fa fa-chevron-left"></i> scikit image - a crash course on NumPy for images
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2017/01/13/doubleArray-trie/" rel="prev" title="Double-Array trie">
+                Double-Array trie <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#简单介绍"><span class="nav-number">1.</span> <span class="nav-text">简单介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#主要特性"><span class="nav-number">1.1.</span> <span class="nav-text">主要特性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven依赖"><span class="nav-number">1.2.</span> <span class="nav-text">Maven依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用法"><span class="nav-number">1.3.</span> <span class="nav-text">用法</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#源码分析"><span class="nav-number">2.</span> <span class="nav-text">源码分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#结构"><span class="nav-number">2.1.</span> <span class="nav-text">结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#代码"><span class="nav-number">2.2.</span> <span class="nav-text">代码</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#PinyinException类"><span class="nav-number">2.2.1.</span> <span class="nav-text">PinyinException类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#pinyinFormat类"><span class="nav-number">2.2.2.</span> <span class="nav-text">pinyinFormat类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PinyinResource类"><span class="nav-number">2.2.3.</span> <span class="nav-text">PinyinResource类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ChineseHelper类"><span class="nav-number">2.2.4.</span> <span class="nav-text">ChineseHelper类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PinyinHelper类"><span class="nav-number">2.2.5.</span> <span class="nav-text">PinyinHelper类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DoubleArrayTrie类"><span class="nav-number">2.2.6.</span> <span class="nav-text">DoubleArrayTrie类</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">3.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他备注"><span class="nav-number">4.</span> <span class="nav-text">其他备注</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

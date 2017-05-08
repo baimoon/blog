@@ -1,0 +1,693 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="scala," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文介绍一些关于sbt的使用，关于sbt的安装，请参考sbt install
+使用sbt进行编译对于sbt来说，最简单的工程就是某个目录下只有一个scala文件。对于这种文件，在当前目录下运行sbt，进入sbt控制台后执行run即可。
+
+vim HelloWorld.scala
+
+12345object HelloWorld&amp;#123;  def main(args: Array[String])">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scala-sbt">
+<meta property="og:url" content="http://baimoon.github.io/2016/07/27/scala-sbt/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文介绍一些关于sbt的使用，关于sbt的安装，请参考sbt install
+使用sbt进行编译对于sbt来说，最简单的工程就是某个目录下只有一个scala文件。对于这种文件，在当前目录下运行sbt，进入sbt控制台后执行run即可。
+
+vim HelloWorld.scala
+
+12345object HelloWorld&amp;#123;  def main(args: Array[String])">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/sbt_project_structure.png">
+<meta property="og:updated_time" content="2016-08-13T13:38:10.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scala-sbt">
+<meta name="twitter:description" content="本文介绍一些关于sbt的使用，关于sbt的安装，请参考sbt install
+使用sbt进行编译对于sbt来说，最简单的工程就是某个目录下只有一个scala文件。对于这种文件，在当前目录下运行sbt，进入sbt控制台后执行run即可。
+
+vim HelloWorld.scala
+
+12345object HelloWorld&amp;#123;  def main(args: Array[String])">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/sbt_project_structure.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/07/27/scala-sbt/"/>
+
+  <title> scala-sbt | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                scala-sbt
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-27T18:36:41+08:00" content="2016-07-27">
+              2016-07-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/scala/" itemprop="url" rel="index">
+                    <span itemprop="name">scala</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文介绍一些关于sbt的使用，关于sbt的安装，请参考<a href="https://baimoon.github.io/blog/2016/07/27/unix-install" title="sbt install" target="_blank" rel="external">sbt install</a></p>
+<h1 id="使用sbt进行编译"><a href="#使用sbt进行编译" class="headerlink" title="使用sbt进行编译"></a>使用sbt进行编译</h1><p>对于sbt来说，最简单的工程就是某个目录下只有一个scala文件。对于这种文件，在当前目录下运行sbt，进入sbt控制台后执行run即可。</p>
+<blockquote>
+<p>vim HelloWorld.scala</p>
+</blockquote>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">HelloWorld</span></span>&#123;</div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]) &#123;</div><div class="line">    println(<span class="string">"Hello, SBT"</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>执行：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$sbt</span>   </div><div class="line">&gt;run</div><div class="line">[info] Updating &#123;file:/Users/renweiming/tmp/&#125;tmp...</div><div class="line">[info] Resolving org.fusesource.jansi<span class="comment">#jansi;1.4 ...</span></div><div class="line">[info] Done updating.</div><div class="line">[info] Compiling 1 Scala <span class="built_in">source</span> to /Users/renweiming/tmp/target/scala-2.10/classes...</div><div class="line">[info] Running HelloWorld </div><div class="line">Hello, SBT</div><div class="line">[success] Total time: 4 s, completed 2016-7-27 23:19:35</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<h1 id="sbt工程的目录结构"><a href="#sbt工程的目录结构" class="headerlink" title="sbt工程的目录结构"></a>sbt工程的目录结构</h1><p>Sbt工程的目录结构和Maven的有点儿类似：<br><img src="http://oaavtz33a.bkt.clouddn.com/sbt_project_structure.png" alt="sbt_project_structure" title="图片引自https://github.com/CSUG/real_world_scala/blob/master/02_sbt.markdown"></p>
+<h2 id="src目录结构"><a href="#src目录结构" class="headerlink" title="src目录结构"></a>src目录结构</h2><ul>
+<li>src/main/java 存放Java源代码</li>
+<li>src/main/resources 存放相应的资源文件</li>
+<li>src/main/scala 存放Scala源代码</li>
+<li>src/test/java 存放Java的测试源代码</li>
+<li>src/test/resources 存放测试相应的资源文件</li>
+<li>src/test/scala 存放Scala的测试源代码</li>
+</ul>
+<h2 id="build-sbt"><a href="#build-sbt" class="headerlink" title="build.sbt"></a>build.sbt</h2><p>build.sbt是build的定义文件。SBT运行使用两种形式的build定义文件：一种是放在根目录下的，即build.sbt文件，是一种简化的build定义；另一种是放在project目录下，采用纯Scala语言编写，更加复杂，当然也更加完备，更加具有表现力。<br>一个简单的build.sbt文件的内容<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">name := &quot;hello&quot;</div><div class="line">organization := &quot;xxx.xxx.xxx&quot;</div><div class="line">version := &quot;0.0.1-SNAPSHOT&quot;</div><div class="line">scalaVersion := &quot;2.9.2&quot;</div></pre></td></tr></table></figure></p>
+<p>其中name和version是必须的，在生成jar的时候，这两个值会作为jar的名称的一部分而存在。<br>处理上面的部分信息，还可以在build.sbt中添加项目的依赖信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">libraryDependencies += &quot;ch.qos.logback&quot; % &quot;logback-core&quot; % &quot;1.0.0&quot;</div><div class="line">libraryDependencies += &quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.0.0&quot;</div><div class="line"></div><div class="line">//或者以下格式</div><div class="line"></div><div class="line">libraryDependencies ++= Seq(</div><div class="line">		&quot;ch.qos.logback&quot; % &quot;logback-core&quot; % &quot;1.0.0&quot;,</div><div class="line">		&quot;ch.qos.logback&quot; % &quot;logback-classic&quot; % &quot;1.0.0&quot;</div><div class="line">                )</div></pre></td></tr></table></figure></p>
+<h2 id="项目目录及相关文件介绍"><a href="#项目目录及相关文件介绍" class="headerlink" title="项目目录及相关文件介绍"></a>项目目录及相关文件介绍</h2><p>项目目录下的几个文件实际上都是非必需存在的，恩可以根据情况自由添加。</p>
+<blockquote>
+<p>build.properties</p>
+</blockquote>
+<p>该文件声明使用的要使用哪个版本的SBT来编译当前项目，最新的sbt boot launcher能够兼容编译所有0.10.x版本的SBT，比如如果我们使用的是0.12版本的sbt，但是却想用0.11.3版本的sbt来编译当前项目，则可以在build.properties文件中添加sbt.version=0.11.3进行指定。默认，当前项目的构建采用的是sbt boot lancher对应的版本。</p>
+<blockquote>
+<p>plugins.sbt</p>
+</blockquote>
+<p>该文件用来生命当前项目希望使用那些插件来增强当前项目的sbt功能的使用。比如assembly功能等，都有相应的sbt插件供使用，要使用这些插件只需要在plugins.sbt中声明即可：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">resolvers += Resolver.url(<span class="string">"git://github.com/jrudolph/sbt-dependency-graph.git"</span>)</div><div class="line">resolvers += <span class="string">"sbt-idea-repo"</span> at <span class="string">"http://mpeltonen.github.com/maven/"</span></div><div class="line">addSbtPlugin(<span class="string">"com.github.mpeltonen"</span> % <span class="string">"sbt-idea"</span> % <span class="string">"1.1.0"</span>)</div><div class="line">addSbtPlugin(<span class="string">"net.virtual-void"</span> % <span class="string">"sbt-dependency-graph"</span> % <span class="string">"0.6.0"</span>)</div></pre></td></tr></table></figure></p>
+<p>为了能够成功加载这些sbt插件，我们将他们的查找位置添加到resolovers当中。另外，sbt支持直接将相应的github项目作为依赖或者插件依赖，而不用先将相应的依赖或插件发布到maven或ivy的repository中才能用。</p>
+<blockquote>
+<p>其他</p>
+</blockquote>
+<p>以上目录和文件通常是在创建项目的时候需要我们创建的，实际上，SBT还会在编译或运行期间自动的生成某些目录或文件。比如SBT会在项目的根目录下和project目录下生成target目录，并将编译结果和某些缓存信息保存于其中，一般情况，我们不希望将这些目录和文件添加到版本控制中。</p>
+<h1 id="SBT的使用"><a href="#SBT的使用" class="headerlink" title="SBT的使用"></a>SBT的使用</h1><p>SBT支持两种使用方式：</p>
+<ul>
+<li>批处理模式</li>
+<li>可交互模式</li>
+</ul>
+<p>大多情况下，我们会采用managed dependencies方式来管理依赖，但是在需要快速构建项目的情况下，会使用unmanaged dependencies来管理依赖。</p>
+<blockquote>
+<p>Unmanaged Dependencies</p>
+</blockquote>
+<p>要使用unmanaged dependencies的方式来管理依赖其实很简单，只需要将依赖的jar包放到lib目录下即可。<br>如果想修改默认的lib目录，可以通过配置进行修改，如3dlibs:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">unmanagedBase &lt;&lt;= baseDirectory &#123; base =&gt; base / <span class="string">"3dlibs"</span> &#125;</div></pre></td></tr></table></figure></p>
+<p>通常采用默认目录lib即可，这对于大多数项目都是首选。</p>
+<blockquote>
+<p>Managed Dependencies</p>
+</blockquote>
+<p>managed Dependencies采用Apache lvy的依赖管理方式，可以支持从Maven或lvy的Repository中现在对应的依赖。<br>要在SBT中使用managed dependencies，需要在libraryDependencies中添加所需要的依赖，一般格式如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">libraryDependencies += groupId % artifactID % version</div><div class="line"><span class="comment">#如：</span></div><div class="line">libraryDependencies += <span class="string">"org.apache.derby"</span> % <span class="string">"derby"</span> % <span class="string">"10.4.1.3"</span></div><div class="line"><span class="comment">#更加细化的控制</span></div><div class="line">libraryDependencies += <span class="string">"org.apache.derby"</span> % <span class="string">"derby"</span> % <span class="string">"10.4.1.3"</span> % <span class="string">"test"</span> </div><div class="line">libraryDependencies += <span class="string">"org.apache.derby"</span> % <span class="string">"derby"</span> % <span class="string">"10.4.1.3"</span> exclude(<span class="string">"org"</span>, <span class="string">"artifact"</span>)</div><div class="line">libraryDependencies += <span class="string">"org.apache.derby"</span> %% <span class="string">"derby"</span> % <span class="string">"10.4.1.3"</span></div><div class="line"><span class="comment">#批量添加</span></div><div class="line">libraryDependencies ++= Seq(<span class="string">"org.apache.derby"</span> %% <span class="string">"derby"</span> % <span class="string">"10.4.1.3"</span>,</div><div class="line">                            <span class="string">"org.scala-tools"</span> %% <span class="string">"scala-stm"</span> % <span class="string">"0.3"</span>, </div><div class="line">                            ...)</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p>Resovers</p>
+</blockquote>
+<p>对于managed dependencies来说，虽然我们指定了依赖库，但是SBT并不知道去哪里获取这些库以及相关资料。<br>默认情况下，SBT会去默认的Maven2的Repository中获取依赖，但是如果默认的Repository中找不到我们的依赖，那么我们可以通过resolver机制来追加更多的repository，以便SBT去获取：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">resolvers += <span class="string">"Sonatype OSS Snapshots"</span> at <span class="string">"https://oss.sonatype.org/content/repositories/snapshots"</span></div></pre></td></tr></table></figure></p>
+<p>at前面的字符串指定了要追加的repository的标志名称，at后面的字符串指定了要追加repository的路径。<br>除了可以添加远程的Maven Repository，也可以将本地的Maven Repository添加的resolver的范围中：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">resolvers += <span class="string">"Local Maven Repository"</span> at <span class="string">"file://"</span> + Path.userHome.absolutePath + <span class="string">"/.m2/repository"</span></div></pre></td></tr></table></figure></p>
+<p><a name="demo"></a></p>
+<h1 id="使用实例"><a href="#使用实例" class="headerlink" title="使用实例"></a>使用实例</h1><p>本人想要使用SBT对自己的spark application代码进行编译打包</p>
+<h2 id="手动创建项目目录以及文件"><a href="#手动创建项目目录以及文件" class="headerlink" title="手动创建项目目录以及文件"></a>手动创建项目目录以及文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">./src</div><div class="line">./src/<span class="built_in">test</span></div><div class="line">./src/<span class="built_in">test</span>/resources</div><div class="line">./src/<span class="built_in">test</span>/scala</div><div class="line">./src/<span class="built_in">test</span>/java</div><div class="line">./src/main</div><div class="line">./src/main/resources</div><div class="line">./src/main/scala</div><div class="line">./src/main/scala/com</div><div class="line">./src/main/scala/com/antispam</div><div class="line">./src/main/scala/com/antispam/WordCount.scala</div><div class="line">./src/main/java</div><div class="line">./build.sbt</div></pre></td></tr></table></figure>
+<h2 id="创建Application文件"><a href="#创建Application文件" class="headerlink" title="创建Application文件"></a>创建Application文件</h2><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">vim ./src/main/scala/com/antispam/<span class="type">WordCount</span>.scala</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkContext</span></div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkContext</span>._</div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkConf</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">WordCount</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args:<span class="type">Array</span>[<span class="type">String</span>]) &#123;</div><div class="line">        <span class="keyword">val</span> logFile = <span class="string">"/tmp/rwm/README.md"</span></div><div class="line">        <span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>().setAppName(<span class="string">"Word count application"</span>)</div><div class="line">        <span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div><div class="line">        <span class="keyword">val</span> logData = sc.textFile(logFile, <span class="number">2</span>).cache()</div><div class="line">        <span class="keyword">val</span> numAs = logData.filter(line =&gt; line.contains(<span class="string">"a"</span>)).count()</div><div class="line">        <span class="keyword">val</span> numBs = logData.filter(line =&gt; line.contains(<span class="string">"b"</span>)).count()</div><div class="line">        println(<span class="string">"lines with a:%s, lines with b:%s"</span>.format(numAs, numBs))</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="创建sbt构建文件"><a href="#创建sbt构建文件" class="headerlink" title="创建sbt构建文件"></a>创建sbt构建文件</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">vim ./build.sbt</div><div class="line"></div><div class="line">name := <span class="string">"wordCount"</span></div><div class="line">organization := <span class="string">"com.antispam"</span></div><div class="line">version := <span class="string">"0.0.1"</span></div><div class="line">scalaVersion := <span class="string">"2.11.0"</span></div><div class="line">libraryDependencies +=<span class="string">"org.apache.spark"</span>%%<span class="string">"spark-core"</span>%<span class="string">"1.6.1"</span></div></pre></td></tr></table></figure>
+<h2 id="使用sbt对项目进行打包"><a href="#使用sbt对项目进行打包" class="headerlink" title="使用sbt对项目进行打包"></a>使用sbt对项目进行打包</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sbt package</div></pre></td></tr></table></figure>
+<h2 id="执行spark的任务提交命令spark-submit"><a href="#执行spark的任务提交命令spark-submit" class="headerlink" title="执行spark的任务提交命令spark-submit"></a>执行spark的任务提交命令spark-submit</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">spark-submit --class com.antispam.WordCount --master spark://spark-002.yz:8081 word_count_2.11-0.0.1.jar</div></pre></td></tr></table></figure>
+<blockquote>
+<p>注意，该实例中，没有使用到除了spark之外的第三方jar包</p>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/scala/" rel="tag">#scala</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/07/27/unix-install/" rel="next" title="Unix Install">
+                <i class="fa fa-chevron-left"></i> Unix Install
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/08/09/spark-configuration/" rel="prev" title="Configuration">
+                Configuration <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#使用sbt进行编译"><span class="nav-number">1.</span> <span class="nav-text">使用sbt进行编译</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sbt工程的目录结构"><span class="nav-number">2.</span> <span class="nav-text">sbt工程的目录结构</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#src目录结构"><span class="nav-number">2.1.</span> <span class="nav-text">src目录结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#build-sbt"><span class="nav-number">2.2.</span> <span class="nav-text">build.sbt</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#项目目录及相关文件介绍"><span class="nav-number">2.3.</span> <span class="nav-text">项目目录及相关文件介绍</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SBT的使用"><span class="nav-number">3.</span> <span class="nav-text">SBT的使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用实例"><span class="nav-number">4.</span> <span class="nav-text">使用实例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#手动创建项目目录以及文件"><span class="nav-number">4.1.</span> <span class="nav-text">手动创建项目目录以及文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建Application文件"><span class="nav-number">4.2.</span> <span class="nav-text">创建Application文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建sbt构建文件"><span class="nav-number">4.3.</span> <span class="nav-text">创建sbt构建文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用sbt对项目进行打包"><span class="nav-number">4.4.</span> <span class="nav-text">使用sbt对项目进行打包</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行spark的任务提交命令spark-submit"><span class="nav-number">4.5.</span> <span class="nav-text">执行spark的任务提交命令spark-submit</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

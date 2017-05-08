@@ -1,0 +1,649 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark streaming," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是Spark Streaming + Kafka Integration Guide文档的翻译，原文请参考。另外，本文主要用于个人学习使用。
+Spark Streaming + Kafka Integration GuideApache Kafka是一个发布-订阅的消息队列，作为一个分布式的、分片的、副本提交的日志服务。这里解释如何配置Spark Streaming来从Kafka接收数据。有两">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark Streaming + Kafka Integration Guide">
+<meta property="og:url" content="http://baimoon.github.io/2016/09/08/spark-streaming-kafka/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是Spark Streaming + Kafka Integration Guide文档的翻译，原文请参考。另外，本文主要用于个人学习使用。
+Spark Streaming + Kafka Integration GuideApache Kafka是一个发布-订阅的消息队列，作为一个分布式的、分片的、副本提交的日志服务。这里解释如何配置Spark Streaming来从Kafka接收数据。有两">
+<meta property="og:updated_time" content="2016-09-09T11:01:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark Streaming + Kafka Integration Guide">
+<meta name="twitter:description" content="本文是Spark Streaming + Kafka Integration Guide文档的翻译，原文请参考。另外，本文主要用于个人学习使用。
+Spark Streaming + Kafka Integration GuideApache Kafka是一个发布-订阅的消息队列，作为一个分布式的、分片的、副本提交的日志服务。这里解释如何配置Spark Streaming来从Kafka接收数据。有两">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/09/08/spark-streaming-kafka/"/>
+
+  <title> Spark Streaming + Kafka Integration Guide | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark Streaming + Kafka Integration Guide
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-08T16:45:09+08:00" content="2016-09-08">
+              2016-09-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是Spark Streaming + Kafka Integration Guide文档的翻译，原文请<a href="http://spark.apache.org/docs/latest/streaming-kafka-integration.html" title="Spark Streaming + Kafka Integration Guide" target="_blank" rel="external">参考</a>。另外，本文主要用于个人学习使用。</p>
+<h1 id="Spark-Streaming-Kafka-Integration-Guide"><a href="#Spark-Streaming-Kafka-Integration-Guide" class="headerlink" title="Spark Streaming + Kafka Integration Guide"></a>Spark Streaming + Kafka Integration Guide</h1><p><a href="http://kafka.apache.org/" title="Apache Kafka" target="_blank" rel="external">Apache Kafka</a>是一个发布-订阅的消息队列，作为一个分布式的、分片的、副本提交的日志服务。这里解释如何配置Spark Streaming来从Kafka接收数据。有两种方法来达到这个目的 - 老的方法是使用Receiver和Kafka的高级API，还有一个新的实验性解决方法（在Spark 1.3版本中引入），不需要使用Receiver。它们有不同的编程模式、执行特征和语义保证，因此请仔细阅读。</p>
+<h2 id="Approach-1-Receiver-based-Approach"><a href="#Approach-1-Receiver-based-Approach" class="headerlink" title="Approach 1: Receiver-based Approach"></a>Approach 1: Receiver-based Approach</h2><p>这个方法使用一个receiver来接收数据。这个Receiver使用Kafka高级别consumer API来实现。和所有receivers一样，通过一个Receiver从Kafka接收到的数据被存储到Spark executors中，然后Spark Streaming启动jobs来处理数据。<br>然而，根据默认配置，这个解决方法会因为故障而丢失数据（查看<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#receiver-reliability" title="Receiver Reliability" target="_blank" rel="external">receiver reliabillity</a>。要确保零数据丢失，你需要额外的在Spark Streaming中启用Write Ahead Logs(从Spark 1.2版本中引入)。这将同步的将从Kafka接收到的数据到以写ahead日志的方式波存到分布式文件系统中（如HDFS），因此所有的数据能够从故障中恢复。查看Streaming programming guide中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#deploying-applications" title="Deploying Applications" target="_blank" rel="external">Deploying section</a>获取关于Write Ahead Logs的详细信息）。<br>接下来，我们讨论如何在你的streaming application中使用这个方法。</p>
+<p>1、<strong>Linking:</strong> 对于使用SBT或Maven项目描述的Scala或Java application，使用如下的坐标链接你的streaming application（查看programming guide中的[Linking section]获取更多信息）。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.spark</div><div class="line">artifactId = spark-streaming-kafka<span class="number">-0</span><span class="number">-8</span>_2<span class="number">.11</span></div><div class="line">version = <span class="number">2.0</span><span class="number">.0</span></div></pre></td></tr></table></figure></p>
+<p>对于Python application，你需要在部署你的application时添加上面的库以及它的依赖。查看Deploying分项的内容。<br>2、<strong>Programming:</strong> 在streaming application代码中，导入KafkaUtils并创建一个输入DStream，如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.streaming.kafka._</div><div class="line"></div><div class="line"><span class="keyword">val</span> kafkaStream = <span class="type">KafkaUtils</span>.createStream(streamingContext, </div><div class="line">    [<span class="type">ZK</span> quorum], [consumer group id], [per-topic number of <span class="type">Kafka</span> partitions to consume])</div></pre></td></tr></table></figure></p>
+<p>你还可以指定key和value的类以及它们使用createStream的变体的相关解码类。查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.streaming.kafka.KafkaUtils$" title="KafkaUtils" target="_blank" rel="external">API docs</a>和<a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/KafkaWordCount.scala" title="KafkaWordCount" target="_blank" rel="external">example</a>。</p>
+<h4 id="需要注意的几点："><a href="#需要注意的几点：" class="headerlink" title="需要注意的几点："></a>需要注意的几点：</h4><ul>
+<li>Kafka中topic的partitions与Spark Streaming中RDDs生成的partitions没有关联。因此在KafkaUtils.createStream()中增加特定于topic的partition的数量只是增加使用的线程的数量，使用这些线程在单个receiver中对topic进行消费。它不会增加Spark数据的并发处理。参考主要文档获取它的更多信息。</li>
+<li>多个Kafka输入DStream能够使用不同的group和topics来创建，以便使用多个receiver来并行接收数据。</li>
+<li>如果你使用一个可靠的文件系统（像HDFS）启用了Write Ahead logs，接收到的数据已经被复制到日志中。因此，对于输入流存储的存储级别为StorageLevel.MEMORY_AND_DISK_SER（那就是KafkaUtils.createStream(…, StorageLevel.MEMORY_AND_DISK_SER)）。</li>
+</ul>
+<p>3、<strong>Deploying:</strong> 对于任何Spark application，spark-submit被使用来启动你的application。然而，对于Scala/Java application和Python application之间有轻微的不同。<br>对于Scala和Java application，如果你使用SBT或Maven作为项目管理，那么打包spark-streaming-kafka-0-8_2.11和它的依赖到application的JAR中。确保spark-core_2.11和spark-streaming_2.11作为依赖进行标记，因为他们已经安装到Spark中了。然后，使用spark-submit来启动你的application（查看主要编程指南中的<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#deploying-applications" title="Deploying Applications" target="_blank" rel="external">Deploying section</a>）。<br>对于Python application，它缺少SBT/Maven项目管理，spark-streaming-kafka-0-8_2.11和它的依赖可以使用–packages直接添加到spark-submit（查看<a href="http://spark.apache.org/docs/latest/submitting-applications.html" title="Submitting Applications" target="_blank" rel="external">Application Submission Guide</a>）。这样：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.0.0 ...</div></pre></td></tr></table></figure></p>
+<p>或者，你能够从<a href="http://search.maven.org/#search|ga|1|a%3A%22spark-streaming-kafka-0-8-assembly_2.11%22%20AND%20v%3A%222.0.0%22" target="_blank" rel="external">Maven repository</a>下载Maven坐标的JAR并使用–jars将其添加到spark-submit。</p>
+<h2 id="Approach-2-Direct-Approach-No-Receivers"><a href="#Approach-2-Direct-Approach-No-Receivers" class="headerlink" title="Approach 2: Direct Approach (No Receivers)"></a>Approach 2: Direct Approach (No Receivers)</h2><p>这个新的五receiver的直接解决方法已经在Spark 1.3版本中引入，来确保健壮的端对端的保证。代替receivers来接收数据，这个方法周期性的查询Kafka来获取每个topic + partition中最后的offset，然后相应的定义每个batch中处理offset的范围。当处理数据的job启动时，使用Kafka的简单API从Kafka中读取定义的offset范围（类似从文件系统中读取文件）。注意这是一个在Spark 1.3中引入的实验性特征，用于Scala和Java API，在Spark 1.4中才有了Python的API。<br>这个解决方案在基于receiver的解决方案上有如下优势：</p>
+<ul>
+<li><em>Simplified Parallelism:</em> 不需要创建多个输入Kafka streams以及联合他们。使用directStream，Spark Streaming将会创建和要消费的Kafka partitions数量相同的RDD partitions，这样将病习惯你的从Kafka读取数据。因此在Kafka和RDD partitions之间有一个一对一的映射，这样更加容易理解和调整。</li>
+<li><em>Efficiency:</em> 在第一个解决方案中要实现零数据丢失需要将数据存储到Write Ahead Log中，这种方式是进一步的复制数据。这实际上是效率低的，因为数据实际上复制了两次-一次被Kafka，另一次被Write Ahead Log。第二种解决方案消除了这个问题，因为没有了receiver，因此不需要Write Ahead Log。只要你有足够的Kafka保留时间，message能够从Kafka中恢复。</li>
+<li><em>Exactly-once semantics:</em> 第一种解决方案使用Kafka的高级API将消费掉的offset存储到Zookeeper中。这是从Kafka消费数据的传统方式。而这种解决方案（和write ahead log混合）能够保证零数据丢失（例如至少一次的语义），在一些故障下，有很小的可能性是一些数据会消费两次。这种存在是因为由Spark Streaming可靠的接收的数据和由Zookeeper跟踪的offsets之间的矛盾造成的。因此，在第二解决方案中，我们使用了简单的Kafka API，简单的API没有使用Zookeeper。通过Spark Streaming中它的checkpoints来跟踪offset。这消除了Spark Streaming和Zookeeper/Kafka之间的差异，因此尽管有故障，但是被Spark Streaming接收到的记录实际上只有一次。为了达到输出你的结果只有一次的语义，你的输出操作将数据保存到外部存储中必须是幂等或原子事务的，这样来保存结果和offset（查看主编程指南中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#semantics-of-output-operations" title="Semantics of output operations" target="_blank" rel="external">Semantics of output operations</a>获取更多信息）。</li>
+</ul>
+<p>注意，这种解决方案中一个不利条件是不会在Zookeeper中更新offset，因此那些基于Zookeeper的监控工具将不会更新进度。然而，你能够在这种解决方案中访问每个batch中处理过的offsets并自己更新到Zookeeper（参考下面）。<br>接下来，我们讨论如何在你的application中使用这种解决方案。</p>
+<ul>
+<li><p><strong>Linking:</strong> 这种解决方案在Scala和Java application中支持。使用如下的坐标来连接你的SBT/Maven项目（查看主要编程指南中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#linking" title="Linking" target="_blank" rel="external">Linking section</a>获取更多信息）。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.spark</div><div class="line">artifactId = spark-streaming-kafka<span class="number">-0</span><span class="number">-8</span>_2<span class="number">.11</span></div><div class="line">version = <span class="number">2.0</span><span class="number">.0</span></div></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Programming:</strong> 在Streaming application代码中，引入KafkaUtils并如下创建一个输入DStream。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.streaming.kafka._</div><div class="line"></div><div class="line"><span class="keyword">val</span> directKafkaStream = <span class="type">KafkaUtils</span>.createDirectStream[</div><div class="line">    [key <span class="class"><span class="keyword">class</span>], [value class], [key decoder class], [value decoder class] ](<span class="params"></span></span></div><div class="line">    streamingContext, [map of <span class="type">Kafka</span> parameters], [set of topics to consume])</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>你还可以传递一个<em>messageHandler</em>到<em>createDirectStream</em>来访问<em>MessageAndMetadata</em>，MessageAndMetadata包含了关于当前message的元数据和要将它转换成的目标类型。查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.streaming.kafka.KafkaUtils$" title="KafkaUtils" target="_blank" rel="external">API docs</a>和<a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala" title="DirectKafkaWordCount" target="_blank" rel="external">examples</a>。<br>在Kafka的参数中，你必须指定metadata.broker.list或bootstrap.servers。默认，它将从每个Kafka partition的最后的offset处开始消费。如果你在Kafka参数中设置auto.offset.reset为smallest，那么它将从最小的offset处开始消费。<br>使用KafkaUtils.createDirectStream的其他变量，你还能够从任意offset处开始消费。此外，如果你想要访问每个batch中已经消费的Kafka offset，你可以如下这么做。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Hold a reference to the current offset ranges, so it can be used downstream</span></div><div class="line"><span class="keyword">var</span> offsetRanges = <span class="type">Array</span>[<span class="type">OffsetRange</span>]()</div><div class="line"></div><div class="line">directKafkaStream.transform &#123; rdd =&gt;</div><div class="line">  offsetRanges = rdd.asInstanceOf[<span class="type">HasOffsetRanges</span>].offsetRanges</div><div class="line">  rdd</div><div class="line">&#125;.map &#123;</div><div class="line">          ...</div><div class="line">&#125;.foreachRDD &#123; rdd =&gt;</div><div class="line">  <span class="keyword">for</span> (o &lt;- offsetRanges) &#123;</div><div class="line">    println(<span class="string">s"<span class="subst">$&#123;o.topic&#125;</span> <span class="subst">$&#123;o.partition&#125;</span> <span class="subst">$&#123;o.fromOffset&#125;</span> <span class="subst">$&#123;o.untilOffset&#125;</span>"</span>)</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果你想要基于Zookeeper的Kafka监控工具来展示streaming application的进度，你还可以使用这个来更新Zookeeper。<br>注意到HasOffsetRanges的类型转换，将只有它在第一个方法在directKafkaStream上调用完成后才会成功，不会晚于一个方法链（不知道这句是否正确）。你能够使用transform()方法来代替foreachRDD()方法来作为你调用的第一个方法以便访问offsets，然后调用进一步的Spark方法。然而，需要注意的是在任何shuffle或repartition方法之后，RDD partition和Kafka partition之间的一对一映射将不再维持，例如reduceByKey()方法或window()方法。<br>另一个需要注意的是，因为这个解决方案没有使用receiver，标准的receiver-related（spark.streaming.receiver.<em>格式的配置）将不会应用到由这种解决方案生成的输入DStreams上（但是会应用到其他输入DStream上）。相反，会是用spark.streaming.kafka.</em>的配置。一个重要的东西是spark.streaming.kafka.maxRatePerPartition，它将限制该API的从每个Kafka partition读取数据的速度（每秒message的条数）。</p>
+<ul>
+<li><strong>Deploying:</strong> 这跟第一种解决方案中的相同。</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark-streaming/" rel="tag">#spark streaming</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/08/17/spark-streaming/" rel="next" title="Spark Streaming Programming Guide">
+                <i class="fa fa-chevron-left"></i> Spark Streaming Programming Guide
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/09/10/spark-tuningSpark/" rel="prev" title="Tuning Spark">
+                Tuning Spark <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-Streaming-Kafka-Integration-Guide"><span class="nav-number">1.</span> <span class="nav-text">Spark Streaming + Kafka Integration Guide</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Approach-1-Receiver-based-Approach"><span class="nav-number">1.1.</span> <span class="nav-text">Approach 1: Receiver-based Approach</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#需要注意的几点："><span class="nav-number">1.1.0.1.</span> <span class="nav-text">需要注意的几点：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Approach-2-Direct-Approach-No-Receivers"><span class="nav-number">1.2.</span> <span class="nav-text">Approach 2: Direct Approach (No Receivers)</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

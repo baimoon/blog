@@ -1,0 +1,630 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文用来学习scikit-image的官方文档的a crash course on NumPy for images，原链接
+A crash course on NumPy for imagesscikit-image是以NumPy数组的方式来操作图像。因此图像很大一部分的操作将是使用NumPy：1234&amp;gt;&amp;gt;&amp;gt; from skimage import data&amp;gt;&amp;gt;&amp;g">
+<meta property="og:type" content="article">
+<meta property="og:title" content="scikit image - a crash course on NumPy for images">
+<meta property="og:url" content="http://baimoon.github.io/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文用来学习scikit-image的官方文档的a crash course on NumPy for images，原链接
+A crash course on NumPy for imagesscikit-image是以NumPy数组的方式来操作图像。因此图像很大一部分的操作将是使用NumPy：1234&amp;gt;&amp;gt;&amp;gt; from skimage import data&amp;gt;&amp;gt;&amp;g">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/plot_camera_numpy_11.png">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/numpy_images-1.png">
+<meta property="og:updated_time" content="2016-12-22T07:23:44.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="scikit image - a crash course on NumPy for images">
+<meta name="twitter:description" content="本文用来学习scikit-image的官方文档的a crash course on NumPy for images，原链接
+A crash course on NumPy for imagesscikit-image是以NumPy数组的方式来操作图像。因此图像很大一部分的操作将是使用NumPy：1234&amp;gt;&amp;gt;&amp;gt; from skimage import data&amp;gt;&amp;gt;&amp;g">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/plot_camera_numpy_11.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/"/>
+
+  <title> scikit image - a crash course on NumPy for images | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                scikit image - a crash course on NumPy for images
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-19T12:43:26+08:00" content="2016-12-19">
+              2016-12-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/图像处理/" itemprop="url" rel="index">
+                    <span itemprop="name">图像处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文用来学习scikit-image的官方文档的<a href="http://scikit-image.org/docs/stable/user_guide/numpy_images.html" title="a crash course on NumPy for images" target="_blank" rel="external">a crash course on NumPy for images</a>，<a href="http://scikit-image.org/docs/stable/user_guide/numpy_images.html" title="a crash course on NumPy for images" target="_blank" rel="external">原链接</a></p>
+<h1 id="A-crash-course-on-NumPy-for-images"><a href="#A-crash-course-on-NumPy-for-images" class="headerlink" title="A crash course on NumPy for images"></a>A crash course on NumPy for images</h1><p>scikit-image是以NumPy数组的方式来操作图像。因此图像很大一部分的操作将是使用NumPy：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> skimage <span class="keyword">import</span> data</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera = data.camera()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>type(camera)</div><div class="line">&lt;type <span class="string">'numpy.ndarray'</span>&gt;</div></pre></td></tr></table></figure></p>
+<p>检索图像的几何以及像素数：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.shape</div><div class="line">(<span class="number">512</span>, <span class="number">512</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.size</div><div class="line"><span class="number">262144</span></div></pre></td></tr></table></figure></p>
+<p>检索关于灰度值的统计信息：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.min(), camera.max()</div><div class="line">(<span class="number">0</span>, <span class="number">255</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.mean()</div><div class="line"><span class="number">118.31400299072266</span></div></pre></td></tr></table></figure></p>
+<p>代表图片的NumPy数组可以是浮点数类型的不同整数。查看<a href="http://scikit-image.org/docs/stable/user_guide/data_types.html#data-types" title="Image data type and what the mean" target="_blank" rel="external">Image data type and what the mean</a>获取关于这些类型的更多信息，以及scikit-image如何处理它们。</p>
+<a id="more"></a>
+<h2 id="NumPy-indexing"><a href="#NumPy-indexing" class="headerlink" title="NumPy indexing"></a>NumPy indexing</h2><p>NumPy indexing能够被用来查找像素值和修改像素值。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># Get the value of the pixel on the 10th row and 20th column</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[<span class="number">10</span>, <span class="number">20</span>]</div><div class="line"><span class="number">153</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># Set to black the pixel on the 3rd row and 10th column</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[<span class="number">3</span>, <span class="number">10</span>] = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<p>注意：在NumPy中，第一个维度(camera.shape[0])对应于行，第二个维度(camera.shape[1])对应于列，使用原点(camerap[0, 0])对应左上角。这符合矩阵/线性代数符号，但是与笛卡尔(x, y)坐标相反。查看<a href="#cc">Coordinate conventions笛卡尔惯例</a>获取更多细节。</p>
+<p>除了某个单独节点，还可以访问或修改整个像素集合，使用的是不同的NumPy的索引功能。<br>切片：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># Set to black the ten first lines</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[:<span class="number">10</span>] = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<p>mask(那些使用boolean遮盖的索引)：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>mask = camera &lt; <span class="number">87</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># Set to "white" (255) pixels where mask is True</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[mask] = <span class="number">255</span></div></pre></td></tr></table></figure></p>
+<p>花式索引（使用索引集的索引）<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>inds_r = np.arange(len(camera))</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>inds_c = <span class="number">4</span> * inds_r % len(camera)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[inds_r, inds_c] = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<p>对于选择一组像素来进行进一步的操作来说，使用mask是尤其有用的。mask可以是任何相同形状的boolean数组。这能够被用来定义一个有趣的区域，就像一块磁盘：？？？这一段怎么理解<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>nrows, ncols = camera.shape</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>row, col = np.ogrid[:nrows, :ncols]</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>cnt_row, cnt_col = nrows / <span class="number">2</span>, ncols / <span class="number">2</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>outer_disk_mask = ((row - cnt_row)**<span class="number">2</span> + (col - cnt_col)**<span class="number">2</span> &gt; (nrows / <span class="number">2</span>)**<span class="number">2</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[outer_disk_mask] = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/plot_camera_numpy_11.png" alt="plot_camera_numpy_11" title="plot camera numpy"><br>布尔类型的算数能够被用来定义更加复杂的masks：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>lower_half = row &gt; cnt_row</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>lower_half_disk = np.logical_and(lower_half, outer_disk_mask)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera = data.camera()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera[lower_half_disk] = <span class="number">0</span></div></pre></td></tr></table></figure></p>
+<h1 id="Color-images"><a href="#Color-images" class="headerlink" title="Color images"></a>Color images</h1><p>以上所有都是色彩图像的真实情况：一张色彩图片就是一个NumPy数组，并且带有额外的通道信息：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>cat = data.chelsea()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>type(cat)</div><div class="line">&lt;type <span class="string">'numpy.ndarray'</span>&gt;</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>cat.shape</div><div class="line">(<span class="number">300</span>, <span class="number">451</span>, <span class="number">3</span>)</div></pre></td></tr></table></figure></p>
+<p>这展示了cat是一个300*451像素的图片，并且使用了三个通道(红、绿和蓝)。像之前一样，我们能够得到并设置像素值：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>cat[<span class="number">10</span>, <span class="number">20</span>]</div><div class="line">array([<span class="number">151</span>, <span class="number">129</span>, <span class="number">115</span>], dtype=uint8)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># set the pixel at row 50, column 60 to black</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>cat[<span class="number">50</span>, <span class="number">60</span>] = <span class="number">0</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># set the pixel at row 50, column 61 to green</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>cat[<span class="number">50</span>, <span class="number">61</span>] = [<span class="number">0</span>, <span class="number">255</span>, <span class="number">0</span>] <span class="comment"># [red, green, blue]</span></div></pre></td></tr></table></figure></p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/numpy_images-1.png" alt="numpy images 1" title="numpy images 1"></p>
+<h1 id="Coordinate-conventiions-坐标惯例"><a href="#Coordinate-conventiions-坐标惯例" class="headerlink" title="Coordinate conventiions (坐标惯例)"></a>Coordinate conventiions (坐标惯例)</h1><p>因为我们使用NumPy数组来代表图片，因此我们的坐标必须响应的匹配。两维(2D)的灰度图片(类似上面的camera)是通过行和列来进行索引的（缩写为row, col或 r, c），使用最低的两个元素(0, 0)来表示左上角。在library的其他部分中，你将会看到rr和cc，用来引用行和列的坐标列表。我们将其与(x,y)区分开来，(x, y)通常标识标准的笛卡尔坐标，其中x是标准水平坐标，y是垂直坐标，原点为右下。<br>在彩色（或多个通道）图片的例子中，最后一个维度包含了色彩信息，并使用channel或ch来表示。<br>最后，对于3D图片，诸如视频、磁共振丞相扫描或共聚焦显微镜，我们</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/12/16/scikitImage-gettingStarted/" rel="next" title="scikit image - getting started">
+                <i class="fa fa-chevron-left"></i> scikit image - getting started
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/12/30/JPinYin/" rel="prev" title="JPinYin">
+                JPinYin <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#A-crash-course-on-NumPy-for-images"><span class="nav-number">1.</span> <span class="nav-text">A crash course on NumPy for images</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NumPy-indexing"><span class="nav-number">1.1.</span> <span class="nav-text">NumPy indexing</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Color-images"><span class="nav-number">2.</span> <span class="nav-text">Color images</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Coordinate-conventiions-坐标惯例"><span class="nav-number">3.</span> <span class="nav-text">Coordinate conventiions (坐标惯例)</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

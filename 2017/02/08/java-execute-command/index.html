@@ -1,0 +1,805 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Java执行命令行," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="在Java的使用过程中，难免需要去执行linux命令（执行shell也是linux命令），那么应该如何做呢？本文将进行一些演示。
+所依赖的相关类要在Java中执行linux命令有两种方式，依赖于三个类。我们先介绍这三个类，然后在使用这三个类，组合两种方案来进行说明。
+java.lang.Process概括ProcessBuilder.start()和Runtime.exec方法创建一个本地进程，并">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java execute command">
+<meta property="og:url" content="http://baimoon.github.io/2017/02/08/java-execute-command/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="在Java的使用过程中，难免需要去执行linux命令（执行shell也是linux命令），那么应该如何做呢？本文将进行一些演示。
+所依赖的相关类要在Java中执行linux命令有两种方式，依赖于三个类。我们先介绍这三个类，然后在使用这三个类，组合两种方案来进行说明。
+java.lang.Process概括ProcessBuilder.start()和Runtime.exec方法创建一个本地进程，并">
+<meta property="og:updated_time" content="2017-02-09T04:13:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Java execute command">
+<meta name="twitter:description" content="在Java的使用过程中，难免需要去执行linux命令（执行shell也是linux命令），那么应该如何做呢？本文将进行一些演示。
+所依赖的相关类要在Java中执行linux命令有两种方式，依赖于三个类。我们先介绍这三个类，然后在使用这三个类，组合两种方案来进行说明。
+java.lang.Process概括ProcessBuilder.start()和Runtime.exec方法创建一个本地进程，并">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2017/02/08/java-execute-command/"/>
+
+  <title> Java execute command | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Java execute command
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-08T11:27:12+08:00" content="2017-02-08">
+              2017-02-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Java/" itemprop="url" rel="index">
+                    <span itemprop="name">Java</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在Java的使用过程中，难免需要去执行linux命令（执行shell也是linux命令），那么应该如何做呢？本文将进行一些演示。</p>
+<h1 id="所依赖的相关类"><a href="#所依赖的相关类" class="headerlink" title="所依赖的相关类"></a>所依赖的相关类</h1><p>要在Java中执行linux命令有两种方式，依赖于三个类。我们先介绍这三个类，然后在使用这三个类，组合两种方案来进行说明。</p>
+<h2 id="java-lang-Process"><a href="#java-lang-Process" class="headerlink" title="java.lang.Process"></a>java.lang.Process</h2><h3 id="概括"><a href="#概括" class="headerlink" title="概括"></a>概括</h3><p>ProcessBuilder.start()和Runtime.exec方法创建一个本地进程，并返回一个Process子类的实例，该实例用来控制进程并获得相关信息。Process类提供了执行<br>当Process对象没有更多的引用时，不是删除子进程，而是继续异步执行子进程。</p>
+<a id="more"></a>
+<h3 id="相关API"><a href="#相关API" class="headerlink" title="相关API"></a>相关API</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">方法名</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">abstract void destory()</td>
+<td style="text-align:left">销毁子进程</td>
+</tr>
+<tr>
+<td style="text-align:left">abstract int exitValue()</td>
+<td style="text-align:left">获取子进程的出口值</td>
+</tr>
+<tr>
+<td style="text-align:left">abstract InputStream getErrorStream()</td>
+<td style="text-align:left">获取子进程的错误流</td>
+</tr>
+<tr>
+<td style="text-align:left">abstract InputStream getInputStream()</td>
+<td style="text-align:left">获取子进程的输入流</td>
+</tr>
+<tr>
+<td style="text-align:left">abstract OutputStream getOutputStream()</td>
+<td style="text-align:left">获取子进程的输出流</td>
+</tr>
+<tr>
+<td style="text-align:left">abstract int waitFor()</td>
+<td style="text-align:left">导致当前线程等待，如有必要，一直要等待由该Process对象表示的进程已经终止</td>
+</tr>
+</tbody>
+</table>
+<h2 id="java-lang-Runtime"><a href="#java-lang-Runtime" class="headerlink" title="java.lang.Runtime"></a>java.lang.Runtime</h2><h3 id="概括-1"><a href="#概括-1" class="headerlink" title="概括"></a>概括</h3><p>每个Java应用程序都有一个Runtime类实例，是应用程序能够与其运行环境相连接。可以通过getRuntime方法获取当前运行环境。Process类提供了执行从进程输入、执行输出到进程、等待进程完成、检查进程的退出状态以及销毁进程的方法。<br>创建的子进程没有自己的终端或控制台。它的所有标准IO操作都是通过三个流（getOutputStream()、getInputStream()和getErrorStream()）重定向到父进程的。父进程使用这些流来提供到子进程的输入和获得从子进程的输出。因为有些本机平台对标准输入和输出流提供优先的缓冲区大小，如果读写子进程的输入流或输出流迅速出现失败，则可能导致子进程阻塞，甚至发生死锁。<br>当没有Process对象的更多引用时，不是删除子进程，而是继续异步的执行子进程。<br>对于带有Process对象的Java进程，没有必要异步或并发的执行由Process对象表示的进程。</p>
+<h3 id="相关API-1"><a href="#相关API-1" class="headerlink" title="相关API"></a>相关API</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">方法名</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">void addShutdownHook(Thread hook)</td>
+<td style="text-align:left">注册新的虚拟机关闭钩子</td>
+</tr>
+<tr>
+<td style="text-align:left">int availableProcessors()</td>
+<td style="text-align:left">返回Java虚拟机返回可用的处理器数目</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String command)</td>
+<td style="text-align:left">在单独的进程中执行字符串指定的命令</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String[] cmdarray)</td>
+<td style="text-align:left">在单独的进程中执行指定的命令和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String[] cmdarray, String[] envp)</td>
+<td style="text-align:left">在指定的环境的独立进程中执行指定的命令和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String[] cmdarray, String[] envp, File dir)</td>
+<td style="text-align:left">在指定的环境和目录的独立进程中执行指定的命令和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String command, String[] envp)</td>
+<td style="text-align:left">在指定的环境的独立进程中执行字符串指定的命令</td>
+</tr>
+<tr>
+<td style="text-align:left">Process exec(String command, String[] envp, File dir)</td>
+<td style="text-align:left">在指定的环境和目录的独立进程中执行字符串指定的命令</td>
+</tr>
+<tr>
+<td style="text-align:left">void exit(int status)</td>
+<td style="text-align:left">通过启动虚拟机的关闭序列，终止当前正在运行的JVM</td>
+</tr>
+<tr>
+<td style="text-align:left">long freeMemory()</td>
+<td style="text-align:left">获取JVM当前的空闲内存量</td>
+</tr>
+<tr>
+<td style="text-align:left">void gc()</td>
+<td style="text-align:left">运行垃圾回收器</td>
+</tr>
+<tr>
+<td style="text-align:left">Runtime getRuntime()</td>
+<td style="text-align:left">返回当前Java应用相关的运行时对象</td>
+</tr>
+<tr>
+<td style="text-align:left">void halt(int status)</td>
+<td style="text-align:left">强制终止目前正在运行的JVM</td>
+</tr>
+<tr>
+<td style="text-align:left">void load(String filename)</td>
+<td style="text-align:left">加载作为动态库的指定文件名</td>
+</tr>
+<tr>
+<td style="text-align:left">void loadLibrary(String libname)</td>
+<td style="text-align:left">加载具有指定库名的动态库</td>
+</tr>
+<tr>
+<td style="text-align:left">long maxMemory()</td>
+<td style="text-align:left">返回Java虚拟机试图使用的最大内存量</td>
+</tr>
+<tr>
+<td style="text-align:left">boolean removeShutdownHook(Thread hook)</td>
+<td style="text-align:left">取消注册某个先前已注册的虚拟机关闭钩子</td>
+</tr>
+<tr>
+<td style="text-align:left">void runFinalization()</td>
+<td style="text-align:left">运行挂起finalization的所有对象的终止方法</td>
+</tr>
+<tr>
+<td style="text-align:left">long totalMemory()</td>
+<td style="text-align:left">返回Java虚拟机的内存总量</td>
+</tr>
+<tr>
+<td style="text-align:left">void traceInstructions(boolean on)</td>
+<td style="text-align:left">启用/禁止指令跟踪</td>
+</tr>
+<tr>
+<td style="text-align:left">void traceMethodCalls(boolean on)</td>
+<td style="text-align:left">启用/禁用方法调用跟踪</td>
+</tr>
+</tbody>
+</table>
+<p>这里最需要关注的是exec相关的重载方法和getRuntime()方法。</p>
+<h2 id="java-lang-ProcessBuilder"><a href="#java-lang-ProcessBuilder" class="headerlink" title="java.lang.ProcessBuilder"></a>java.lang.ProcessBuilder</h2><h3 id="概括-2"><a href="#概括-2" class="headerlink" title="概括"></a>概括</h3><p>此类用于创建操作系统进程。<br>每个ProcessBuilder实例管理一个进程属性集。start()方法利用这些属性创建一个新的Process实例。start()方法可以从同一实例反复调用，以利用相同的或相关的属性创建新的子进程。<br>每个进程生成器管理这些进程属性：</p>
+<blockquote>
+<p>命令是一个字符串列表，他表示要调用的外部程序文件及参数（如果有）。再次，表示有效的操作系统命令的字符串列表是依赖于系统的。<br>环境是从变量到值的依赖于系统的映射。初始值是当前进程环境的一个副本（参阅System.getenv()）。<br>工作目录。默认值是当前进程的当前工作目录，通常根据系统属性user.dir来命名。<br>redirectErrorStream属性。最初，该属性为false，意思是子进程的标准输出和错误输出被发送给两个独立的流，这些流可以通过Process.getEnputStream()和Process.getErrorStream()方法来访问。如果将值设置为true，标准错误将与标准输出合并。这使得关联错误消息和响应的输出变得更容易。再次情况下，合并的数据可以从Process.getInputStream()返回的流中读取，而从Process.getErrorStream()返回的流中读取将直接到达文件尾。</p>
+</blockquote>
+<p>修改进程构建器的属性将影响后续由该对象的start()方法启动的进程，但不会影响以前启动的进程或Java自身的进程。<br>注意，此类不是同步的。如u哦多个线程同时访问一个ProcessBuilder，而其中至少一个线程从结构上修改了其中一个属性，它必须保持外部同步。</p>
+<h3 id="相关API-2"><a href="#相关API-2" class="headerlink" title="相关API"></a>相关API</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">方法名</th>
+<th style="text-align:left">描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">List<string> command()</string></td>
+<td style="text-align:left">返回此进程生成器的操作系统程序和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">ProcessBuilder command(List<string> command)</string></td>
+<td style="text-align:left">设置此进程生成器的操作系统程序和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">ProcessBuilder command(String… command)</td>
+<td style="text-align:left">设置此进程生成器的操作系统程序和参数</td>
+</tr>
+<tr>
+<td style="text-align:left">File directory()</td>
+<td style="text-align:left">返回次进程生成器的工作目录</td>
+</tr>
+<tr>
+<td style="text-align:left">ProcessBuilder directory(File directory)</td>
+<td style="text-align:left">设置此进程生成器的工作目录</td>
+</tr>
+<tr>
+<td style="text-align:left">Map<string, string=""> environment</string,></td>
+<td style="text-align:left">返回此进程生成器环境的字符串映射试图</td>
+</tr>
+<tr>
+<td style="text-align:left">boolean redirectErrorStream()</td>
+<td style="text-align:left">返回进程生成器是否合并标准错误和标准输出</td>
+</tr>
+<tr>
+<td style="text-align:left">ProcessBuilder redirectErrorStream(boolean redirectErrorStream)</td>
+<td style="text-align:left">设置此进程生成器是否合并标准错误和标准输出</td>
+</tr>
+<tr>
+<td style="text-align:left">Process start()</td>
+<td style="text-align:left">使用此进程生成器的属性启动一个新的进程</td>
+</tr>
+</tbody>
+</table>
+<h1 id="相关示例"><a href="#相关示例" class="headerlink" title="相关示例"></a>相关示例</h1><h2 id="使用Runtime和Process执行命令"><a href="#使用Runtime和Process执行命令" class="headerlink" title="使用Runtime和Process执行命令"></a>使用Runtime和Process执行命令</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">Runtime r = Runtime.getRuntime();</div><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">    File f = <span class="keyword">new</span> File(<span class="string">"/Users/"</span>);</div><div class="line">    Process p = r.exec(<span class="keyword">new</span> String[]&#123;<span class="string">"ls"</span>, <span class="string">"-h"</span>&#125;, <span class="keyword">new</span> String[]&#123;&#125;, f);</div><div class="line">    p.waitFor();</div><div class="line">    InputStream is = p.getInputStream();</div><div class="line">    OutputStream os = p.getOutputStream();</div><div class="line">    BufferedReader br = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(is));</div><div class="line">    String info = br.readLine();</div><div class="line">    <span class="keyword">while</span>(info != <span class="keyword">null</span>) &#123;</div><div class="line">        System.out.println(info);</div><div class="line">        info = br.readLine();</div><div class="line">    &#125;</div><div class="line">    p.destroy();</div><div class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">    e.printStackTrace();</div><div class="line">&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</div><div class="line">    e.printStackTrace();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="使用ProcessBuilder和Process执行命令"><a href="#使用ProcessBuilder和Process执行命令" class="headerlink" title="使用ProcessBuilder和Process执行命令"></a>使用ProcessBuilder和Process执行命令</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">    ProcessBuilder pb = <span class="keyword">new</span> ProcessBuilder(<span class="string">"ls"</span>, <span class="string">"-h"</span>);</div><div class="line"></div><div class="line">    Process p = pb.start();</div><div class="line">    p.waitFor();</div><div class="line">    InputStream is = p.getInputStream();</div><div class="line">    OutputStream os = p.getOutputStream();</div><div class="line">    BufferedReader br = <span class="keyword">new</span> BufferedReader(<span class="keyword">new</span> InputStreamReader(is));</div><div class="line">    String info = br.readLine();</div><div class="line">    <span class="keyword">while</span>(info != <span class="keyword">null</span>) &#123;</div><div class="line">        System.out.println(info);</div><div class="line">        info = br.readLine();</div><div class="line">    &#125;</div><div class="line">    p.destroy();</div><div class="line">&#125; <span class="keyword">catch</span> (IOException e) &#123;</div><div class="line">    e.printStackTrace();</div><div class="line">&#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</div><div class="line">    e.printStackTrace();</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/Java执行命令行/" rel="tag">#Java执行命令行</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2017/02/04/python-datetime/" rel="next" title="Python Datetime">
+                <i class="fa fa-chevron-left"></i> Python Datetime
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2017/02/09/machine-learning-note/" rel="prev" title="Machine Learning Notebook">
+                Machine Learning Notebook <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#所依赖的相关类"><span class="nav-number">1.</span> <span class="nav-text">所依赖的相关类</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-Process"><span class="nav-number">1.1.</span> <span class="nav-text">java.lang.Process</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概括"><span class="nav-number">1.1.1.</span> <span class="nav-text">概括</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关API"><span class="nav-number">1.1.2.</span> <span class="nav-text">相关API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-Runtime"><span class="nav-number">1.2.</span> <span class="nav-text">java.lang.Runtime</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概括-1"><span class="nav-number">1.2.1.</span> <span class="nav-text">概括</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关API-1"><span class="nav-number">1.2.2.</span> <span class="nav-text">相关API</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#java-lang-ProcessBuilder"><span class="nav-number">1.3.</span> <span class="nav-text">java.lang.ProcessBuilder</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#概括-2"><span class="nav-number">1.3.1.</span> <span class="nav-text">概括</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关API-2"><span class="nav-number">1.3.2.</span> <span class="nav-text">相关API</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#相关示例"><span class="nav-number">2.</span> <span class="nav-text">相关示例</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#使用Runtime和Process执行命令"><span class="nav-number">2.1.</span> <span class="nav-text">使用Runtime和Process执行命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用ProcessBuilder和Process执行命令"><span class="nav-number">2.2.</span> <span class="nav-text">使用ProcessBuilder和Process执行命令</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

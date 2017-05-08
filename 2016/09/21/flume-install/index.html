@@ -1,0 +1,620 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="install," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Flume Install">
+<meta property="og:url" content="http://baimoon.github.io/2016/09/21/flume-install/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source">
+<meta property="og:updated_time" content="2016-09-24T08:04:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Flume Install">
+<meta name="twitter:description" content="本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/09/21/flume-install/"/>
+
+  <title> Flume Install | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Flume Install
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-21T21:01:12+08:00" content="2016-09-21">
+              2016-09-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Flume/" itemprop="url" rel="index">
+                    <span itemprop="name">Flume</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。<br>在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source和sink，完全可以保证数据零丢失。<br>本文使用的例子中采用的是内存channel，这种channel的缺点是存储长度有限，重启数据丢失，有点就是速度快，低延迟。至于source，使用的是avro。最后是sink，因为我得目的是将数据写入到HDFS中，以后Hadoop集群或Spark集群进行计算，因此使用的hdfs类型的sink。</p>
+<a id="more"></a>
+<p>配置文件如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div></pre></td><td class="code"><pre><div class="line">apiAgent.sources = <span class="built_in">source</span>1 <span class="built_in">source</span>2</div><div class="line">apiAgent.channels = channel1 channel2</div><div class="line">apiAgent.sinks = sink1 sink2 sink3 sink4</div><div class="line"></div><div class="line">apiAgent.channels.channel1.type = memory</div><div class="line">apiAgent.channels.channel1.capacity = 1000000</div><div class="line">apiAgent.channels.channel1.transactionCapacity = 5000</div><div class="line"></div><div class="line">apiAgent.channels.channel2.type = memory</div><div class="line">apiAgent.channels.channel2.capacity = 1000000</div><div class="line">apiAgent.channels.channel2.transactionCapacity = 5000</div><div class="line"></div><div class="line">apiAgent.sources.source1.type = avro</div><div class="line">apiAgent.sources.source1.port = 50000</div><div class="line">apiAgent.sources.source1.channels = channel1</div><div class="line">apiAgent.sources.source1.bind = 0.0.0.0</div><div class="line"></div><div class="line">apiAgent.sources.source2.type = avro</div><div class="line">apiAgent.sources.source2.port = 50001</div><div class="line">apiAgent.sources.source2.channels = channel2</div><div class="line">apiAgent.sources.source2.bind = 0.0.0.0</div><div class="line"></div><div class="line">apiAgent.sinks.sink1.type = hdfs</div><div class="line">apiAgent.sinks.sink1.channel = channel1</div><div class="line">apiAgent.sinks.sink1.hdfs.path = hdfs://user/flume/events/api/%Y/%m/%d/%H/</div><div class="line">apiAgent.sinks.sink1.hdfs.filePrefix = api_sink1_server1</div><div class="line">apiAgent.sinks.sink1.hdfs.rollInterval = 3600</div><div class="line">apiAgent.sinks.sink1.hdfs.rollSize = 0</div><div class="line">apiAgent.sinks.sink1.hdfs.rollCount = 0</div><div class="line">apiAgent.sinks.sink1.hdfs.batchSize = 1000</div><div class="line">apiAgent.sinks.sink1.hdfs.fileType = DataStream</div><div class="line">apiAgent.sinks.sink1.hdfs.writeFormat = Text</div><div class="line"></div><div class="line">apiAgent.sinks.sink2.type = hdfs</div><div class="line">apiAgent.sinks.sink2.channel = channel1</div><div class="line">apiAgent.sinks.sink2.hdfs.path = hdfs:/user/flume/events/api/%Y/%m/%d/%H/</div><div class="line">apiAgent.sinks.sink2.hdfs.filePrefix = api_sink2_server1</div><div class="line">apiAgent.sinks.sink2.hdfs.rollInterval = 3600</div><div class="line">apiAgent.sinks.sink2.hdfs.rollSize = 0</div><div class="line">apiAgent.sinks.sink2.hdfs.rollCount = 0</div><div class="line">apiAgent.sinks.sink2.hdfs.batchSize = 1000</div><div class="line">apiAgent.sinks.sink2.hdfs.fileType = DataStream</div><div class="line">apiAgent.sinks.sink2.hdfs.writeFormat = Text</div><div class="line"></div><div class="line">apiAgent.sinks.sink3.type = hdfs</div><div class="line">apiAgent.sinks.sink3.channel = channel2</div><div class="line">apiAgent.sinks.sink3.hdfs.path = hdfs://user/flume/events/api/%Y/%m/%d/%H/</div><div class="line">apiAgent.sinks.sink3.hdfs.filePrefix = api_sink3_server1</div><div class="line">apiAgent.sinks.sink3.hdfs.rollInterval = 3600</div><div class="line">apiAgent.sinks.sink3.hdfs.rollSize = 0</div><div class="line">apiAgent.sinks.sink3.hdfs.rollCount = 0</div><div class="line">apiAgent.sinks.sink3.hdfs.batchSize = 1000</div><div class="line">apiAgent.sinks.sink3.hdfs.fileType = DataStream</div><div class="line">apiAgent.sinks.sink3.hdfs.writeFormat = Text</div><div class="line"></div><div class="line">apiAgent.sinks.sink4.type = hdfs</div><div class="line">apiAgent.sinks.sink4.channel = channel2</div><div class="line">apiAgent.sinks.sink4.hdfs.path = hdfs://user/flume/events/api/%Y/%m/%d/%H/</div><div class="line">apiAgent.sinks.sink4.hdfs.filePrefix = api_sink4_server1</div><div class="line">apiAgent.sinks.sink4.hdfs.rollInterval = 3600</div><div class="line">apiAgent.sinks.sink4.hdfs.rollSize = 0</div><div class="line">apiAgent.sinks.sink4.hdfs.rollCount = 0</div><div class="line">apiAgent.sinks.sink4.hdfs.batchSize = 1000</div><div class="line">apiAgent.sinks.sink4.hdfs.fileType = DataStream</div><div class="line">apiAgent.sinks.sink4.hdfs.writeFormat = Text</div></pre></td></tr></table></figure></p>
+<p>补充说明<br>Flume的集群的节点个数为4，也就是说有4个进程，每台机器上一个。通过source和channel的关系可以看出，有两个source进行接收数据，每个source连接两个channel，每个channel一个sink。filePrefix配置为这样，是怕生成文件的时候有冲突，而且这样定义也方便查找问题，根据文件名可以知道对应的Flume实例。数据的存储是按小时区分的，方便计算数据的时候使用。<br>因为使用的hdfs类型的sink，因此flume的环境中还要包含Hadoop的环境配置，这样sink才能写输入到HDFS中。<br>配置的详细解释，请参考Flume配置相关的信息。</p>
+<p>写入source使用的依赖如下：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;org.apache.flume&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;flume-ng-core&lt;/artifactId&gt;</div><div class="line">   &lt;version&gt;1.5.2&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure></p>
+<p>代码参考如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">Properties props = <span class="keyword">new</span> Properties();</div><div class="line">props.put(<span class="string">"client.type"</span>, <span class="string">"default_loadbalance"</span>);</div><div class="line">props.put(<span class="string">"hosts"</span>, <span class="string">"h1 h2 h3 h4"</span>);</div><div class="line"></div><div class="line">props.put(<span class="string">"hosts.h1"</span>, <span class="string">"flume-001.yz:11000"</span>);</div><div class="line">props.put(<span class="string">"hosts.h2"</span>, <span class="string">"flume-002.yz:11000"</span>);</div><div class="line">props.put(<span class="string">"hosts.h3"</span>, <span class="string">"flume-003.yz:11000"</span>);</div><div class="line">props.put(<span class="string">"hosts.h4"</span>, <span class="string">"flume-004.yz:11000"</span>);</div><div class="line"></div><div class="line">props.put(<span class="string">"host-selector"</span>, <span class="string">"round_robin"</span>); <span class="comment">//Flume集群中节点的选取规则</span></div><div class="line">props.put(<span class="string">"backoff"</span>, <span class="string">"true"</span>);              <span class="comment">//Flume某个节点故障时，是否冷却（暂时不放到选取的集合中）</span></div><div class="line">props.put(<span class="string">"maxBackoff"</span>, <span class="string">"10000"</span>);          <span class="comment">//FLume某个节点故障时，最大冷却时间，冷却时间是随着次数集合增长的，但是最长这个时间</span></div><div class="line"></div><div class="line">flumeClient = RpcClientFactory.getInstance(props);</div><div class="line"></div><div class="line"></div><div class="line">flumeClient.appendBatch((List&lt;Event&gt;)obj);</div><div class="line">flumeClient.close()</div></pre></td></tr></table></figure></p>
+<p>备注：这种写入Flume的方式是非可靠的，因为flumeClient.appendBatch()方法没有返回任何参数，无法确保零数据丢失。但是如果Flume节点挂了，会抛出异常，因此可以通过捕获异常，对数据进行必要的处理以免无谓的丢失。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/install/" rel="tag">#install</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/09/18/ganglia-installAndConfig/" rel="next" title="Ganglia Install And Config">
+                <i class="fa fa-chevron-left"></i> Ganglia Install And Config
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/09/28/kafka-document/" rel="prev" title="Apache Kafka">
+                Apache Kafka <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

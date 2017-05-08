@@ -1,0 +1,1036 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Log4j 结构," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文主要是针对Log4j的2.x版本的文档的，链接
+ArchitectureMain ComponentsLog4j使用的类下面图表中展示。使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Log4j Architecture">
+<meta property="og:url" content="http://baimoon.github.io/2016/11/10/log4j/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文主要是针对Log4j的2.x版本的文档的，链接
+ArchitectureMain ComponentsLog4j使用的类下面图表中展示。使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含">
+<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg">
+<meta property="og:updated_time" content="2016-12-22T07:24:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Log4j Architecture">
+<meta name="twitter:description" content="本文主要是针对Log4j的2.x版本的文档的，链接
+ArchitectureMain ComponentsLog4j使用的类下面图表中展示。使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含">
+<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/11/10/log4j/"/>
+
+  <title> Log4j Architecture | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Log4j Architecture
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j" target="_blank" rel="external">链接</a></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
+<a id="more"></a>
+<h3 id="Logger-Hierarchy-日志级别"><a href="#Logger-Hierarchy-日志级别" class="headerlink" title="Logger Hierarchy(日志级别)"></a>Logger Hierarchy(日志级别)</h3><p>首先，任何优于简单的System.out.println的日志记录API可以禁用某些日志语句，而其它的打印不受限制。这种能力假定日志空间，那就是，所有可能的记录日志的语句的空间，根据开发者的选择标准被分类。</p>
+<p>在Log4 1.x版本中，日志级别通过Loggers之间的关系来维持。在Log4j 2版本中，这个关系不在存在。取而代之的是通过LoggerConfig对象之间的联系来维持。</p>
+<p>Logger和LoggerConfig被整体命名。Logger是大小写敏感的，并且他们遵循分层的命名规则：</p>
+<blockquote>
+<h3 id="分层命名"><a href="#分层命名" class="headerlink" title="分层命名"></a>分层命名</h3><p>如果一个LoggerConfig的名称是后代logger名称的点前缀，那么这个LoggerConfig是另一个LoggerConfig的祖先。如果一个LoggerConfig和后代LoggerConfig之间没有祖先，那么就说这个LoggerConfig是子LoggerConfig的父级。</p>
+</blockquote>
+<p>例如，名为”com.foo”的LoggerConfig是名为”com.foo.Bar”的LoggerConfig的父级。同样，”java”是”java.util”的父级，并且是”java.util.Vector”的祖先。这个命名结构是大多数开发者所熟悉的。</p>
+<p>根LoggerConfig位于LoggerConfig层次的最顶层。它是一个例外，因为它总是存在并且是每个层级的一部分。一个直接连接到根LoggerConfig的Logger可以如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Logger logger = LogManager.getLogger(LogManager.ROOT_LOGGER_NAME);</div></pre></td></tr></table></figure></p>
+<p>或者更加简单：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Logger logger = LogManager.getRootLogger();</div></pre></td></tr></table></figure></p>
+<p>所有其他的Loggers都能够使用LogManager.getLogger静态方法并传递想要获取的Logger的名称作为参数进行获取。Logging API的更多信息可以在<a href="#" title="Log4j 2 API">Log4j 2 API</a>中找到。</p>
+<h3 id="LoggerContext"><a href="#LoggerContext" class="headerlink" title="LoggerContext"></a>LoggerContext</h3><p>LoggerContext为日志系统充当锚点。然而依赖不同的形式，在一个application中可能有多个活跃的LoggerContexts。LoggerContext的更多细节在<a href="http://logging.apache.org/log4j/2.x/manual/logsep.html" title="Logging Separation" target="_blank" rel="external">Log Separation</a>章中介绍。</p>
+<h3 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h3><p>每个LoggerContext有一个活跃的配置。配置包含了所有输出源，context-wide过滤器、LoggerConfigs并包含引用。在重新配置两个配置对象期间将会继续存在。一旦所有的Logger被重新分配到新的配置，老的配置将被停止并消失。</p>
+<h3 id="Logger"><a href="#Logger" class="headerlink" title="Logger"></a>Logger</h3><p>如前所述，Logger通过调用LogManager.getLogger被创建。Logger本身不直接执行任何action。它简单的有一个名称，并与一个LoggerConfig相关联。它继承AbstractLogger并实现了所要求的方法。因为配置被修改，Logger可能与一个不同的LoggerConfig相关联，从而导致它们的行为被修改。</p>
+<h4 id="Retrieving-Loggers"><a href="#Retrieving-Loggers" class="headerlink" title="Retrieving Loggers"></a>Retrieving Loggers</h4><p>使用相同的名称调用LogManager.getLogger方法将总是返回相同Logger对象的引用。<br>例如，在<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Logger x = LogManager.getLogger(<span class="string">"wombat"</span>);</div><div class="line">Logger y = LogManager.getLogger(<span class="string">"wombat"</span>);</div></pre></td></tr></table></figure></p>
+<p>x和y涉及的是相同的Logger对象。</p>
+<p>log4j环境的配置通常是在application初始化的时候完成的。最好的方式是通过阅读一个配置文件。这将在Configuration章节中讨论。</p>
+<p>log4j通过软件组件使得命名Loggers很容易。这可以通过在每个class中实例化一个Logger来完成，使用logger名称等同于class的完整的限定名。这是定义Logger的一个有用且简单的方法。由于日志的输出带有Logger的名称，这个名字的策略是易于识别一个日志message的来源。然而这只是一种可能，是用于带有名称logger的一种常见策略。Log4j不限制logger集合的可能性。开发者可以根据需要命名logger。</p>
+<p>因为在类中，常常使用类的名称作为Logger的名称，因此提供了LogManager.getLogger()这个简单的方法来自动的使用类的完整的限定名来命名Logger。</p>
+<h3 id="LoggerConfig"><a href="#LoggerConfig" class="headerlink" title="LoggerConfig"></a>LoggerConfig</h3><p>LoggerConfig对象在Loggers在日志配置中被声明时被创建。LoggerConfig包含了一组filter，LogEvents在传递到任何日志存储器之前会被传递到这些filter。它包含了日志存储器的一组引用，这些日志存储器被用来处理event。</p>
+<h4 id="Log-Levels"><a href="#Log-Levels" class="headerlink" title="Log Levels"></a>Log Levels</h4><p>LoggerConfig会被分配一个日志级别。这组内建级别包含TRACE、DEBUG、WARN、ERROR和FATAL。Log4j 2还支持自定义日志级别。获取更多隔离尺寸的机制是使用<a href="&quot;&quot;">Markers</a>来代替。</p>
+<p><a href="&quot;&quot;">Log4j 1.x</a>和<a href="&quot;&quot;">Logback</a>都有”级别继承”的概念。在Log4j 2中，Loggers和LoggerConfigs是两个不同的对象，因此这个概念的实现是不相同的。每个Logger引用适当的LoggerConfig，LoggerConfig能够引用到它的父级，因此实现了相同的效果。<br>下面五个表格，使用了不同的分配级别，最终的级别将于每个Logger相关联。注意，在所有的这些例子中，如果根LoggerConfig没有配置，将会分配一个默认的级别。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">Logger Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子1中，只有根logger配置了，并且只有一个日志级别。所有其他引用根LoggerConfig的Logger将使用根LoggerConfig的级别。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">INFO</td>
+<td style="text-align:left">INFO</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">WARN</td>
+<td style="text-align:left">WARN</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子中，所有的logger都配置了一个LoggerConfig，并且从配置的LoggerConfig中取得它们的级别。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">DRROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">WARN</td>
+<td style="text-align:left">WARN</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子中，名为root、X和X.Y.Z的三个logger，每个都有一个与之相同名称的LoggerConfig。名为X.Y的Logger，没有配置与之匹配名称的LoggerConfig，因此使用名为X的Logger的LoggerConfig，因为会匹配与Logger的名称最长匹配的LoggerConfig，名称的匹配是从名字的开始进行匹配。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子中，名为root和X的logger，每个都配置了一个与之相同名称的LoggerConfig。名为X.Y和X.Y.Z的logger，没有有配置LoggerConfig，因此它们的级别是来自与之关联的LoggerConfig，名为X，因为X是与它们名字最长匹配的LoggerConfig。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">INFO</td>
+<td style="text-align:left">INFO</td>
+</tr>
+<tr>
+<td style="text-align:left">X.YZ</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子中，名为root、X和X.Y的logger，每个都有一个与之相同名称的LoggerConfig。名为X.YZ的logger没有配置LoggerConfig，因此它的级别来自阈值管理的LoggerConfig，名为X，因为X是与它匹配度最长的LoggerConfig。它没有和X.Y关联，因为每个点号后面必须完全匹配。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Assigned LoggerConfig</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left">Level</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">root</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">DEBUG</td>
+</tr>
+<tr>
+<td style="text-align:left">X</td>
+<td style="text-align:left">X</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">ERROR</td>
+</tr>
+<tr>
+<td style="text-align:left">X.Y.Z</td>
+<td style="text-align:left">X.Y</td>
+<td style="text-align:left"></td>
+<td style="text-align:left">ERROR</td>
+</tr>
+</tbody>
+</table>
+<p>在上面的例子中，名为X.Y的LoggerConfig没有配置级别，因此它的级别从名为X的LoggerConfig继承。名为X.Y.Z使用了名为X.Y的LoggerConfig，因为它没有与之精确匹配的LoggerConfig。它也是从名为X的LoggerConfig那里继承日志级别。<br>下面的表格说明了级别过滤是如何工作的。在这个表格中，列表头中，显示了LogEvent的级别，而行表头中，展示了相关LoggerConfig的关联级别。交叉表示LogEvent是否允许被传递到进一步的处理（Yes表示允许，No表示不允许）。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Event Level</th>
+<th style="text-align:left">LoggerConfig Level</th>
+<th style="text-align:left"></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"></td>
+<td style="text-align:left">TRACE</td>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">INFO</td>
+<td style="text-align:left">WARN</td>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">FATAL</td>
+<td style="text-align:left">OFF</td>
+</tr>
+<tr>
+<td style="text-align:left">ALL</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">TRACE</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">DEBUG</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">INFO</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">WARN</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">ERROR</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">FATAL</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">YES</td>
+<td style="text-align:left">NO</td>
+</tr>
+<tr>
+<td style="text-align:left">OFF</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+<td style="text-align:left">NO</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Filter"><a href="#Filter" class="headerlink" title="Filter"></a>Filter</h3><p>除了前面章节中秒数的自动日志级别过滤，Log4j提供了Filter，这些Filter能够在控制被传递到任何LoggerConfig之前被应用、控制被传递到一个LoggerConfig之后但是调用任何Appender之前、控制被传递到一个LoggerConfig之后但是在调用一个指定Appender之前和每个Appender上。以类似防火墙过滤器的方式，每个过滤器返回三个结果中的一个：Accept、Deny和Neutral。Accept的答复意味着没有其他Filter会被调用，和事件被处理。Deny的答复意味着事件应该立即被忽略并且控制应该返回给调用者。Neutral的答复意味着事件应该被传递给其他Filter。如果这里没有其他Filter，事件应该被处理。</p>
+<p>虽然一个event可能通过一个Filter被接收，但是这个event可能仍然不给记录。这发生在当这个event被一个前置LoggerConfig Filter接收但是接着被一个LoggerConfig filter忽略或被所有Appenders忽略。</p>
+<h3 id="Appender"><a href="#Appender" class="headerlink" title="Appender"></a>Appender</h3><p>基于Logger，选择性的开启或禁用日志记录请求只是图像的一部分。Log4j允许日志记录请求打印到多个目的地。在Log4j中一个输出目的地成为一个Appender。当前支持的appender有，控制台、文件、远程socket服务、Apache Flume、JMS、远程 UNIX系统日志后台和各种数据库APIs。查看这一章的Appenders获取关于不同类型appender的详细信息。一个Logger可以附加多个Appender。</p>
+<p>一个Appender可以通过在当前配置上调用<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/config/Configuration.html#addLoggerAppenderorg.apache.logging.log4j.core.Logger20org.apache.logging.log4j.core.Appender" title="addLoggerAppender" target="_blank" rel="external">addLoggerAppender</a>方法来添加到一个Logger上。如果一个LoggerConfig没有匹配到Logger（根据Logger的名称匹配），将会创建一个，Appender将被固定到创建的Logger上，然后所有的Logger将会被通知并更新它们的LoggerConfig引用。</p>
+<p>对于给定的logger，每个可用的日志记录请求都将被转发给这个logger的LoggerConfig内的所有appender，以及这个LoggerConfig的父级的appender们。换句话说，appenders附加的从LoggerConfig继承中被继承。例如，如果一个控制台appender被添加到根logger，那么所有可用的日志记录请求将至少会输出到控制台。假设将一个文件appender添加到了一个名为C的appender，那么对于C和C的子类的可用的日志记录请求将会输出到一个文件和控制台。通过在配置文件中设置 additivity=”false”来声明Logger不需要额外的添加来重写Logger的默认行为。</p>
+<p>控制appender的添加规则汇总如下：</p>
+<blockquote>
+<p>Appender Additivity<br>    名为L的Logger的一个日志片段的输出将去往与L相关的LoggerConfig中的所有Appender以及这个LoggerConfig上一代的所有Appender。这是appender additivity的含义。<br>    然而，如果与L相关联的LoggerConfig的一个上一代，假设是P，设置附加性标识为false，那么L的输出将直接到达L的LoggerConfig的appenders，以及它的上一代，包括P，但是不包含P的上一代中的任何appenders。<br>    Logger有它自己的附加性标识，默认设置为true。</p>
+</blockquote>
+<p>下面的表格展示了一个例子：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Logger Name</th>
+<th style="text-align:left">Added Appenders</th>
+<th style="text-align:left">Additivity Flag</th>
+<th style="text-align:left">Output Targets</th>
+<th style="text-align:left">Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">root</td>
+<td style="text-align:left">A1</td>
+<td style="text-align:left">not applicable</td>
+<td style="text-align:left">A1</td>
+<td style="text-align:left">根logger没有父级，因此附加性应用不到。</td>
+</tr>
+<tr>
+<td style="text-align:left">x</td>
+<td style="text-align:left">A-x1, A-x2</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">A1, A-x1, A-x2</td>
+<td style="text-align:left">名为x的Logger和根Logger的Appdenders。</td>
+</tr>
+<tr>
+<td style="text-align:left">x.y</td>
+<td style="text-align:left">none</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">A1, A-x1, A-x2</td>
+<td style="text-align:left">名为x的Logger和根Logger的Appdenders。通常不配置没有Appender的Logger。</td>
+</tr>
+<tr>
+<td style="text-align:left">x.y.z</td>
+<td style="text-align:left">A-xyz1</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">A1, A-x1, A-x2, A-xyz1</td>
+<td style="text-align:left">名为x.y.z和名为x的Logger的Appender，以及根Logger的Appender。</td>
+</tr>
+<tr>
+<td style="text-align:left">security</td>
+<td style="text-align:left">A-sec</td>
+<td style="text-align:left">false</td>
+<td style="text-align:left">A-sec</td>
+<td style="text-align:left">没有appender累加，因为附加标识设置为false</td>
+</tr>
+<tr>
+<td style="text-align:left">security.access</td>
+<td style="text-align:left">none</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">A-sec</td>
+<td style="text-align:left">只有名为security的Logger的appender，因为 security的附加标识设置为false。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Layout"><a href="#Layout" class="headerlink" title="Layout"></a>Layout</h3><p>通常，用户希望能够定制的不只是输出的目的地，还包含输出的格式。这是通过把一个<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/Layout.html" title="Layout" target="_blank" rel="external">Layout</a>与一个Appender联系在一起来实现的。这个Layout负责根据用户的意愿格式化LogEvent，因此一个appender会非常注意的发送格式化的输出到它的目的地。<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/layout/PatternLayout.html" title="PatternLayout" target="_blank" rel="external">PatternLayout</a>，是Log4j标准分发的一部分，让用户指定输出格式来进行一致性的格式转换，类似于C语言的printf函数。</p>
+<p>例如，这个使用了%r[%t] %-5p %c - %m %n模式的PatternLayout将会输出类似的一些东西：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="number">176</span> [main] INFO  org.foo.Bar - Located nearest gas station.</div></pre></td></tr></table></figure></p>
+<p>第一个字段是毫秒的数字，表示从程序启动到现在过去的时长。第二个字段是产生日志请求的线程。第三个字段是日志的级别。第四个字段是与日志请求相关联的logger的名称。“-”之后的文本是日志的message。</p>
+<p>Log4j为不同的用例带来了很多的<a href="http://logging.apache.org/log4j/2.x/manual/layouts.html" title="Layouts" target="_blank" rel="external">Layouts</a>，例如JSON、XML、HTML和Syslog（包括新的RFC 5424版本）.其他appenders（诸如数据库连接）放在了特定的字段中，而非一个特定的文本布局。</p>
+<p>同样重要的是，log4j将根据用户指定的表中来呈现日志消息的内容。例如，如果在你当前的项目中需要使用一个对象类型0ranges，并需要常常对它进行记录，那么你可以创建一个OrangeMessage来接收Orange实例，并传递到Log4j，因此哪个Orange对象能在请求的时候被格式化为一个合适的字节数组。</p>
+<h3 id="StrSubstitutor-and-StrLookup"><a href="#StrSubstitutor-and-StrLookup" class="headerlink" title="StrSubstitutor and StrLookup"></a>StrSubstitutor and StrLookup</h3><p>类<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/lookup/StrSubstitutor.html" title="StrSubstitutor" target="_blank" rel="external">StrSubstitutor</a>和接口<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/lookup/StrLookup.html" title="StrLookup" target="_blank" rel="external">StrLookup</a>是从<a href="https://commons.apache.org/proper/commons-lang/" title="Apache Commons Langs" target="_blank" rel="external">Apache Commons Langs</a>借过来的，然后被修改来支持日志事件。另外，<a href="http://logging.apache.org/log4j/2.x/log4j-core/apidocs/org/apache/logging/log4j/core/lookup/Interpolator.html" target="_blank" rel="external">Interpolator</a>从Apache Commons Configuration那里借鉴以允许StrSubstitutor来评估来自多个StrLookup的变量。它还被修改，以支持LogEvent的评估。这些提供的机制允许从System Properties、配置文件、 ThreadContext Map和LogEvent中结构化数据中引用变量进行配置。这些变量能够当配置被处理或每个事件被处理时来解决。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/Log4j-结构/" rel="tag">#Log4j 结构</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/11/10/log4j-configuration/" rel="next" title="Log4j Configuration">
+                <i class="fa fa-chevron-left"></i> Log4j Configuration
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/12/16/scikitImage-gettingStarted/" rel="prev" title="scikit image - getting started">
+                scikit image - getting started <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Architecture"><span class="nav-number">1.</span> <span class="nav-text">Architecture</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Main-Components"><span class="nav-number">1.1.</span> <span class="nav-text">Main Components</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Logger-Hierarchy-日志级别"><span class="nav-number">1.1.1.</span> <span class="nav-text">Logger Hierarchy(日志级别)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分层命名"><span class="nav-number">1.1.2.</span> <span class="nav-text">分层命名</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LoggerContext"><span class="nav-number">1.1.3.</span> <span class="nav-text">LoggerContext</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Configuration"><span class="nav-number">1.1.4.</span> <span class="nav-text">Configuration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Logger"><span class="nav-number">1.1.5.</span> <span class="nav-text">Logger</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Retrieving-Loggers"><span class="nav-number">1.1.5.1.</span> <span class="nav-text">Retrieving Loggers</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LoggerConfig"><span class="nav-number">1.1.6.</span> <span class="nav-text">LoggerConfig</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Log-Levels"><span class="nav-number">1.1.6.1.</span> <span class="nav-text">Log Levels</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Filter"><span class="nav-number">1.1.7.</span> <span class="nav-text">Filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Appender"><span class="nav-number">1.1.8.</span> <span class="nav-text">Appender</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Layout"><span class="nav-number">1.1.9.</span> <span class="nav-text">Layout</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StrSubstitutor-and-StrLookup"><span class="nav-number">1.1.10.</span> <span class="nav-text">StrSubstitutor and StrLookup</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,626 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="jzmq," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文介绍了如何在CentOS系统上安装Jzmq
+安装CZMQ首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：1yum install czmq
+安装JZMQ在安装了zmq之后，需要下载Jzmq，进行编译和安装：123456git clone https://github.com/zeromq/jzmq.gitcd jzmq-jni/./autogen.sh./confi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CentOS install Jzmq">
+<meta property="og:url" content="http://baimoon.github.io/2016/07/17/jzmq/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文介绍了如何在CentOS系统上安装Jzmq
+安装CZMQ首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：1yum install czmq
+安装JZMQ在安装了zmq之后，需要下载Jzmq，进行编译和安装：123456git clone https://github.com/zeromq/jzmq.gitcd jzmq-jni/./autogen.sh./confi">
+<meta property="og:updated_time" content="2016-09-20T09:05:04.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CentOS install Jzmq">
+<meta name="twitter:description" content="本文介绍了如何在CentOS系统上安装Jzmq
+安装CZMQ首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：1yum install czmq
+安装JZMQ在安装了zmq之后，需要下载Jzmq，进行编译和安装：123456git clone https://github.com/zeromq/jzmq.gitcd jzmq-jni/./autogen.sh./confi">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/07/17/jzmq/"/>
+
+  <title> CentOS install Jzmq | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                CentOS install Jzmq
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-17T14:52:35+08:00" content="2016-07-17">
+              2016-07-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/jzmq/" itemprop="url" rel="index">
+                    <span itemprop="name">jzmq</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文介绍了如何在CentOS系统上安装Jzmq</p>
+<h1 id="安装CZMQ"><a href="#安装CZMQ" class="headerlink" title="安装CZMQ"></a>安装CZMQ</h1><h2 id="首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装："><a href="#首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：" class="headerlink" title="首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装："></a>首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install czmq</div></pre></td></tr></table></figure>
+<h1 id="安装JZMQ"><a href="#安装JZMQ" class="headerlink" title="安装JZMQ"></a>安装JZMQ</h1><h2 id="在安装了zmq之后，需要下载Jzmq，进行编译和安装："><a href="#在安装了zmq之后，需要下载Jzmq，进行编译和安装：" class="headerlink" title="在安装了zmq之后，需要下载Jzmq，进行编译和安装："></a>在安装了zmq之后，需要下载Jzmq，进行编译和安装：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">git <span class="built_in">clone</span> https://github.com/zeromq/jzmq.git</div><div class="line"><span class="built_in">cd</span> jzmq-jni/</div><div class="line">./autogen.sh</div><div class="line">./configure</div><div class="line">make</div><div class="line">make install</div></pre></td></tr></table></figure>
+<a id="more"></a>
+<h1 id="测试JZMQ"><a href="#测试JZMQ" class="headerlink" title="测试JZMQ"></a>测试JZMQ</h1><h2 id="安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令："><a href="#安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令：" class="headerlink" title="安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令："></a>安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">java -Djava.library.path=/usr/<span class="built_in">local</span>/lib local_lat tcp://127.0.0.1:5555 1 101</div></pre></td></tr></table></figure>
+<h2 id="然后打开另外一个终端，输入如下命令："><a href="#然后打开另外一个终端，输入如下命令：" class="headerlink" title="然后打开另外一个终端，输入如下命令："></a>然后打开另外一个终端，输入如下命令：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">java -Djava.library.path=/usr/<span class="built_in">local</span>/lib remote_lat tcp://127.0.0.1:5555 1 101</div></pre></td></tr></table></figure>
+<h2 id="如果测试成功，则输出类似信息："><a href="#如果测试成功，则输出类似信息：" class="headerlink" title="如果测试成功，则输出类似信息："></a>如果测试成功，则输出类似信息：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">message size: 1 [B]</div><div class="line">roundtrip count: 101</div><div class="line">mean latency: 39.603960396039604 [us]</div></pre></td></tr></table></figure>
+<h1 id="常见报错解决"><a href="#常见报错解决" class="headerlink" title="常见报错解决"></a>常见报错解决</h1><h2 id="无法找到Jzmq"><a href="#无法找到Jzmq" class="headerlink" title="无法找到Jzmq"></a>无法找到Jzmq</h2><p>在使用项目进行部署的时候，可能会出现找不到Jzmq的异常信息，可以在系统中找到jzmq安装的位置，并使用-Djava.library.path进行指定，如：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">-Djava.library.path=/usr/<span class="built_in">local</span>/lib</div></pre></td></tr></table></figure></p>
+<h2 id="无法找到zmq-h"><a href="#无法找到zmq-h" class="headerlink" title="无法找到zmq.h"></a>无法找到zmq.h</h2><p>在执行./configure的时候，抛出错误：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">checking <span class="keyword">for</span> zmq.h... no</div><div class="line">configure: error: cannot find zmq.h</div></pre></td></tr></table></figure></p>
+<p>出现这个问题，还是因为缺少某些依赖，执行如下命令，来解决：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum -y install jdk zeromq-devel unzip libtool gcc autoconf automake gcc-c++</div></pre></td></tr></table></figure></p>
+<p>参考<a href="https://github.com/zeromq/jzmq" title="Jzmq&#39;s github" target="_blank" rel="external">Jzmq的github</a>获取更多的信息</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/jzmq/" rel="tag">#jzmq</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/07/25/spark-quickStart/" rel="prev" title="Quick Start">
+                Quick Start <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安装CZMQ"><span class="nav-number">1.</span> <span class="nav-text">安装CZMQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装："><span class="nav-number">1.1.</span> <span class="nav-text">首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#安装JZMQ"><span class="nav-number">2.</span> <span class="nav-text">安装JZMQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#在安装了zmq之后，需要下载Jzmq，进行编译和安装："><span class="nav-number">2.1.</span> <span class="nav-text">在安装了zmq之后，需要下载Jzmq，进行编译和安装：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#测试JZMQ"><span class="nav-number">3.</span> <span class="nav-text">测试JZMQ</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令："><span class="nav-number">3.1.</span> <span class="nav-text">安装Jzmq完毕后，可以进行测试，首先打开一个终端，输入如下命令：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#然后打开另外一个终端，输入如下命令："><span class="nav-number">3.2.</span> <span class="nav-text">然后打开另外一个终端，输入如下命令：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#如果测试成功，则输出类似信息："><span class="nav-number">3.3.</span> <span class="nav-text">如果测试成功，则输出类似信息：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常见报错解决"><span class="nav-number">4.</span> <span class="nav-text">常见报错解决</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#无法找到Jzmq"><span class="nav-number">4.1.</span> <span class="nav-text">无法找到Jzmq</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#无法找到zmq-h"><span class="nav-number">4.2.</span> <span class="nav-text">无法找到zmq.h</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

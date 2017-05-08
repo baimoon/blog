@@ -1,0 +1,696 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是对spark文档之Submitting Applications章节的翻译，原文档连接在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。
+Bundling Your Application’s Dependencies(绑定你的应用程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Submitting Applications">
+<meta property="og:url" content="http://baimoon.github.io/2016/07/25/spark-submittingApplications/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是对spark文档之Submitting Applications章节的翻译，原文档连接在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。
+Bundling Your Application’s Dependencies(绑定你的应用程">
+<meta property="og:updated_time" content="2016-08-13T15:59:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Submitting Applications">
+<meta name="twitter:description" content="本文是对spark文档之Submitting Applications章节的翻译，原文档连接在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。
+Bundling Your Application’s Dependencies(绑定你的应用程">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/07/25/spark-submittingApplications/"/>
+
+  <title> Submitting Applications | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Submitting Applications
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-25T14:22:23+08:00" content="2016-07-25">
+              2016-07-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是对spark文档之Submitting Applications章节的翻译，原文档<a href="http://spark.apache.org/docs/latest/submitting-applications.html," title="Submitting Application" target="_blank" rel="external">连接</a><br>在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。</p>
+<h2 id="Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖"><a href="#Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖" class="headerlink" title="Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)"></a>Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)</h2><p>如果你的代码依赖其他项目，你需要将它们打包到你的应用程序中，以便将它分发到集群。为了这样做，需要创建一个assembly jar（或）来包含你的代码和代码的依赖。sbt和Maven都有assembly插件。当创建assembly jar的时候，作为被提供的依赖列出Spark和Hadoop；这些不需要被捆绑，因为他们在运行时，cluster管理器会提供。一旦你有了一个assembly的jar包，你能够调用bin/spark-submit脚本在传递你的jar时进行解析。<br>对于Python，你可以使用spark-submit的–py-files参数来添加.py，.zip或.egg的文件，来发布你的application。如果你依赖多个Python文件，我们推荐将它们打包到.zip或.egg中。</p>
+<h2 id="Launching-Applications-with-spark-submit"><a href="#Launching-Applications-with-spark-submit" class="headerlink" title="Launching Applications with spark-submit"></a>Launching Applications with spark-submit</h2><p>一旦一个用户application被捆绑，那么这个application可以使用bin/spark-submit脚本来发布。这个脚本需要使用Spark和它的依赖来设置classpath，并支持不同的cluster manager和Spark支持的部署模式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt;  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... <span class="comment">#other options  </span></div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<p>一些常用的选项：</p>
+<blockquote>
+<p>1、–class：你的应用程序的入口点（例如：org.apache.spark.examples.SparkPi）。<br>2、–master：集群的master URL（例如：spark://23.195.26.187:7077）。<br>3、–deploy-mode：部署你的程序到worker节点(cluster)，还是作为一个外部client(client)，默认是client。<br>4、–conf：以key=value的格式指定任意的Spark配置。对于包含空格的值，要包含在引号中”key=value”。<br>5、application-jar：包含你应用程序和所有依赖的路径。这个URL在你的集群中必须是全局可见的。例如，一个hdfs://路径或file://路径对于所有的节点都是存在的。<br>6、application-arguments：任何需要传递到主类中main方法的参数。</p>
+</blockquote>
+<p>一个常用的部署策略是提交你的应用程序到一个跳板机，这个跳板机是一个与你的worker机器（例如，再一个standalone EC2集群的Master节点）同地协调的机器。在这个设置中，client模式是适当的。在client模式中，驱动器在spark-submit进程中直接的启动，它的行为类似一个client连接到cluster。application的输入和输出被输出到控制台。因此，这种模式对于那种包含REPL(Read-Eval-Print-Loop)（例如,Spark shell）的application是特别适合的。<br>作为另一种方案，如果你的application是从一个距离worker机器很远的机器上提交的（如，你的本地笔记本），它通常要使用cluster模式来减少drivers和executors之间的网络因素。注意，对于Mesos集群，cluster模式是不能够被正确支持的。当前只有YARN为Python application支持cluster模式。<br>对于Python application，可以简单的在<application-jar>位置传递一个.py文件来代替一个JAR，并使用–py-files添加Python .zip、.egg或.py文件到查找路径。<br>这里有一些特殊选项可以被cluster manager来使用。例如，在Spark stadalone cluster中使用cluster部署模式，你也能够使用–supervise来确定driver在非0退出代码失败的时候自动重启。要列举出所有spark-submit可用的选项，可以用–help来运行spark-submit即可。以下有一些常用选项的例子：</application-jar></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div></pre></td><td class="code"><pre><div class="line"><span class="comment"># Run application locally on 8 cores</span></div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master <span class="built_in">local</span>[8]\</div><div class="line">  /path/to/examples.jar \</div><div class="line">  100</div><div class="line"></div><div class="line"><span class="comment"># Run on a Spark standalone cluster in client deploy mode</span></div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100\</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"><span class="comment"># Run on a Spark standalone cluster in cluster deploy mode with supervise</span></div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster  --supervise  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100\</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"><span class="comment"># Run on a YARN cluster</span></div><div class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=XXX</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master yarn \</div><div class="line">  --deploy-mode cluster \ <span class="comment"># can be client for client mode  </span></div><div class="line">  --executor-memory 20G \</div><div class="line">  --num-executors 50\</div><div class="line">  /path/to/examples.jar \  1000</div><div class="line"></div><div class="line"><span class="comment"># Run a Python application on a Spark standalone cluster</span></div><div class="line">./bin/spark-submit \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  examples/src/main/python/pi.py \</div><div class="line">  1000</div><div class="line"></div><div class="line"><span class="comment"># Run on a Mesos cluster in cluster deploy mode with supervise</span></div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master mesos://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster  --supervise  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100\</div><div class="line">  http://path/to/examples.jar\</div><div class="line">  1000</div></pre></td></tr></table></figure>
+<p><a name="master-urls"></a></p>
+<h2 id="Master-URLs"><a href="#Master-URLs" class="headerlink" title="Master URLs"></a>Master URLs</h2><table>
+<thead>
+<tr>
+<th style="text-align:left">Master URL</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">local</td>
+<td style="text-align:left">使用一个worker线程，以本地方式运行Spark（完全不是并行的）</td>
+</tr>
+<tr>
+<td style="text-align:left">local[K]</td>
+<td style="text-align:left">使用K个线程，以本地方式运行Spark（概念上，设置这个值为你的机器的核数）</td>
+</tr>
+<tr>
+<td style="text-align:left">locak[*]</td>
+<td style="text-align:left">使用和你机器上逻辑核数相同数量的worker，以本地方式运行</td>
+</tr>
+<tr>
+<td style="text-align:left">spark://HOST:PORT</td>
+<td style="text-align:left">连接到给定的Spark standalone集群的master。这个port必须是你master配置使用的或默认值7077二者之一</td>
+</tr>
+<tr>
+<td style="text-align:left">mesos://HOST:PORT</td>
+<td style="text-align:left">连接到给定的Mesos集群。port必须是你的配置的值或默认值5050二者之一。或者对于一个Mesos集群使用ZooKeeper，使用mesos://Zk://…使用deploy-mode cluster来提交，HOST:PORT应该被配置到MesosClusterDispatcher</td>
+</tr>
+<tr>
+<td style="text-align:left">yarn</td>
+<td style="text-align:left">以client或cluster模式连接到YARN集群，连接模式依赖–deploy-mode的值。集群的位置将基于HADOOP_CONF_DIR或YARN_CONF_DIR变量的值进行查找</td>
+</tr>
+<tr>
+<td style="text-align:left">yarn-client</td>
+<td style="text-align:left">等同于使用–deploy-mode client的yarn，但应该优先使用yarn</td>
+</tr>
+<tr>
+<td style="text-align:left">yarn-cluster</td>
+<td style="text-align:left">等同于使用–deploy-mode cluster的yarn，但应该优先使用yarn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="从一个文件中加载配置信息"><a href="#从一个文件中加载配置信息" class="headerlink" title="从一个文件中加载配置信息"></a>从一个文件中加载配置信息</h2><p>spark-submit脚本能够从一个配置文件中加载默认的Spark配置变量，并传递它们到你的application。默认，它将从Spark目录conf/spark-defaults.conf中读取选项。对于更多的细节，查看loading default configurations章节获取更多细节信息。<br>加载默认Spark配置，这种方式能够为spark-submit设置必要的标识。例如，如果spark.master属性被设置，你可以从spark-submit中安全的省略–master标识。一般，设置在SparkConf上的配置值有最高的优先级，然后标识被传递给spark-submit，然后是默认文件中的值。</p>
+<blockquote>
+<p>如果你不清楚配置选项的出处，你可以通过–verbose选项运行spark-submit来打印出调试信息。</p>
+</blockquote>
+<h2 id="Advanced-Dependency-Management"><a href="#Advanced-Dependency-Management" class="headerlink" title="Advanced Dependency Management"></a>Advanced Dependency Management</h2><p>当使用spark-submit的时候，application jar和其他使用–jar选项进行包含的jar包将自动转发到集群。Spark使用如下的URL模式来为广播jar提供不同的策略：</p>
+<blockquote>
+<p>1、file: - 绝对路径，并且file:/URIs通过driver的HTTP文件服务器提供服务，每个executor从driver HTTP server拉取文件。<br>2、hdfs:、http:、https:、ftp: - 这些从预期的URI拉取文件和JARs。<br>3、local: - 一个以local:开始的URI，期望作为一个本地文件存在于每个worker节点上。这意味着不会产生网络IO，并且将大文件或Jar推送到每个worker、或使用NFS、GlusterFS进行共享的方式工作的更好。</p>
+</blockquote>
+<p>注意，那些为executor节点上每个SparkContext而拷贝到工作目录的JARs和文件。可以使用一个有意义的空间超时，并在需要的时候进行清理。使用YARN，清理是自动处理的，使用Spark standalone，清理工作可以使用<strong>spark.worker.cleanup.appDataTtl</strong>属性来配置。<br>用户可能通过使用–packages来指定以逗号分隔的maven坐标列表来包含其他依赖。附加的库（或resolvers在SBT中）可以使用–repositories标识以一个逗号分隔的方式来添加。这些命令能够在pyspark、spark-shell和spark-submit中使用来包含Spark Packages。</p>
+<h2 id="More-Information"><a href="#More-Information" class="headerlink" title="More Information"></a>More Information</h2><p>一旦你部署了你的application，<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="cluseter mode overview" target="_blank" rel="external">cluster mode overview</a>描述了与分布式执行的有关的组件以及如何监控和调试application。</p>
+<h2 id="使用实例"><a href="#使用实例" class="headerlink" title="使用实例"></a>使用实例</h2><h3 id="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"><a href="#不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例" class="headerlink" title="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"></a>不引用spark之外的第三方jar包的application的编译和submit，请<a href="https://baimoon.github.io/blog/2016/07/27/scala-sbt/#demo" title="简单的jar包的构建和提交" target="_blank" rel="external">参考的使用实例</a></h3><h3 id="引用spark之外的第三方jar包的application，打包的方式有两种："><a href="#引用spark之外的第三方jar包的application，打包的方式有两种：" class="headerlink" title="引用spark之外的第三方jar包的application，打包的方式有两种："></a>引用spark之外的第三方jar包的application，打包的方式有两种：</h3><ul>
+<li>将整个application打成一个assembly的jar，将spark之外的jar都包含在该jar中</li>
+<li>仍然打成只包含application本身的jar包，引用的第三方jar包通过其他方式进行添加。</li>
+</ul>
+<h4 id="将整个jar包打成一个assembly的jar来包含第三方jar包"><a href="#将整个jar包打成一个assembly的jar来包含第三方jar包" class="headerlink" title="将整个jar包打成一个assembly的jar来包含第三方jar包"></a>将整个jar包打成一个assembly的jar来包含第三方jar包</h4><p>从一个包含json数据格式的文件中读取数据，并计算数据的content中各个字的统计</p>
+<h5 id="手动构建项目结构"><a href="#手动构建项目结构" class="headerlink" title="手动构建项目结构"></a>手动构建项目结构</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">./src</div><div class="line">./src/<span class="built_in">test</span></div><div class="line">./src/<span class="built_in">test</span>/resources</div><div class="line">./src/<span class="built_in">test</span>/scala</div><div class="line">./src/<span class="built_in">test</span>/java</div><div class="line">./src/main</div><div class="line">./src/main/resources</div><div class="line">./src/main/scala</div><div class="line">./src/main/scala/com</div><div class="line">./src/main/scala/com/antispam</div><div class="line">./src/main/scala/com/antispam/WordCount.scala</div><div class="line">./src/main/java</div><div class="line">./build.sbt</div></pre></td></tr></table></figure>
+<h5 id="创建applcation文件"><a href="#创建applcation文件" class="headerlink" title="创建applcation文件"></a>创建applcation文件</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">vim src/main/scala/com/antispam/<span class="type">JsonWordCount</span>.scala</div><div class="line"></div><div class="line"><span class="keyword">package</span> com.antispam</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkContext</span></div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkContext</span>._</div><div class="line"><span class="keyword">import</span> org.apache.spark.<span class="type">SparkConf</span></div><div class="line"><span class="keyword">import</span> net.sf.json.<span class="type">JSONObject</span></div><div class="line"><span class="keyword">import</span> java.util.<span class="type">Map</span></div><div class="line"><span class="keyword">import</span> java.util.<span class="type">HashMap</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">JsonWordCount</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args:<span class="type">Array</span>[<span class="type">String</span>]) &#123;</div><div class="line">        <span class="keyword">val</span> logFile = <span class="string">"hdfs:///tmp/rwm/testData.log"</span></div><div class="line">        <span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>().setAppName(<span class="string">"json word count application"</span>)</div><div class="line">        <span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div><div class="line">        <span class="keyword">val</span> logData = sc.textFile(logFile)</div><div class="line">        <span class="keyword">val</span> rdd1 = logData.map(obj =&gt; (<span class="type">JSONObject</span>.fromObject(obj).get(<span class="string">"account"</span>).asInstanceOf[<span class="type">String</span>], <span class="number">1</span>))</div><div class="line">        <span class="keyword">val</span> rdd2 = rdd1.reduceByKey(_ + _)</div><div class="line">        rdd2.saveAsTextFile(<span class="string">"hdfs:///tmp/rwm/res"</span>)</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="创建sbt构建文件"><a href="#创建sbt构建文件" class="headerlink" title="创建sbt构建文件"></a>创建sbt构建文件</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">vim build.sbt</div><div class="line"></div><div class="line">name := <span class="string">"wordCount"</span></div><div class="line">organization := <span class="string">"com.antispam"</span></div><div class="line">version := <span class="string">"0.0.1"</span></div><div class="line">scalaVersion := <span class="string">"2.11.0"</span></div><div class="line"></div><div class="line">libraryDependencies += <span class="string">"org.apache.spark"</span> % <span class="string">"spark-core_2.10"</span> % <span class="string">"1.6.1"</span> % <span class="string">"provided"</span></div><div class="line">//这里需要这样写，否则会报无法下载jar的异常</div><div class="line">libraryDependencies += <span class="string">"net.sf.json-lib"</span> % <span class="string">"json-lib"</span> % <span class="string">"2.4"</span> from <span class="string">"http://repo1.maven.org/maven2/net/sf/json-lib/json-lib/2.4/json-lib-2.4-jdk15.jar"</span></div></pre></td></tr></table></figure>
+<h5 id="创建插件配置文件"><a href="#创建插件配置文件" class="headerlink" title="创建插件配置文件"></a>创建插件配置文件</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">import AssemblyKeys._</div><div class="line"></div><div class="line">assemblySettings</div><div class="line"></div><div class="line">jarName <span class="keyword">in</span> assembly := <span class="string">"wordcount_ass_sbt.jar"</span> //jar的名称</div><div class="line">mainClass <span class="keyword">in</span> assembly := Some(<span class="string">"com.antispam.JsonWordCount"</span>) //主类信息</div><div class="line"></div><div class="line">//jar包中类冲突的合并策略</div><div class="line">mergeStrategy <span class="keyword">in</span> assembly &lt;&lt;= (mergeStrategy <span class="keyword">in</span> assembly) &#123; (old) =&gt;</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">case</span> PathList(ps @ _*) <span class="keyword">if</span> ps.last endsWith <span class="string">".class"</span> =&gt; MergeStrategy.first</div><div class="line">    <span class="keyword">case</span> x =&gt; old(x)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h5 id="使用sbt进行打包"><a href="#使用sbt进行打包" class="headerlink" title="使用sbt进行打包"></a>使用sbt进行打包</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sbt assembly</div></pre></td></tr></table></figure>
+<h5 id="提交任务到spark集群"><a href="#提交任务到spark集群" class="headerlink" title="提交任务到spark集群"></a>提交任务到spark集群</h5><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">spark-submit --class com.antispam.JsonWordCount --master spark://spark-002.yz:8081 wordcount_ass_sbt.jar</div></pre></td></tr></table></figure>
+<h4 id="打独立的jar包，将第三方jar包通过其他方式来发布"><a href="#打独立的jar包，将第三方jar包通过其他方式来发布" class="headerlink" title="打独立的jar包，将第三方jar包通过其他方式来发布"></a>打独立的jar包，将第三方jar包通过其他方式来发布</h4><p>除了使用assembly插件将引用的第三方jar中的class添加到要打出的jar中之外，还可以通过上面文章中介绍的其他的方式在提交任务时使用配置参数来引用第三方jar包</p>
+<ul>
+<li>使用–jar将本地的jar文件分发到集群</li>
+<li>使用–packages将jar的Maven坐标分发给集群，多个Maven坐标可以使用逗号分隔。</li>
+<li>将所需的jar包添加到spark的classPath目录中。</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/07/25/spark-programmingGuide/" rel="next" title="Programming Guide">
+                <i class="fa fa-chevron-left"></i> Programming Guide
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/07/26/spark-clusterModeOverview/" rel="prev" title="Cluster Mode Overview">
+                Cluster Mode Overview <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖"><span class="nav-number">1.</span> <span class="nav-text">Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Launching-Applications-with-spark-submit"><span class="nav-number">2.</span> <span class="nav-text">Launching Applications with spark-submit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-URLs"><span class="nav-number">3.</span> <span class="nav-text">Master URLs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从一个文件中加载配置信息"><span class="nav-number">4.</span> <span class="nav-text">从一个文件中加载配置信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advanced-Dependency-Management"><span class="nav-number">5.</span> <span class="nav-text">Advanced Dependency Management</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-Information"><span class="nav-number">6.</span> <span class="nav-text">More Information</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用实例"><span class="nav-number">7.</span> <span class="nav-text">使用实例</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"><span class="nav-number">7.1.</span> <span class="nav-text">不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用spark之外的第三方jar包的application，打包的方式有两种："><span class="nav-number">7.2.</span> <span class="nav-text">引用spark之外的第三方jar包的application，打包的方式有两种：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#将整个jar包打成一个assembly的jar来包含第三方jar包"><span class="nav-number">7.2.1.</span> <span class="nav-text">将整个jar包打成一个assembly的jar来包含第三方jar包</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#手动构建项目结构"><span class="nav-number">7.2.1.1.</span> <span class="nav-text">手动构建项目结构</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#创建applcation文件"><span class="nav-number">7.2.1.2.</span> <span class="nav-text">创建applcation文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#创建sbt构建文件"><span class="nav-number">7.2.1.3.</span> <span class="nav-text">创建sbt构建文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#创建插件配置文件"><span class="nav-number">7.2.1.4.</span> <span class="nav-text">创建插件配置文件</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#使用sbt进行打包"><span class="nav-number">7.2.1.5.</span> <span class="nav-text">使用sbt进行打包</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#提交任务到spark集群"><span class="nav-number">7.2.1.6.</span> <span class="nav-text">提交任务到spark集群</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#打独立的jar包，将第三方jar包通过其他方式来发布"><span class="nav-number">7.2.2.</span> <span class="nav-text">打独立的jar包，将第三方jar包通过其他方式来发布</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,693 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Log4j 配置," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文用来学习关于Log4j的配置（通过配置文件的方式），原文档连接
+Configuration将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。配置Log4j 2版本，能够通过下面四种方">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Log4j Configuration">
+<meta property="og:url" content="http://baimoon.github.io/2016/11/10/log4j-configuration/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文用来学习关于Log4j的配置（通过配置文件的方式），原文档连接
+Configuration将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。配置Log4j 2版本，能够通过下面四种方">
+<meta property="og:updated_time" content="2016-12-29T03:32:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Log4j Configuration">
+<meta name="twitter:description" content="本文用来学习关于Log4j的配置（通过配置文件的方式），原文档连接
+Configuration将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。配置Log4j 2版本，能够通过下面四种方">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2016/11/10/log4j-configuration/"/>
+
+  <title> Log4j Configuration | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Log4j Configuration
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文用来学习关于Log4j的配置（通过配置文件的方式），<a href="http://logging.apache.org/log4j/2.x/manual/configuration.html" title="Configuration" target="_blank" rel="external">原文档连接</a></p>
+<h1 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h1><p>将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。<br>配置Log4j 2版本，能够通过下面四种方法中的任意一种来完成：<br>1、通过一个以XML、JSON、YAML或properties格式的配置文件。<br>2、编程方式，通过创建一个ConfigurationFactory和Configuration实现。<br>3、编程方式，通过调用在Configuration接口中的APIs来添加组件到默认配置。<br>4、编程方式，通过调用内部Logger类的方法。<br>本文主要关注通过一个配置文件来配置Log4j。对于通过编程方式来配置Log4j，可以在<a href="http://logging.apache.org/log4j/2.x/manual/extending.html" title="Extending Log4j 2" target="_blank" rel="external">Extending Log4j 2</a>和<a href="http://logging.apache.org/log4j/2.x/manual/customconfig.html" title="Programmatic Log4j Configuration" target="_blank" rel="external">Programmatic Log4j Configuration</a>。<br>注意，不同于Log4j 1.x，Log4j 2的公共API没有公开关于添加、修改和移除appenders和filter的方法，或者以任何方式来操作配置。</p>
+<a id="more"></a>
+<h1 id="Automatic-Configuation"><a href="#Automatic-Configuation" class="headerlink" title="Automatic Configuation"></a>Automatic Configuation</h1><p>Log4j有在初始化期间进行自我配置的能力。当Log4j启动时，它将安装所有的ConfigurationFactory插件，并且按照权重从高到底对插件进行整理。正如之前所说的，Log4j包含四种ConfigurationFactory实现：JSON、YAML、properties和XML。<br>1、Log4j将会检查”log4j.configurationFile”系统属性，如果设置了该属性，将使用与文件扩展名匹配的ConfigurationFactory来尝试加载配置。<br>2、如果没有设置系统属性，properties ConfigurationFactory将在classpath中查找log4j2-test.properties文件。<br>3、如果没有发现properties的配置文件，将会使用YAML ConfigurationFactory在classpath中查找log4j2-test.yaml文件或log4j2-test.yml文件。<br>4、如果没有发现YAML配置文件，将会使用JSON ConfiguationFactory在classpath中查找log4j2-test.json文件或log4j2-test.jsn文件。<br>5、如果没有发现JSON配置文件，将会使用XML ConfigurationFactory在classpath中查找log4j2-test.xml文件。<br>6、如果没有发现任何测试的配置文件，那么properties ConfigurationFactory将会在classpath中查找log4j2.properties文件。<br>7、如果没有任何properties配置文件被装载，那么YAML ConfigurationFactory将会在classpath中查找log4j2.yaml文件或log4j2.yml文件。<br>8、如果没有任何YAML配置文件被装载，那么JSON ConfigurationFactory将在classpath中查找log4j2.json文件或log4j2.jsn文件。<br>9、如果没有任何JSON配置文件被装载，那么XML ConfigurationFactory将在classpath中查找log4j2.xml文件。<br>10、如果没有任何配置文件被装载，那么将使用DefaultConfiguration。这将使被记录的日志输出到控制台。</p>
+<p>一个用例，例子将解释名为MyApp的application将如何使用log4j。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> com.foo.Bar;</div><div class="line"> </div><div class="line"><span class="comment">// Import log4j classes.</span></div><div class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</div><div class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</div><div class="line"> </div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyApp</span> </span>&#123;</div><div class="line"> </div><div class="line">    <span class="comment">// Define a static logger variable so that it references the</span></div><div class="line">    <span class="comment">// Logger instance named "MyApp".</span></div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(MyApp.class);</div><div class="line"> </div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(<span class="keyword">final</span> String... args)</span> </span>&#123;</div><div class="line"> </div><div class="line">        <span class="comment">// Set up a simple configuration that logs on the console.</span></div><div class="line"> </div><div class="line">        logger.trace(<span class="string">"Entering application."</span>);</div><div class="line">        Bar bar = <span class="keyword">new</span> Bar();</div><div class="line">        <span class="keyword">if</span> (!bar.doIt()) &#123;</div><div class="line">            logger.error(<span class="string">"Didn't do it."</span>);</div><div class="line">        &#125;</div><div class="line">        logger.trace(<span class="string">"Exiting application."</span>);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>MyApp通过导入log4j相关的类开始。然后使用类的完全限定名定义了一个名为MyApp的静态logger变量。<br>MyApp使用在com.foo包中定义的Bar类。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">package</span> com.foo;</div><div class="line"><span class="keyword">import</span> org.apache.logging.log4j.Logger;</div><div class="line"><span class="keyword">import</span> org.apache.logging.log4j.LogManager;</div><div class="line"> </div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Bar</span> </span>&#123;</div><div class="line">  <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LogManager.getLogger(Bar.class.getName());</div><div class="line"> </div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">doIt</span><span class="params">()</span> </span>&#123;</div><div class="line">    logger.entry();</div><div class="line">    logger.error(<span class="string">"Did it again!"</span>);</div><div class="line">    <span class="keyword">return</span> logger.exit(<span class="keyword">false</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>如果没有装配到任何配置文件，Log4j将提供默认配置。默认配置，在类DefaultConfiguration中提供，将会启动：<br>1、一个附加到root logger的ConsoleAppender。<br>2、一个附加到ConsoleAppender的格式为”%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n”的PatternLayout。<br>注意，默认分配给Log4j的root logger的是 Level.ERROR。<br>MyApp的输出类似：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] ERROR com.foo.Bar - Did it again!</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] ERROR MyApp - Didn<span class="string">'t do it.</span></div></pre></td></tr></table></figure></p>
+<p>正如之前描述的，Log4j将首先尝试从配置文件配置它自己。与默认配置相同的配置看起来是这样的：<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration status="WARN"&gt;</div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;Console name="Console" target="SYSTEM_OUT"&gt;</div><div class="line">      &lt;PatternLayout pattern="%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg%n"/&gt;</div><div class="line">    &lt;/Console&gt;</div><div class="line">  &lt;/Appenders&gt;</div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Root level="error"&gt;</div><div class="line">      &lt;AppenderRef ref="Console"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<p>一旦将上面的配置作为log4j2.xml放到classpath下，你将会得到与上面所列出的相同的结果。将root的级别修改为trace将得到类似的结果：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE MyApp - Entering application.</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - entry</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] ERROR com.foo.Bar - Did it again!</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - <span class="function">exit <span class="title">with</span> <span class="params">(<span class="keyword">false</span>)</span></span></div><div class="line">17:13:01.540 [main] ERROR MyApp - Didn't <span class="keyword">do</span> it.</div><div class="line">17:13:01.540 [main] TRACE MyApp - Exiting application.</div></pre></td></tr></table></figure></p>
+<p>注意，在使用默认配置时，记录日志的状态将被禁用。</p>
+<h1 id="Additivity"><a href="#Additivity" class="headerlink" title="Additivity"></a>Additivity</h1><p>获取希望消除来自除了com.foo.Bar之外的所有TRACE输出。简单的修改日志级别不能达到这个目的。而是需要在配置中增加一个新的logger：<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;Logger name="com.foo.Bar" level="TRACE"/&gt;</div><div class="line">&lt;Root level="ERROR"&gt;</div><div class="line">  &lt;AppenderRef ref="STDOUT"&gt;</div><div class="line">&lt;/Root&gt;</div></pre></td></tr></table></figure></p>
+<p>使用这个配置，来自com.foo.Bar的所有日志事件将被记录，而来只有自其他组件的事件，只有error的会被记录。<br>在之前的例子中，所有来自com.foo.Bar的事件将继续被写到控制台。这是因为com.foo.Bar的logger还没有添加任何appender，而它的父级添加了。实际上，下面的配置<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration status="WARN"&gt;</div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;Console name="Console" target="SYSTEM_OUT"&gt;</div><div class="line">      &lt;PatternLayout pattern="%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg%n"/&gt;</div><div class="line">    &lt;/Console&gt;</div><div class="line">  &lt;/Appenders&gt;</div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Logger name="com.foo.Bar" level="trace"&gt;</div><div class="line">      &lt;AppenderRef ref="Console"/&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line">    &lt;Root level="error"&gt;</div><div class="line">      &lt;AppenderRef ref="Console"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<p>结果如下：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - entry</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - entry</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] ERROR com.foo.Bar - Did it again!</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - exit (<span class="keyword">false</span>)</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] TRACE com.foo.Bar - exit (<span class="keyword">false</span>)</div><div class="line"><span class="number">17</span>:<span class="number">13</span>:<span class="number">01.540</span> [main] ERROR MyApp - Didn<span class="string">'t do it.</span></div></pre></td></tr></table></figure></p>
+<p>注意，来自com.foo.Bar的message出现了两次。这是因为与名为com.foo.Bar的logger关联的appender首先被使用，它将第一个实例（记录）写到控制台。接着，com.foo.Bar的父级，在本例中是root logger，被使用。接着事件传递到它的appender，也将日志写到控制台，就是控制台中的第二个实例（记录）。虽然附加性是一个相当方便的特性（例如在前面的例子中，不需要配置配置appender），但是在很多的例子中，这个行为被认为是讨厌的，并且会通过在logger上设置附加性的属性为false对其进行禁用：<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration status="WARN"&gt;</div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;Console name="Console" target="SYSTEM_OUT"&gt;</div><div class="line">      &lt;PatternLayout pattern="%d&#123;HH:mm:ss.SSS&#125; [%t] %-5level %logger&#123;36&#125; - %msg%n"/&gt;</div><div class="line">    &lt;/Console&gt;</div><div class="line">  &lt;/Appenders&gt;</div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Logger name="com.foo.Bar" level="trace" additivity="false"&gt;</div><div class="line">      &lt;AppenderRef ref="Console"/&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line">    &lt;Root level="error"&gt;</div><div class="line">      &lt;AppenderRef ref="Console"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<p>一旦一条事件到达附加性被设置为false的logger，将不会传递给它的父级logger，而不管父级logger的附加性设置为true还是false。</p>
+<h1 id="Automatic-Reconfiguration"><a href="#Automatic-Reconfiguration" class="headerlink" title="Automatic Reconfiguration"></a>Automatic Reconfiguration</h1><p>当我根据一个文件来配置log4j，log4j能够自动的发现配置文件的变更并重新配置它自己。如果monitorInterval属性被指定并设置为非零值，那么配置文集将被检查，下一次日志事件被评估并且被记录，并且会因为上一次的检查而被推迟。这个例子展示了如何配置这个属性，因此那个配置文件将会在至少30秒后才被检查是否有更改。最小的间隔为5秒。<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration monitorInterval="30"&gt;</div><div class="line">...</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<h1 id="Chainsaw-can-automatically-process-your-log-files-Advertising-appender-configurations"><a href="#Chainsaw-can-automatically-process-your-log-files-Advertising-appender-configurations" class="headerlink" title="Chainsaw can automatically process your log files (Advertising appender configurations)"></a>Chainsaw can automatically process your log files (Advertising appender configurations)</h1><p>log4j提供了为基于文件的appender和基于socket的appender”公布”appender配置细节的能力。例如，对于基于文件的appender，文件的位置和文件内的模式布局都包含在公布的信息中。其他外部系统能够发现这些公布的信息并使用这些信息聪明的处理日志文件。<br>这个机制通过一个广告来实现，而广告的格式是通过每个Advertiser实现来指定的。一个外部系统想要使用特定的Advertiser的实现来工作，就必须理解如何装载已公布的配置以及公布信息的格式。例如，一个”database” Advertiser可能需要在一个数据库表格中存储配置信息。一个外部系统能够读取数据库表格，以便发现文件的位置和文件的格式。<br>Log4j提供了一个Advertiser实现，一个’多路广播DNS’Advertiser，它使用<a href="http://jmdns.sourceforge.net/" target="_blank" rel="external">http://jmdns.sourceforge.net</a>库，通过IP的多路广播来公布appender配置细节。<br>Chainsaw自动发现log4j的由多路广播DNS生成的公布信息并将这些发现的公布信息放到Chainsaw的Zeroconf tab中（如果jmdns库包含在Chainsaw的classpath中）。要开始格式化并tail一个在公布信息中的日志文件，只需要双击Chainsaw的Zeroconf tab中的公布项。当前，Chainsaw只支持FileAppender的公告信息。<br>要公布一个appender配置：<br>1、添加来自<a href="http://jmdns.sourceforge.net/" target="_blank" rel="external">http://jmdns.sourceforge.net</a>的JmDns库到application的classpath中。<br>2、设置配置项的’advertiser’属性为’multicastdns’。<br>3、在appender项的’advertiser’属性为’true’。<br>4、如果公布一个基于FileAppender的配置，设置appender项的’advertiserURI’为一个合适的URI。<br>基于FileAppender配置要求在appender上指定一个额外的’advertiseURI’属性。这个’advertiseURI’属性为Chainsaw提供如何访问对应文件的信息。例如，这个文件对于Chainsaw来说，可能通过指定一个通用的VFS(<a href="http://commons.apache.org/proper/commons-vfs/" target="_blank" rel="external">http://commons.apache.org/proper/commons-vfs/</a>)sftp://URI使用ssh/sftp可访问的，如果文件可以通过一个web服务来访问，可能需要使用<a href="http://URI，如果是从本地运行的Chainsaw实例来访问文件，可能需要指定file://URI。" target="_blank" rel="external">http://URI，如果是从本地运行的Chainsaw实例来访问文件，可能需要指定file://URI。</a><br>这里有一个例子，启用了公布功能的appender的配置，可以被本地运行的Chainsaw使用来自动的tail日志文件（注意file://advertiseURI）：<br><strong><em>请注意，你必须添加来自<a href="http://jmdns.sourceforge.net" target="_blank" rel="external">http://jmdns.sourceforge.net</a>的JmDns库到你application的classpath中，以便使用’nulticastdns’ advertiser来公布信息。</em></strong><br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration advertiser="multicastdns"&gt;</div><div class="line">...</div><div class="line">&lt;/Configuration&gt;</div><div class="line">&lt;Appenders&gt;</div><div class="line">  &lt;File name="File1" fileName="output.log" bufferedIO="false" advertiseURI="file://path/to/output.log" advertise="true"&gt;</div><div class="line">  ...</div><div class="line">  &lt;/File&gt;</div><div class="line">&lt;/Appenders&gt;</div></pre></td></tr></table></figure></p>
+<h1 id="Configuration-Syntax"><a href="#Configuration-Syntax" class="headerlink" title="Configuration Syntax"></a>Configuration Syntax</h1><p>正如前面已经展示的以及后面将要展示的，Log4j允许你们轻松的定义日志记录的行为，而不需要修改你的application。可以为application的部分代码禁用日志记录，只在满足特定条件时才记录日志，例如特定用户执行的操作，转发输出到Flume或输出到日志报告系统等。<br>在XML文件中配置项有如下属性：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Attribute Name</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">advertiser</td>
+<td style="text-align:left">(可选) Advertiser插件的名称，这个插件用来公布独特的FileAppender或SocketAppender配置。提供的唯一的Advertiser插件是’multicastdns’</td>
+</tr>
+<tr>
+<td style="text-align:left">dest</td>
+<td style="text-align:left">如果是”err”则输出标准错误，或者是一个文件路径或URL</td>
+</tr>
+<tr>
+<td style="text-align:left">monitorInterval</td>
+<td style="text-align:left">以秒为单位，时间的总数，在检查配置文件是否变更之前等待的时间</td>
+</tr>
+<tr>
+<td style="text-align:left">name</td>
+<td style="text-align:left">配置的名称</td>
+</tr>
+<tr>
+<td style="text-align:left">packages</td>
+<td style="text-align:left">用于搜索插件的以逗号分隔的包名称的列表。每个类加载器只加载插件一次，因此更改这个值可能对重新配置没有任何影响</td>
+</tr>
+<tr>
+<td style="text-align:left">schema</td>
+<td style="text-align:left">用来标识类加载器加载XML的模式，用来验证配置信息。只有当strict被设置为true时有效。如果没有设置，则验证不会发生。</td>
+</tr>
+<tr>
+<td style="text-align:left">shutdownHook</td>
+<td style="text-align:left">指定当JVM关闭时Log4j是否也自动关闭关闭。该功能是默认启用的，但是可以通过设置为”disable” 来禁用该功能。</td>
+</tr>
+<tr>
+<td style="text-align:left">status</td>
+<td style="text-align:left">应该被记录到控制台的内部Log4j事件的级别。该属性有效的值为”trace”、”debug”、”info”、”warn”、”error”和”fatal”。Log4j会将有关初始化、反转和其他内部操作的详细信息记录到状态logger。</td>
+</tr>
+<tr>
+<td style="text-align:left">strict</td>
+<td style="text-align:left">启用严格的XML格式。在JSON配置中不支持。</td>
+</tr>
+<tr>
+<td style="text-align:left">verbose</td>
+<td style="text-align:left">在加载插件的时候启用诊断信息。</td>
+</tr>
+</tbody>
+</table>
+<p>Log4j能够使用两种XML特色来进行配置：简洁的和严格的。简洁的格式是配置更加容易，因为元素名称匹配它们代表的组件，然而它不能使用XML模式进行验证。例如，ConsoleAppender通过宣告一个名为Console的XML元素，将它自己配置在它父级appender元素下。然而，元素和属性的名称大小写不敏感。另外，属性可以做一个XML属性被指定也可以作为一个没有属性但是有一个字符串值的XML元素来指定。因此：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&lt;PatternLayout pattern=<span class="string">"%m%n"</span>/&gt;</div></pre></td></tr></table></figure></p>
+<p>和<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">&lt;PatternLayout&gt;</div><div class="line">  &lt;Pattern&gt;%m%n&lt;/Pattern&gt;</div><div class="line">&lt;/PatternLayout&gt;</div></pre></td></tr></table></figure></p>
+<p>是相同的。<br>下面的文件相当于一个XML结构的配置，但是注意斜体的元素代表了简洁的元素名称。<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;;</div><div class="line">&lt;Configuration&gt;</div><div class="line">  &lt;Properties&gt;</div><div class="line">    &lt;Property name="name1"&gt;value&lt;/property&gt;</div><div class="line">    &lt;Property name="name2" value="value2"/&gt;</div><div class="line">  &lt;/Properties&gt;</div><div class="line">  &lt;filter  ... /&gt;</div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;appender ... &gt;</div><div class="line">      &lt;filter  ... /&gt;</div><div class="line">    &lt;/appender&gt;</div><div class="line">    ...</div><div class="line">  &lt;/Appenders&gt;</div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Logger name="name1"&gt;</div><div class="line">      &lt;filter  ... /&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line">    ...</div><div class="line">    &lt;Root level="level"&gt;</div><div class="line">      &lt;AppenderRef ref="name"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<p>查看本页面中更过关于appender、filter和logger的声明的例子。</p>
+<h2 id="Strict-XML"><a href="#Strict-XML" class="headerlink" title="Strict XML"></a>Strict XML</h2><p>除了上面简洁的XML格式，Log4j允许配置被指定为一个更加“通用”的XML方式，这种方式可以使用XML模式对配置进行验证。这是通过使用下面所示的对象类型来替换友好的元素名称来实现的。例如，使用一个带有”Console”的类型属性的appender元素来替换使用元素名的Console来配置ConsoleAppender。<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;;</div><div class="line">&lt;Configuration&gt;</div><div class="line">  &lt;Properties&gt;</div><div class="line">    &lt;Property name="name1"&gt;value&lt;/property&gt;</div><div class="line">    &lt;Property name="name2" value="value2"/&gt;</div><div class="line">  &lt;/Properties&gt;</div><div class="line">  &lt;Filter type="type" ... /&gt;</div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;Appender type="type" name="name"&gt;</div><div class="line">      &lt;Filter type="type" ... /&gt;</div><div class="line">    &lt;/Appender&gt;</div><div class="line">    ...</div><div class="line">  &lt;/Appenders&gt;</div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Logger name="name1"&gt;</div><div class="line">      &lt;Filter type="type" ... /&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line">    ...</div><div class="line">    &lt;Root level="level"&gt;</div><div class="line">      &lt;AppenderRef ref="name"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<p>下面是使用了严格格式的配置示例：<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version="1.0" encoding="UTF-8"?&gt;</div><div class="line">&lt;Configuration status="debug" strict="true" name="XMLConfigTest"</div><div class="line">               packages="org.apache.logging.log4j.test"&gt;</div><div class="line">  &lt;Properties&gt;</div><div class="line">    &lt;Property name="filename"&gt;target/test.log&lt;/Property&gt;</div><div class="line">  &lt;/Properties&gt;</div><div class="line">  &lt;Filter type="ThresholdFilter" level="trace"/&gt;</div><div class="line"> </div><div class="line">  &lt;Appenders&gt;</div><div class="line">    &lt;Appender type="Console" name="STDOUT"&gt;</div><div class="line">      &lt;Layout type="PatternLayout" pattern="%m MDC%X%n"/&gt;</div><div class="line">      &lt;Filters&gt;</div><div class="line">        &lt;Filter type="MarkerFilter" marker="FLOW" onMatch="DENY" onMismatch="NEUTRAL"/&gt;</div><div class="line">        &lt;Filter type="MarkerFilter" marker="EXCEPTION" onMatch="DENY" onMismatch="ACCEPT"/&gt;</div><div class="line">      &lt;/Filters&gt;</div><div class="line">    &lt;/Appender&gt;</div><div class="line">    &lt;Appender type="Console" name="FLOW"&gt;</div><div class="line">      &lt;Layout type="PatternLayout" pattern="%C&#123;1&#125;.%M %m %ex%n"/&gt;&lt;!-- class and line number --&gt;</div><div class="line">      &lt;Filters&gt;</div><div class="line">        &lt;Filter type="MarkerFilter" marker="FLOW" onMatch="ACCEPT" onMismatch="NEUTRAL"/&gt;</div><div class="line">        &lt;Filter type="MarkerFilter" marker="EXCEPTION" onMatch="ACCEPT" onMismatch="DENY"/&gt;</div><div class="line">      &lt;/Filters&gt;</div><div class="line">    &lt;/Appender&gt;</div><div class="line">    &lt;Appender type="File" name="File" fileName="$&#123;filename&#125;"&gt;</div><div class="line">      &lt;Layout type="PatternLayout"&gt;</div><div class="line">        &lt;Pattern&gt;%d %p %C&#123;1.&#125; [%t] %m%n&lt;/Pattern&gt;</div><div class="line">      &lt;/Layout&gt;</div><div class="line">    &lt;/Appender&gt;</div><div class="line">    &lt;Appender type="List" name="List"&gt;</div><div class="line">    &lt;/Appender&gt;</div><div class="line">  &lt;/Appenders&gt;</div><div class="line"> </div><div class="line">  &lt;Loggers&gt;</div><div class="line">    &lt;Logger name="org.apache.logging.log4j.test1" level="debug" additivity="false"&gt;</div><div class="line">      &lt;Filter type="ThreadContextMapFilter"&gt;</div><div class="line">        &lt;KeyValuePair key="test" value="123"/&gt;</div><div class="line">      &lt;/Filter&gt;</div><div class="line">      &lt;AppenderRef ref="STDOUT"/&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line"> </div><div class="line">    &lt;Logger name="org.apache.logging.log4j.test2" level="debug" additivity="false"&gt;</div><div class="line">      &lt;AppenderRef ref="File"/&gt;</div><div class="line">    &lt;/Logger&gt;</div><div class="line"> </div><div class="line">    &lt;Root level="trace"&gt;</div><div class="line">      &lt;AppenderRef ref="List"/&gt;</div><div class="line">    &lt;/Root&gt;</div><div class="line">  &lt;/Loggers&gt;</div><div class="line"> </div><div class="line">&lt;/Configuration&gt;</div></pre></td></tr></table></figure></p>
+<h2 id="Configuration-with-JSON"><a href="#Configuration-with-JSON" class="headerlink" title="Configuration with JSON"></a>Configuration with JSON</h2><p>除了XML，Log4j还可以使用JSON进行配置。JSON格式与宽松的XML格式类似。每个关键字代表了插件的名称并且以key/value对作为它的属性。如果一个key包含多个简单的值，那么它将是一个底层插件。在下面的例子中，ThresholdFilter，Console和PatternLayout全都是插件，而Console插件为它的name属性将会被分配一个值为STDOUT的值，ThresholdFilter将被分配一个debug级别。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div></pre></td><td class="code"><pre><div class="line">&#123; <span class="string">"configuration"</span>: &#123; <span class="string">"status"</span>: <span class="string">"error"</span>, <span class="string">"name"</span>: <span class="string">"RoutingTest"</span>,</div><div class="line">                     <span class="string">"packages"</span>: <span class="string">"org.apache.logging.log4j.test"</span>,</div><div class="line">      <span class="string">"properties"</span>: &#123;</div><div class="line">        <span class="string">"property"</span>: &#123; <span class="string">"name"</span>: <span class="string">"filename"</span>,</div><div class="line">                      <span class="string">"value"</span> : <span class="string">"target/rolling1/rollingtest-$$&#123;sd:type&#125;.log"</span> &#125;</div><div class="line">      &#125;,</div><div class="line">    <span class="string">"ThresholdFilter"</span>: &#123; <span class="string">"level"</span>: <span class="string">"debug"</span> &#125;,</div><div class="line">    <span class="string">"appenders"</span>: &#123;</div><div class="line">      <span class="string">"Console"</span>: &#123; <span class="string">"name"</span>: <span class="string">"STDOUT"</span>,</div><div class="line">        <span class="string">"PatternLayout"</span>: &#123; <span class="string">"pattern"</span>: <span class="string">"%m%n"</span> &#125;</div><div class="line">      &#125;,</div><div class="line">      <span class="string">"List"</span>: &#123; <span class="string">"name"</span>: <span class="string">"List"</span>,</div><div class="line">        <span class="string">"ThresholdFilter"</span>: &#123; <span class="string">"level"</span>: <span class="string">"debug"</span> &#125;</div><div class="line">      &#125;,</div><div class="line">      <span class="string">"Routing"</span>: &#123; <span class="string">"name"</span>: <span class="string">"Routing"</span>,</div><div class="line">        <span class="string">"Routes"</span>: &#123; <span class="string">"pattern"</span>: <span class="string">"$$&#123;sd:type&#125;"</span>,</div><div class="line">          <span class="string">"Route"</span>: [</div><div class="line">            &#123;</div><div class="line">              <span class="string">"RollingFile"</span>: &#123;</div><div class="line">                <span class="string">"name"</span>: <span class="string">"Rolling-$&#123;sd:type&#125;"</span>, <span class="string">"fileName"</span>: <span class="string">"$&#123;filename&#125;"</span>,</div><div class="line">                <span class="string">"filePattern"</span>: <span class="string">"target/rolling1/test1-$&#123;sd:type&#125;.%i.log.gz"</span>,</div><div class="line">                <span class="string">"PatternLayout"</span>: &#123;<span class="string">"pattern"</span>: <span class="string">"%d %p %c&#123;1.&#125; [%t] %m%n"</span>&#125;,</div><div class="line">                <span class="string">"SizeBasedTriggeringPolicy"</span>: &#123; <span class="string">"size"</span>: <span class="string">"500"</span> &#125;</div><div class="line">              &#125;</div><div class="line">            &#125;,</div><div class="line">            &#123; <span class="string">"AppenderRef"</span>: <span class="string">"STDOUT"</span>, <span class="string">"key"</span>: <span class="string">"Audit"</span>&#125;,</div><div class="line">            &#123; <span class="string">"AppenderRef"</span>: <span class="string">"List"</span>, <span class="string">"key"</span>: <span class="string">"Service"</span>&#125;</div><div class="line">          ]</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;,</div><div class="line">    <span class="string">"loggers"</span>: &#123;</div><div class="line">      <span class="string">"logger"</span>: &#123; <span class="string">"name"</span>: <span class="string">"EventLogger"</span>, <span class="string">"level"</span>: <span class="string">"info"</span>, <span class="string">"additivity"</span>: <span class="string">"false"</span>,</div><div class="line">                  <span class="string">"AppenderRef"</span>: &#123; <span class="string">"ref"</span>: <span class="string">"Routing"</span> &#125;&#125;,</div><div class="line">      <span class="string">"root"</span>: &#123; <span class="string">"level"</span>: <span class="string">"error"</span>, <span class="string">"AppenderRef"</span>: &#123; <span class="string">"ref"</span>: <span class="string">"STDOUT"</span> &#125;&#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>注意，在RoutingAppender中，Route元素作为一个数组被声明。这是有效的，因为每个数组元素将是一个Route组件。这种方式对于appender和filter是不好使的，因为其中的每个元素都有一个简洁格式的不同的名字。如果appender或filter声明一个名为type的属性，这个属性包含了appender的类型，那么appender和filter可以作为数组元素来定义。下面的例子说明了如何以数组的方式定义多个logger。<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">&#123; "configuration": &#123; "status": "debug", "name": "RoutingTest",</div><div class="line">                      "packages": "org.apache.logging.log4j.test",</div><div class="line">      "properties": &#123;</div><div class="line">        "property": &#123; "name": "filename",</div><div class="line">                      "value" : "target/rolling1/rollingtest-$$&#123;sd:type&#125;.log" &#125;</div><div class="line">      &#125;,</div><div class="line">    "ThresholdFilter": &#123; "level": "debug" &#125;,</div><div class="line">    "appenders": &#123;</div><div class="line">      "appender": [</div><div class="line">         &#123; "type": "Console", "name": "STDOUT", "PatternLayout": &#123; "pattern": "%m%n" &#125;&#125;,</div><div class="line">         &#123; "type": "List", "name": "List", "ThresholdFilter": &#123; "level": "debug" &#125;&#125;,</div><div class="line">         &#123; "type": "Routing",  "name": "Routing",</div><div class="line">          "Routes": &#123; "pattern": "$$&#123;sd:type&#125;",</div><div class="line">            "Route": [</div><div class="line">              &#123;</div><div class="line">                "RollingFile": &#123;</div><div class="line">                  "name": "Rolling-$&#123;sd:type&#125;", "fileName": "$&#123;filename&#125;",</div><div class="line">                  "filePattern": "target/rolling1/test1-$&#123;sd:type&#125;.%i.log.gz",</div><div class="line">                  "PatternLayout": &#123;"pattern": "%d %p %c&#123;1.&#125; [%t] %m%n"&#125;,</div><div class="line">                  "SizeBasedTriggeringPolicy": &#123; "size": "500" &#125;</div><div class="line">                &#125;</div><div class="line">              &#125;,</div><div class="line">              &#123; "AppenderRef": "STDOUT", "key": "Audit"&#125;,</div><div class="line">              &#123; "AppenderRef": "List", "key": "Service"&#125;</div><div class="line">            ]</div><div class="line">          &#125;</div><div class="line">        &#125;</div><div class="line">      ]</div><div class="line">    &#125;,</div><div class="line">    "loggers": &#123;</div><div class="line">      "logger": [</div><div class="line">        &#123; "name": "EventLogger", "level": "info", "additivity": "false",</div><div class="line">          "AppenderRef": &#123; "ref": "Routing" &#125;&#125;,</div><div class="line">        &#123; "name": "com.foo.bar", "level": "error", "additivity": "false",</div><div class="line">          "AppenderRef": &#123; "ref": "Console" &#125;&#125;</div><div class="line">      ],</div><div class="line">      "root": &#123; "level": "error", "AppenderRef": &#123; "ref": "STDOUT" &#125;&#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>JSON支持使用Jackson Data Processor来格式化JSON文件。如果想要使用JSON作为配置，这些依赖必须要添加到项目中：<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.8.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"> </div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-databind<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.8.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div><div class="line"> </div><div class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.fasterxml.jackson.core<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jackson-annotations<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.8.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></div></pre></td></tr></table></figure></p>
+<h2 id="Configuring-loggers"><a href="#Configuring-loggers" class="headerlink" title="Configuring loggers"></a>Configuring loggers</h2>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/Log4j-配置/" rel="tag">#Log4j 配置</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2016/09/28/kafka-document/" rel="next" title="Apache Kafka">
+                <i class="fa fa-chevron-left"></i> Apache Kafka
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2016/11/10/log4j/" rel="prev" title="Log4j Architecture">
+                Log4j Architecture <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Configuration"><span class="nav-number">1.</span> <span class="nav-text">Configuration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Automatic-Configuation"><span class="nav-number">2.</span> <span class="nav-text">Automatic Configuation</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Additivity"><span class="nav-number">3.</span> <span class="nav-text">Additivity</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Automatic-Reconfiguration"><span class="nav-number">4.</span> <span class="nav-text">Automatic Reconfiguration</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Chainsaw-can-automatically-process-your-log-files-Advertising-appender-configurations"><span class="nav-number">5.</span> <span class="nav-text">Chainsaw can automatically process your log files (Advertising appender configurations)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Configuration-Syntax"><span class="nav-number">6.</span> <span class="nav-text">Configuration Syntax</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Strict-XML"><span class="nav-number">6.1.</span> <span class="nav-text">Strict XML</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configuration-with-JSON"><span class="nav-number">6.2.</span> <span class="nav-text">Configuration with JSON</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Configuring-loggers"><span class="nav-number">6.3.</span> <span class="nav-text">Configuring loggers</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
