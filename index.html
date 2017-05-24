@@ -248,6 +248,102 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/05/24/kafka-script/" itemprop="url">
+                  kafka-script
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-05-24T17:53:42+08:00" content="2017-05-24">
+              2017-05-24
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文主要讨论kafka服务的相关启动和关闭脚本。</p>
+<h1 id="kafka-server-start-sh"><a href="#kafka-server-start-sh" class="headerlink" title="kafka-server-start.sh"></a>kafka-server-start.sh</h1><p>Kafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"># 如果执行脚本时传入的参数小于1个，则退出执行并提示用户需要指定服务属性配置文件， 此处也说明了执行kafka-server-start.sh的正确用法</div><div class="line">if [ $# -lt 1 ];</div><div class="line">then</div><div class="line">	echo &quot;USAGE: $0 [-daemon] server.properties&quot;</div><div class="line">	exit 1</div><div class="line">fi</div><div class="line"></div><div class="line"># $0 表示的是当前shell的文件名，dirname用来获取当前shell文件的所在目录</div><div class="line">base_dir=$(dirname $0)</div><div class="line"></div><div class="line"># 读取环境变量中的KAFKA_LOG4J_OPTS的信息，如果没有配置该环境变量，则将kafka目录下conf中的log4j.properties作为配置添加到环境变量中，配置给KAFKA_LOG4J_OPTS</div><div class="line">if [ &quot;x$KAFKA_LOG4J_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_LOG4J_OPTS=&quot;-Dlog4j.configuration=file:$base_dir/../config/log4j.properties&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 读取环境变量中KAFKA_HEAP_OPTS的信息，如果没有配置该环境变量，则使用默认配置&quot;-Xmx1G -Xms1G&quot;来配置，并添加到环境变量&quot;KAFKA_HEAP_OPTS&quot;中</div><div class="line">if [ &quot;x$KAFKA_HEAP_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_HEAP_OPTS=&quot;-Xmx1G -Xms1G&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 定义一个额外的参数 name，指定了要启动的类的名称kafka包中的Kafka</div><div class="line">EXTRA_ARGS=&quot;-name kafkaServer -loggc&quot;</div><div class="line"></div><div class="line"># 如果服务要作为后台进程运行，则需要添加-daemon参数，而且这个参数必须是第一个参数，如果第一个参数是-daemon，则为进程添加自定义的名称</div><div class="line">COMMAND=$1</div><div class="line">case $COMMAND in</div><div class="line">  -daemon)</div><div class="line">    EXTRA_ARGS=&quot;-daemon &quot;$EXTRA_ARGS</div><div class="line">    shift</div><div class="line">    ;;</div><div class="line">  *)</div><div class="line">    ;;</div><div class="line">esac</div><div class="line"></div><div class="line"># 启动kafka服务，由此处也可以看出来，可以使用kafka-run-class.sh来执行相关的类，其中$@表示的是命令行传入的所有参数	</div><div class="line">exec $base_dir/kafka-run-class.sh $EXTRA_ARGS kafka.Kafka $@</div></pre></td></tr></table></figure></p>
+<h1 id="kafka-server-stop-sh"><a href="#kafka-server-stop-sh" class="headerlink" title="kafka-server-stop.sh"></a>kafka-server-stop.sh</h1><p>Kafka服务的停止脚本，其实就是查找KafkaServer对应的进程号，并kill。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"># 在进程中过滤包含&quot;kafka.Kafka&quot;且不包含&quot;grep&quot;的java进程，截取进程号kill掉</div><div class="line">ps ax | grep -i &apos;kafka\.Kafka&apos; | grep java | grep -v grep | awk &apos;&#123;print $1&#125;&apos; | xargs kill -SIGTERM</div></pre></td></tr></table></figure></p>
+<h1 id="kafka-run-class-sh"><a href="#kafka-run-class-sh" class="headerlink" title="kafka-run-class.sh"></a>kafka-run-class.sh</h1>
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2017/03/29/unity3D/" itemprop="url">
                   unity3D
                 </a>
@@ -2479,128 +2575,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/08/09/spark-configuration/" itemprop="url">
-                  Configuration
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-08-09T10:28:26+08:00" content="2016-08-09">
-              2016-08-09
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是对Spark配置的翻译，主要用于本人学习使用，原文<a href="http://spark.apache.org/docs/latest/configuration.html" title="Spark Configuration">请参考</a></p>
-<p>Spark提供了三个用于对系统配置的位置：</p>
-<ul>
-<li>Spark properties控制大多数application参数，可以通过使用SparkConf对象设置或通过Java系统属性设置。</li>
-<li>Environment variables可以设置每台机器的设置，如IP地址，通过每个节点上的conf/spark-env.sh脚本。</li>
-<li>Logging可以通过log4j.properties来配置。</li>
-</ul>
-<h1 id="Spark-Properties"><a href="#Spark-Properties" class="headerlink" title="Spark Properties"></a>Spark Properties</h1><p>Spark属性控制大多数application设置，并且对每个application进行独立配置。这些属性可以直接在SparkConf上设置，SparkConf会传递给你的SparkContext.SparkConf，来允许你控制一些常用属性（如master的URI和application的名称等），通过set()方法达到和key-value对一样。例如，我们可以使用两个线程来初始化一个application，如下：<br>注意我们使用local[2]运行，意味着两个线程-表示最低的并行，这样能够帮助我们发现那些只有在分布式context上运行才会出现的bug。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</div><div class="line">             .setMaster(<span class="string">"local[2]"</span>)</div><div class="line">             .setAppName(<span class="string">"CountingSheep"</span>)</div><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div></pre></td></tr></table></figure></p>
-<p>注意在本地模式中我们可以使用多个线程，但是在像Spark Streaming中，我们实际上要求使用多个线程，来避免任何饥饿情况的发生。<br>指定时间属性时需要配置时间单位，下面的格式是可以接受的：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">25ms (milliseconds)</div><div class="line">5s (seconds)</div><div class="line">10m or 10min (minutes)</div><div class="line">3h (hours)</div><div class="line">5d (days)</div><div class="line">1y (years)</div></pre></td></tr></table></figure></p>
-<p>指定字节大小的属性应该配置一个大小单位，下面的格式是可以接受的：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">1b (bytes)</div><div class="line">1k or 1kb (kibibytes = 1024 bytes)</div><div class="line">1m or 1mb (mebibytes = 1024 kibibytes)</div><div class="line">1g or 1gb (gibibytes = 1024 mebibytes)</div><div class="line">1t or 1tb (tebibytes = 1024 gibibytes)</div><div class="line">1p or 1pb (pebibytes = 1024 tebibytes)</div></pre></td></tr></table></figure></p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/08/09/spark-configuration/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2646,7 +2620,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

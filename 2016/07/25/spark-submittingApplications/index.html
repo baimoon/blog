@@ -369,7 +369,7 @@ Bundling Your Application’s Dependencies(绑定你的应用程">
 </blockquote>
 <p>注意，那些为executor节点上每个SparkContext而拷贝到工作目录的JARs和文件。可以使用一个有意义的空间超时，并在需要的时候进行清理。使用YARN，清理是自动处理的，使用Spark standalone，清理工作可以使用<strong>spark.worker.cleanup.appDataTtl</strong>属性来配置。<br>用户可能通过使用–packages来指定以逗号分隔的maven坐标列表来包含其他依赖。附加的库（或resolvers在SBT中）可以使用–repositories标识以一个逗号分隔的方式来添加。这些命令能够在pyspark、spark-shell和spark-submit中使用来包含Spark Packages。</p>
 <h2 id="More-Information"><a href="#More-Information" class="headerlink" title="More Information"></a>More Information</h2><p>一旦你部署了你的application，<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="cluseter mode overview" target="_blank" rel="external">cluster mode overview</a>描述了与分布式执行的有关的组件以及如何监控和调试application。</p>
-<h2 id="使用实例"><a href="#使用实例" class="headerlink" title="使用实例"></a>使用实例</h2><h3 id="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"><a href="#不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例" class="headerlink" title="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"></a>不引用spark之外的第三方jar包的application的编译和submit，请<a href="https://baimoon.github.io/blog/2016/07/27/scala-sbt/#demo" title="简单的jar包的构建和提交" target="_blank" rel="external">参考的使用实例</a></h3><h3 id="引用spark之外的第三方jar包的application，打包的方式有两种："><a href="#引用spark之外的第三方jar包的application，打包的方式有两种：" class="headerlink" title="引用spark之外的第三方jar包的application，打包的方式有两种："></a>引用spark之外的第三方jar包的application，打包的方式有两种：</h3><ul>
+<h2 id="使用实例"><a href="#使用实例" class="headerlink" title="使用实例"></a>使用实例</h2><h3 id="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"><a href="#不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例" class="headerlink" title="不引用spark之外的第三方jar包的application的编译和submit，请参考的使用实例"></a>不引用spark之外的第三方jar包的application的编译和submit，请<a href="https://baimoon.github.io/blog/2016/07/27/scala-sbt/#demo" title="简单的jar包的构建和提交">参考的使用实例</a></h3><h3 id="引用spark之外的第三方jar包的application，打包的方式有两种："><a href="#引用spark之外的第三方jar包的application，打包的方式有两种：" class="headerlink" title="引用spark之外的第三方jar包的application，打包的方式有两种："></a>引用spark之外的第三方jar包的application，打包的方式有两种：</h3><ul>
 <li>将整个application打成一个assembly的jar，将spark之外的jar都包含在该jar中</li>
 <li>仍然打成只包含application本身的jar包，引用的第三方jar包通过其他方式进行添加。</li>
 </ul>
@@ -491,7 +491,7 @@ Bundling Your Application’s Dependencies(绑定你的应用程">
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

@@ -68,7 +68,7 @@
 <link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="机器学习入门," />
+  <meta name="keywords" content="Hexo, NexT" />
 
 
 
@@ -84,31 +84,19 @@
 
 
 
-<meta name="description" content="本文是自己学习机器学习过程的一些笔记。
-决策面 -&amp;gt; 线性决策面
-学习的过程就是将data -&amp;gt; DS（决策面）
-朴素贝叶斯(Naive bayes)
-sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes，Gaussian Naive Bayes
-高斯朴素贝叶斯的使用sklearn.naive_bayes.GaussianNB">
+<meta name="description" content="本文主要讨论kafka服务的相关启动和关闭脚本。
+kafka-server-start.shKafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties123456789101112131415161718192021222324252627282930313233343536# 如果执行脚本时传入的参数小于1个，则退出">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Machine Learning Notebook">
-<meta property="og:url" content="http://baimoon.github.io/2017/02/09/machine-learning-note/index.html">
+<meta property="og:title" content="kafka-script">
+<meta property="og:url" content="http://baimoon.github.io/2017/05/24/kafka-script/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="本文是自己学习机器学习过程的一些笔记。
-决策面 -&amp;gt; 线性决策面
-学习的过程就是将data -&amp;gt; DS（决策面）
-朴素贝叶斯(Naive bayes)
-sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes，Gaussian Naive Bayes
-高斯朴素贝叶斯的使用sklearn.naive_bayes.GaussianNB">
-<meta property="og:updated_time" content="2017-02-16T05:05:42.000Z">
+<meta property="og:description" content="本文主要讨论kafka服务的相关启动和关闭脚本。
+kafka-server-start.shKafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties123456789101112131415161718192021222324252627282930313233343536# 如果执行脚本时传入的参数小于1个，则退出">
+<meta property="og:updated_time" content="2017-05-24T11:30:40.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Machine Learning Notebook">
-<meta name="twitter:description" content="本文是自己学习机器学习过程的一些笔记。
-决策面 -&amp;gt; 线性决策面
-学习的过程就是将data -&amp;gt; DS（决策面）
-朴素贝叶斯(Naive bayes)
-sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes，Gaussian Naive Bayes
-高斯朴素贝叶斯的使用sklearn.naive_bayes.GaussianNB">
+<meta name="twitter:title" content="kafka-script">
+<meta name="twitter:description" content="本文主要讨论kafka服务的相关启动和关闭脚本。
+kafka-server-start.shKafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties123456789101112131415161718192021222324252627282930313233343536# 如果执行脚本时传入的参数小于1个，则退出">
 
 
 
@@ -129,9 +117,9 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
 
 
 
-  <link rel="canonical" href="http://baimoon.github.io/2017/02/09/machine-learning-note/"/>
+  <link rel="canonical" href="http://baimoon.github.io/2017/05/24/kafka-script/"/>
 
-  <title> Machine Learning Notebook | Baimoon's Note </title>
+  <title> kafka-script | Baimoon's Note </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -261,7 +249,7 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
             
             
               
-                Machine Learning Notebook
+                kafka-script
               
             
           </h1>
@@ -273,32 +261,15 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-09T16:00:37+08:00" content="2017-02-09">
-              2017-02-09
+            <time itemprop="dateCreated" datetime="2017-05-24T17:53:42+08:00" content="2017-05-24">
+              2017-05-24
             </time>
           </span>
 
           
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Maching-learning/" itemprop="url" rel="index">
-                    <span itemprop="name">Maching learning</span>
-                  </a>
-                </span>
 
-                
-                
-
-              
-            </span>
           
-
+            
           
 
           
@@ -318,14 +289,10 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
       
 
       
-        <p>本文是自己学习机器学习过程的一些笔记。</p>
-<p>决策面 -&gt; 线性决策面</p>
-<p>学习的过程就是将data -&gt; DS（决策面）</p>
-<p>朴素贝叶斯(Naive bayes)</p>
-<p>sklearn（scikit-learn）使用入门<br>可以在google中搜索sklearn naive bayes，Gaussian Naive Bayes</p>
-<p>高斯朴素贝叶斯的使用<br>sklearn.naive_bayes.GaussianNB<br>例子：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> numpy <span class="keyword">as</span> np</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>X = np.array([[<span class="number">-1</span>, <span class="number">-1</span>], [<span class="number">-2</span>, <span class="number">-1</span>], [<span class="number">-3</span>, <span class="number">-2</span>], [<span class="number">1</span>, <span class="number">1</span>], [<span class="number">2</span>, <span class="number">1</span>], [<span class="number">3</span>, <span class="number">2</span>]])</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>Y = np.array([<span class="number">1</span>, <span class="number">1</span>, <span class="number">1</span>, <span class="number">2</span>, <span class="number">2</span>, <span class="number">2</span>])</div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> sklearn.naive_bayes <span class="keyword">import</span> GaussianNB</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>clf = GaussianNB()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>clf.fit(X, Y) <span class="comment">#X是特征， Y是标签</span></div><div class="line">GaussianNB(priors=<span class="keyword">None</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>print(clf.predict([[<span class="number">-0.8</span>, <span class="number">-1</span>]]))</div><div class="line">[<span class="number">1</span>]</div></pre></td></tr></table></figure></p>
-<p>评估分类器的分类准确性<br>准确率是指分类器正确分类的数据点个数占测试集中所有被分类点的比率。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> sklearn.naive_bayes <span class="keyword">import</span> GaussianNB</div><div class="line"></div><div class="line"><span class="comment">### create classifier</span></div><div class="line">clf = GaussianNB()</div><div class="line"></div><div class="line"><span class="comment">### fit the classifier on the training features and labels</span></div><div class="line">clf.fit(features_train, labels_train)</div><div class="line"></div><div class="line"><span class="comment">### use the trained classifier to predict labels for the test features</span></div><div class="line">pred = clf.predict(features_test)</div><div class="line"></div><div class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score</div><div class="line">accuracy = clf.score(features_test, labels_test)</div><div class="line"><span class="keyword">return</span> accuracy</div><div class="line"></div><div class="line"><span class="comment">#或者 </span></div><div class="line"><span class="keyword">from</span> sklearn.metrics <span class="keyword">import</span> accuracy_score</div><div class="line"><span class="keyword">print</span> accuracy_score(pred, lables_test)</div></pre></td></tr></table></figure></p>
-
+        <p>本文主要讨论kafka服务的相关启动和关闭脚本。</p>
+<h1 id="kafka-server-start-sh"><a href="#kafka-server-start-sh" class="headerlink" title="kafka-server-start.sh"></a>kafka-server-start.sh</h1><p>Kafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"># 如果执行脚本时传入的参数小于1个，则退出执行并提示用户需要指定服务属性配置文件， 此处也说明了执行kafka-server-start.sh的正确用法</div><div class="line">if [ $# -lt 1 ];</div><div class="line">then</div><div class="line">	echo &quot;USAGE: $0 [-daemon] server.properties&quot;</div><div class="line">	exit 1</div><div class="line">fi</div><div class="line"></div><div class="line"># $0 表示的是当前shell的文件名，dirname用来获取当前shell文件的所在目录</div><div class="line">base_dir=$(dirname $0)</div><div class="line"></div><div class="line"># 读取环境变量中的KAFKA_LOG4J_OPTS的信息，如果没有配置该环境变量，则将kafka目录下conf中的log4j.properties作为配置添加到环境变量中，配置给KAFKA_LOG4J_OPTS</div><div class="line">if [ &quot;x$KAFKA_LOG4J_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_LOG4J_OPTS=&quot;-Dlog4j.configuration=file:$base_dir/../config/log4j.properties&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 读取环境变量中KAFKA_HEAP_OPTS的信息，如果没有配置该环境变量，则使用默认配置&quot;-Xmx1G -Xms1G&quot;来配置，并添加到环境变量&quot;KAFKA_HEAP_OPTS&quot;中</div><div class="line">if [ &quot;x$KAFKA_HEAP_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_HEAP_OPTS=&quot;-Xmx1G -Xms1G&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 定义一个额外的参数 name，指定了要启动的类的名称kafka包中的Kafka</div><div class="line">EXTRA_ARGS=&quot;-name kafkaServer -loggc&quot;</div><div class="line"></div><div class="line"># 如果服务要作为后台进程运行，则需要添加-daemon参数，而且这个参数必须是第一个参数，如果第一个参数是-daemon，则为进程添加自定义的名称</div><div class="line">COMMAND=$1</div><div class="line">case $COMMAND in</div><div class="line">  -daemon)</div><div class="line">    EXTRA_ARGS=&quot;-daemon &quot;$EXTRA_ARGS</div><div class="line">    shift</div><div class="line">    ;;</div><div class="line">  *)</div><div class="line">    ;;</div><div class="line">esac</div><div class="line"></div><div class="line"># 启动kafka服务，由此处也可以看出来，可以使用kafka-run-class.sh来执行相关的类，其中$@表示的是命令行传入的所有参数	</div><div class="line">exec $base_dir/kafka-run-class.sh $EXTRA_ARGS kafka.Kafka $@</div></pre></td></tr></table></figure></p>
+<h1 id="kafka-server-stop-sh"><a href="#kafka-server-stop-sh" class="headerlink" title="kafka-server-stop.sh"></a>kafka-server-stop.sh</h1><p>Kafka服务的停止脚本，其实就是查找KafkaServer对应的进程号，并kill。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"># 在进程中过滤包含&quot;kafka.Kafka&quot;且不包含&quot;grep&quot;的java进程，截取进程号kill掉</div><div class="line">ps ax | grep -i &apos;kafka\.Kafka&apos; | grep java | grep -v grep | awk &apos;&#123;print $1&#125;&apos; | xargs kill -SIGTERM</div></pre></td></tr></table></figure></p>
+<h1 id="kafka-run-class-sh"><a href="#kafka-run-class-sh" class="headerlink" title="kafka-run-class.sh"></a>kafka-run-class.sh</h1>
       
     </div>
 
@@ -345,28 +312,18 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
 
     <footer class="post-footer">
       
-        <div class="post-tags">
-          
-            <a href="/blog/tags/机器学习入门/" rel="tag">#机器学习入门</a>
-          
-        </div>
-      
 
       
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/blog/2017/02/08/java-execute-command/" rel="next" title="Java execute command">
-                <i class="fa fa-chevron-left"></i> Java execute command
+              <a href="/blog/2017/03/29/unity3D/" rel="next" title="unity3D">
+                <i class="fa fa-chevron-left"></i> unity3D
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/blog/2017/02/23/shell-study/" rel="prev" title="Shell Study">
-                Shell Study <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -390,6 +347,10 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
 
 
           
+  <div class="comments" id="comments">
+    
+  </div>
+
 
         </div>
         
@@ -501,7 +462,7 @@ sklearn（scikit-learn）使用入门可以在google中搜索sklearn naive bayes
               
             
             
-              <p class="post-toc-empty">此文章未包含目录</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka-server-start-sh"><span class="nav-number">1.</span> <span class="nav-text">kafka-server-start.sh</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka-server-stop-sh"><span class="nav-number">2.</span> <span class="nav-text">kafka-server-stop.sh</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kafka-run-class-sh"><span class="nav-number">3.</span> <span class="nav-text">kafka-run-class.sh</span></a></li></ol></div>
             
           </div>
         </section>

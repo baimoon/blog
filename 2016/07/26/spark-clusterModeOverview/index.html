@@ -312,7 +312,7 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
 
       
         <p>本文是对<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="Cluster Mode Overview" target="_blank" rel="external">Cluster Mode Overview</a>的翻译，请多提宝贵意见。</p>
-<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications" target="_blank" rel="external">application submission guide</a>来学习如何在一个集群上发布application。</p>
+<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications">application submission guide</a>来学习如何在一个集群上发布application。</p>
 <h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程序）中的SparkContext进行协调。<br>特别的，要在一个cluster运行，SparkContext能够连接到几个类型的cluster managers（Spark自己的standalone cluster manager、Mesos或YARN），通过application来分配资源。一旦连接到，Spark要求集群中node上的executors进程来为你的application计算并存储数据。接下来，它发送你的应用程序代码（通过JAR或Python文件传递给SparkContext）给executors。最终，SparkContext发送tasks给executors来执行。</p>
 <p><img src="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png" alt="架构" title="架构"></p>
 <a id="more"></a>
@@ -484,7 +484,7 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
