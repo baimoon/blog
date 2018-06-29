@@ -346,143 +346,6 @@
             
               
                 
-                <a class="post-title-link" href="/blog/2017/03/29/unity3D/" itemprop="url">
-                  unity3D
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-03-29T21:44:39+08:00" content="2017-03-29">
-              2017-03-29
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/unity/" itemprop="url" rel="index">
-                    <span itemprop="name">unity</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文是学习Unity3D过程中的一些学习笔记，主要为个人学习使用，如能帮助别人纯属意外。</p>
-<h2 id="游戏对象以及基本操作"><a href="#游戏对象以及基本操作" class="headerlink" title="游戏对象以及基本操作"></a>游戏对象以及基本操作</h2><p>在Unity3D中，在Unity游戏中，一个游戏由多个场景所组成，每个场景又是由多个游戏对象构成，一个游戏对象可以包含多个组件用来实现不同的功能。在场景中，一个角色、一个模型、一个特效，都属于游戏对象。每个游戏对象可以有多个组件，从而使对象具备某种特性、实现相应的功能。</p>
-<p>在Unity3D中，对一个游戏对象进行的基本操作有：</p>
-<blockquote>
-<p>场景拖动<br>游戏对象的拖动 （对象拖动，可以按照轴拖动，也可以按照面拖动）<br>游戏对象的旋转 （旋转可以按照轴旋转）<br>游戏对象的缩放 （只能按照轴来缩放）<br>选中对象，按F或双击，可以快速定位对象到场景中心。</p>
-</blockquote>
-<p>（对应快捷键为q、w、e、r）。</p>
-<p>视角的操作：</p>
-<blockquote>
-<p>滚轮可以用来拉近或拉远视角。<br>按下鼠标右键旋转，以当前位置旋转视角。<br>按下Alt和鼠标左键旋转，是根据选中的对象，进行视角的旋转。<br>按下鼠标右键的同时，如果按A、W、S、D键，可以进行场景漫游。</p>
-</blockquote>
-<h2 id="Terrain地形"><a href="#Terrain地形" class="headerlink" title="Terrain地形"></a>Terrain地形</h2><p>需要创建一个名为Terrain的3D模型。然后编辑Terrain组件。<br>组件中包含一个地形编辑工具列表：<br>第一个，提升或沉降地形的工具，点击左键，来提升地形，按下左键并按下shift键，则沉降。<br>第二个，平坦地形工具。刷出来的是一个平面。<br>第三个，平滑地形工具。使得地形的过渡更加自然。<br>第四个，绘制地形表面纹理工具。<br>第五个，植树工具。<br>第六个，添加地表细节工具。</p>
-<h2 id="3D开发基础"><a href="#3D开发基础" class="headerlink" title="3D开发基础"></a>3D开发基础</h2><h3 id="摄像机"><a href="#摄像机" class="headerlink" title="摄像机"></a>摄像机</h3><p>摄像机决定了游戏的最终显示效果。而且一个场景中可以存在多个摄像机。<br>将摄像机以当前游戏对象视角来运行，可以选中摄像机，然后按Ctrl + Shift + F来设定。</p>
-<h3 id="坐标系"><a href="#坐标系" class="headerlink" title="坐标系"></a>坐标系</h3><p>世界坐标系和本地坐标系，世界坐标系是整个3D场景的坐标系，本地坐标系（会根据游戏对象的旋转而旋转）是某个游戏对象内独立的坐标系。可以通过左上角的按钮来切换。</p>
-<h3 id="网格"><a href="#网格" class="headerlink" title="网格"></a>网格</h3><p>网格勾画了一个模型的基本框架。</p>
-<h3 id="纹理"><a href="#纹理" class="headerlink" title="纹理"></a>纹理</h3><p>纹理可以使物体的表面富有细节。添加纹理，需要先创建一个新的材质，然后将材质添加到对象上面。然后通过材质来修改材质，材质属性中，有纹理属性，可以用来设置纹理，纹理可以是一张图片。</p>
-<h3 id="材质和着色器"><a href="#材质和着色器" class="headerlink" title="材质和着色器"></a>材质和着色器</h3><p>材质能够将纹理应用到模型上，着色器界定纹理呈现出的最终效果。</p>
-<h3 id="工程与应用程序"><a href="#工程与应用程序" class="headerlink" title="工程与应用程序"></a>工程与应用程序</h3><p>一个Unity工程一般包含下面几个文件目录：</p>
-<blockquote>
-<p>Assets 存放的是项目所需的资源。<br>Library 存放的是所需要的库文件。<br>ProjectSettings 里面存放的是工程设置文件。<br>Temp 里面存放的是临时文件。</p>
-</blockquote>
-<p>游戏对象的组件<br>Transform：控制对象的位置、旋转和缩放。以及游戏对象的父子关系。<br>Mesh Filter：显示网格。<br>xxx Collider：给物体添加碰撞器。<br>Mesh Rendered：渲染器。可以给物体添加材质、纹理以及渲染方式。<br>Script：脚本也是组件。如果一个脚本想要挂载到一个游戏对象上面，那么它必须继承MonoBehaviour。</p>
-<h3 id="脚本"><a href="#脚本" class="headerlink" title="脚本"></a>脚本</h3><p>首先，一个脚本属于一个游戏对象的一个组件。如果一个脚本想要能够挂载到一个游戏对象上，那么这个脚本必须是要继承MonoBehaviour的。MonoBehaviour为脚本提供了很多已经实现的方法和属性。</p>
-<h4 id="获取脚本所挂载到的对象。"><a href="#获取脚本所挂载到的对象。" class="headerlink" title="获取脚本所挂载到的对象。"></a>获取脚本所挂载到的对象。</h4><p>在脚本中，想要获取当前脚本所挂载的对象，只需要调用属性gameObject（注意大小写）即可得到。通过这个gameObject对象，就可以获得游戏对象的各个属性和其他的组件。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gameObject.name  <span class="comment">//获取游戏对象的名字</span></div></pre></td></tr></table></figure></p>
-<h4 id="获取脚本挂载对象的Transform组件"><a href="#获取脚本挂载对象的Transform组件" class="headerlink" title="获取脚本挂载对象的Transform组件"></a>获取脚本挂载对象的Transform组件</h4><p>每个游戏对象都会包含一个名为Transform组件，在继承了MonoBehaviour类的脚本中，可以通过transform属性来获取脚本所挂载到对象的Transform组件。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">transform.position.x <span class="comment">//游戏对象位置的x坐标</span></div></pre></td></tr></table></figure></p>
-<h4 id="获取脚本挂载对象的其他组件"><a href="#获取脚本挂载对象的其他组件" class="headerlink" title="获取脚本挂载对象的其他组件"></a>获取脚本挂载对象的其他组件</h4><p>要获取那些不常用的组件，需要使用GetComponent方法。如：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Test t = GetComponent &lt;Test&gt; (); <span class="comment">//Test为组件名称，这里是一个名为Test的Script组件。GetComponent是gameObject的一个方法。</span></div><div class="line">t.age = <span class="number">24</span>;</div></pre></td></tr></table></figure></p>
-<h4 id="脚本的生命周期"><a href="#脚本的生命周期" class="headerlink" title="脚本的生命周期"></a>脚本的生命周期</h4><p>脚本的生命周期包含：</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
                 <a class="post-title-link" href="/blog/2017/03/08/redis-lua/" itemprop="url">
                   redis_lua
                 </a>
@@ -922,6 +785,118 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
+                  Python Subprocess
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
+              2017-02-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
+<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
                   Python Datetime
                 </a>
@@ -988,118 +963,6 @@
               阅读全文 &raquo;
             </a>
           </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
         
       
     </div>
@@ -2577,6 +2440,128 @@
 
 
     
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/08/09/spark-configuration/" itemprop="url">
+                  Configuration
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-08-09T10:28:26+08:00" content="2016-08-09">
+              2016-08-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对Spark配置的翻译，主要用于本人学习使用，原文<a href="http://spark.apache.org/docs/latest/configuration.html" title="Spark Configuration">请参考</a></p>
+<p>Spark提供了三个用于对系统配置的位置：</p>
+<ul>
+<li>Spark properties控制大多数application参数，可以通过使用SparkConf对象设置或通过Java系统属性设置。</li>
+<li>Environment variables可以设置每台机器的设置，如IP地址，通过每个节点上的conf/spark-env.sh脚本。</li>
+<li>Logging可以通过log4j.properties来配置。</li>
+</ul>
+<h1 id="Spark-Properties"><a href="#Spark-Properties" class="headerlink" title="Spark Properties"></a>Spark Properties</h1><p>Spark属性控制大多数application设置，并且对每个application进行独立配置。这些属性可以直接在SparkConf上设置，SparkConf会传递给你的SparkContext.SparkConf，来允许你控制一些常用属性（如master的URI和application的名称等），通过set()方法达到和key-value对一样。例如，我们可以使用两个线程来初始化一个application，如下：<br>注意我们使用local[2]运行，意味着两个线程-表示最低的并行，这样能够帮助我们发现那些只有在分布式context上运行才会出现的bug。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</div><div class="line">             .setMaster(<span class="string">"local[2]"</span>)</div><div class="line">             .setAppName(<span class="string">"CountingSheep"</span>)</div><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div></pre></td></tr></table></figure></p>
+<p>注意在本地模式中我们可以使用多个线程，但是在像Spark Streaming中，我们实际上要求使用多个线程，来避免任何饥饿情况的发生。<br>指定时间属性时需要配置时间单位，下面的格式是可以接受的：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">25ms (milliseconds)</div><div class="line">5s (seconds)</div><div class="line">10m or 10min (minutes)</div><div class="line">3h (hours)</div><div class="line">5d (days)</div><div class="line">1y (years)</div></pre></td></tr></table></figure></p>
+<p>指定字节大小的属性应该配置一个大小单位，下面的格式是可以接受的：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">1b (bytes)</div><div class="line">1k or 1kb (kibibytes = 1024 bytes)</div><div class="line">1m or 1mb (mebibytes = 1024 kibibytes)</div><div class="line">1g or 1gb (gibibytes = 1024 mebibytes)</div><div class="line">1t or 1tb (tebibytes = 1024 gibibytes)</div><div class="line">1p or 1pb (pebibytes = 1024 tebibytes)</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/08/09/spark-configuration/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -2622,7 +2607,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">29</span>
+              <span class="site-state-item-count">26</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2630,7 +2615,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">14</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2639,7 +2624,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -2701,7 +2686,7 @@
         <div class="copyright" >
   
   &copy;  2016-07 - 
-  <span itemprop="copyrightYear">2017</span>
+  <span itemprop="copyrightYear">2018</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
