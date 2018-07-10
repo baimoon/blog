@@ -68,7 +68,7 @@
 <link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="python subprocess," />
+  <meta name="keywords" content="mapreduce," />
 
 
 
@@ -84,16 +84,22 @@
 
 
 
-<meta name="description" content="在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，">
+<meta name="description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
+#使用Python执行MR
+Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python Subprocess">
-<meta property="og:url" content="http://baimoon.github.io/2017/02/04/python-subprocess/index.html">
+<meta property="og:title" content="Easy Use Mapreduce">
+<meta property="og:url" content="http://baimoon.github.io/2018/07/10/easyUseMapreduce/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，">
-<meta property="og:updated_time" content="2017-02-05T10:19:46.000Z">
+<meta property="og:description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
+#使用Python执行MR
+Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
+<meta property="og:updated_time" content="2018-07-10T09:36:04.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python Subprocess">
-<meta name="twitter:description" content="在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，">
+<meta name="twitter:title" content="Easy Use Mapreduce">
+<meta name="twitter:description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
+#使用Python执行MR
+Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
 
 
 
@@ -114,9 +120,9 @@
 
 
 
-  <link rel="canonical" href="http://baimoon.github.io/2017/02/04/python-subprocess/"/>
+  <link rel="canonical" href="http://baimoon.github.io/2018/07/10/easyUseMapreduce/"/>
 
-  <title> Python Subprocess | Baimoon's Note </title>
+  <title> Easy Use Mapreduce | Baimoon's Note </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -246,7 +252,7 @@
             
             
               
-                Python Subprocess
+                Easy Use Mapreduce
               
             
           </h1>
@@ -258,8 +264,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
+            <time itemprop="dateCreated" datetime="2018-07-10T15:19:55+08:00" content="2018-07-10">
+              2018-07-10
             </time>
           </span>
 
@@ -272,8 +278,8 @@
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
+                  <a href="/blog/categories/bigdata/" itemprop="url" rel="index">
+                    <span itemprop="name">bigdata</span>
                   </a>
                 </span>
 
@@ -303,8 +309,20 @@
       
 
       
-        <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+        <p>本文用来记录MR的使用，已经遇到的一些问题和解决方法</p>
+<p>#使用Python执行MR</p>
+<h2 id="Mapper的写法"><a href="#Mapper的写法" class="headerlink" title="Mapper的写法"></a>Mapper的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> json</div><div class="line"><span class="keyword">import</span> time</div><div class="line"></div><div class="line"><span class="comment">#加载编码</span></div><div class="line">reload(sys)</div><div class="line">sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line"></div><div class="line"><span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">    j = json.loads(line.strip())</div><div class="line">    <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (j.get(<span class="string">"name"</span>), j.get(<span class="string">"age"</span>))</div></pre></td></tr></table></figure>
+<h2 id="Reducer的写法"><a href="#Reducer的写法" class="headerlink" title="Reducer的写法"></a>Reducer的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line">  <span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line">  </div><div class="line">  <span class="keyword">import</span> sys</div><div class="line">  <span class="keyword">import</span> json</div><div class="line">  <span class="keyword">import</span> time</div><div class="line">  </div><div class="line">  <span class="comment">#加载编码</span></div><div class="line">  reload(sys)</div><div class="line">  sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line">  </div><div class="line">  uri_count = &#123;&#125;</div><div class="line">  <span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">      data = line.strip().split(<span class="string">"\t"</span>)</div><div class="line">      key = <span class="string">"%s-%s"</span> % (data[<span class="number">0</span>], data[<span class="number">1</span>])</div><div class="line">      c = uri_count.get(key, <span class="number">0</span>)</div><div class="line">      uri_count[key] = c + <span class="number">1</span></div><div class="line">  </div><div class="line">  <span class="keyword">for</span> key <span class="keyword">in</span> uri_count:</div><div class="line">      <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (key, uri_count.get(key, <span class="number">0</span>))</div></pre></td></tr></table></figure>
+<p>从上面的代码可以看出来，python的脚本需要从标准输入(sys.stdin)中接入数据。</p>
+<h2 id="执行Mapreduce"><a href="#执行Mapreduce" class="headerlink" title="执行Mapreduce"></a>执行Mapreduce</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">/home/hadoop/yarn-2.8.1/bin/hadoop jar /home/hadoop/yarn-2.8.1/share/hadoop/tools/lib/hadoop-streaming-2.8.1.jar \</div><div class="line">-D mapreduce.job.queuename=bigdata.queue \</div><div class="line">-input hdfs://nameservice1/data/mylogs/api_request/2018/07/03/*/* \</div><div class="line">-output /tmp/20180703SpecialUri \</div><div class="line">-mapper &quot;specialUriMapper.py&quot; \</div><div class="line">-reducer &quot;specialUriReducer.py&quot; \</div><div class="line">-file /home/hadoop/script/user_action/specialUriMapper.py \</div><div class="line">-file /home/hadoop/script/user_action/specialUriReducer.py \</div><div class="line">-file /home/hadoop/script/user_action/kickA.log</div></pre></td></tr></table></figure>
+<p>参数说明：</p>
+<blockquote>
+<p>-D mapreduce.job.queuename用指定需要运行MR的队列<br>-input MR的输入<br>-output MR的输出<br>-mapper 指定执行MR中Mapper的程序<br>-reducer 指定执行MR中Reducer的程序<br>-file 需要一起上传的文件，如果python程序中使用了其他的数据文件，可以通过这个参数一起上传。</p>
+</blockquote>
+<p>其他一些参数：</p>
+<blockquote>
+<p>-D mapreduce.job.name Job的名称<br>-D mapreduce.job.user.name<br>-D mapreduce.job.node-label-expression<br>-D mapreduce.job.queuename<br>-D mapreduce.map.memory.mb<br>-D mapreduce.reduce.memory.mb</p>
+</blockquote>
 
       
     </div>
@@ -327,7 +345,7 @@
       
         <div class="post-tags">
           
-            <a href="/blog/tags/python-subprocess/" rel="tag">#python subprocess</a>
+            <a href="/blog/tags/mapreduce/" rel="tag">#mapreduce</a>
           
         </div>
       
@@ -336,17 +354,13 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/blog/2017/01/13/doubleArray-trie/" rel="next" title="Double-Array trie">
-                <i class="fa fa-chevron-left"></i> Double-Array trie
+              <a href="/blog/2018/06/29/netty-study/" rel="next" title="netty-study">
+                <i class="fa fa-chevron-left"></i> netty-study
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/blog/2017/02/04/python-datetime/" rel="prev" title="Python Datetime">
-                Python Datetime <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -481,7 +495,7 @@
               
             
             
-              <p class="post-toc-empty">此文章未包含目录</p>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mapper的写法"><span class="nav-number">1.</span> <span class="nav-text">Mapper的写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reducer的写法"><span class="nav-number">2.</span> <span class="nav-text">Reducer的写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行Mapreduce"><span class="nav-number">3.</span> <span class="nav-text">执行Mapreduce</span></a></li></ol></div>
             
           </div>
         </section>
