@@ -96,7 +96,7 @@ sbt的Gi">
 Python 2.7.8的安装123yum --enablerepo=ius install python27 -yyum --enablerepo=ius install python27-devel -yyum --enablerepo=ius install python27-pip -y
 Sbt的安装
 sbt的Gi">
-<meta property="og:updated_time" content="2018-07-10T06:55:00.000Z">
+<meta property="og:updated_time" content="2018-07-10T07:03:54.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Unix Install">
 <meta name="twitter:description" content="本文记录了常用软件的安装，主要针对的是CentOS，其他系统会进行特殊标注
@@ -328,7 +328,7 @@ sbt的Gi">
 <blockquote>
 <p>1、生成配置文件 echo_supervisord_conf &gt; /home/server/supervisor/etc/supervisord.conf 将初始配置文件生成到指定目录下<br>2、启动supervisor进程 python /bin/etc/supervisord -c /home/server/supervisor/etc/supervisord.conf<br>3、操作supervisor supervisorctl -c /home/server/supervisor/etc/supervisord.conf</p>
 </blockquote>
-<h3 id="supervisor的客户端命令"><a href="#supervisor的客户端命令" class="headerlink" title="supervisor的客户端命令"></a>supervisor的客户端命令</h3><p>supervisorctl是supervisor用来执行客户端命令的工具，启动时需要指定与supervisord使用相同的一份配置文件。</p>
+<h3 id="supervisor的客户端命令"><a href="#supervisor的客户端命令" class="headerlink" title="supervisor的客户端命令"></a>supervisor的客户端命令</h3><p>supervisorctl是supervisor用来执行客户端命令的工具，启动时需要指定与supervisord使用相同的一份配置文件。如：supervisorctl -c /home/server/supervisor/ect/supervisord.conf</p>
 <h4 id="使用supervisorctl的shell界面"><a href="#使用supervisorctl的shell界面" class="headerlink" title="使用supervisorctl的shell界面"></a>使用supervisorctl的shell界面</h4><p>执行supervisorctl -c /home/server/supervisor/ect/supervisord.conf来启动supervisor的shell界面。</p>
 <blockquote>
 <p>status    # 查看程序状态<br>stop usercenter   # 关闭 usercenter 程序<br>start usercenter  # 启动 usercenter 程序<br>restart usercenter    # 重启 usercenter 程序<br>reread    ＃ 读取有更新（增加）的配置文件，不会启动新添加的程序<br>update    ＃ 重启配置文件修改过的程序</p>
