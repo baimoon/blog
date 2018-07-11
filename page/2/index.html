@@ -607,6 +607,122 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/07/27/unix-commonCommand/" itemprop="url">
+                  Unix Common Command
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-27T14:07:29+08:00" content="2016-07-27">
+              2016-07-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/unix/" itemprop="url" rel="index">
+                    <span itemprop="name">unix</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>该文记录了自己常用的unix的命令</p>
+<h1 id="awk的使用"><a href="#awk的使用" class="headerlink" title="awk的使用"></a>awk的使用</h1><h2 id="用例"><a href="#用例" class="headerlink" title="用例"></a>用例</h2><h3 id="计算文件中某列的总和"><a href="#计算文件中某列的总和" class="headerlink" title="计算文件中某列的总和"></a>计算文件中某列的总和</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ vim test.log</div><div class="line">a 1</div><div class="line">b 3</div><div class="line">c 5</div><div class="line">d 6</div><div class="line"></div><div class="line">$ cat test.log | awk &apos;&#123;a = a + $2&#125; END &#123;print a&#125;&apos;</div><div class="line">15</div></pre></td></tr></table></figure>
+<h3 id="使用awk对字符串进行拆分"><a href="#使用awk对字符串进行拆分" class="headerlink" title="使用awk对字符串进行拆分"></a>使用awk对字符串进行拆分</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cat 1103kick.log | awk <span class="string">'&#123;split($0, a, "\""); print a[2]&#125;'</span> <span class="comment"># 按照"拆分，然后输出第2个数据</span></div></pre></td></tr></table></figure>
+<h3 id="在awk中打印单引号"><a href="#在awk中打印单引号" class="headerlink" title="在awk中打印单引号"></a>在awk中打印单引号</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">test.log</div><div class="line">287901341</div><div class="line">285315045</div><div class="line">288588058</div><div class="line">283098937</div><div class="line">287076722</div><div class="line">284529273</div><div class="line"></div><div class="line">head test.log | awk &apos;&#123;print &quot;mv &quot; &quot;&apos;\&apos;&apos;&quot; $1 &quot;&apos;\&apos;&apos;&quot;&#125;&apos;</div><div class="line">mv &apos;287901341&apos;</div><div class="line">mv &apos;285315045&apos;</div><div class="line">mv &apos;288588058&apos;</div><div class="line">mv &apos;283098937&apos;</div><div class="line">mv &apos;287076722&apos;</div><div class="line">mv &apos;284529273&apos;</div></pre></td></tr></table></figure>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/27/unix-commonCommand/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/07/26/spark-clusterModeOverview/" itemprop="url">
                   Cluster Mode Overview
                 </a>
@@ -1208,7 +1324,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">28</span>
+              <span class="site-state-item-count">29</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
