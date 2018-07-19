@@ -248,6 +248,134 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/07/13/HiveStudy/" itemprop="url">
+                  Hive Study
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-07-13T15:53:05+08:00" content="2018-07-13">
+              2018-07-13
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/bigdata/" itemprop="url" rel="index">
+                    <span itemprop="name">bigdata</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文用来记录自己在使用Hive Sql方面的一些经验。</p>
+<h1 id="创建表"><a href="#创建表" class="headerlink" title="创建表"></a>创建表</h1><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"># 创建了一个带有两个分区的表，这个表按照partition_date和hour进行分区</div><div class="line">CREATE EXTERNAL TABLE `user.user_action`(</div><div class="line">     `action` string COMMENT '&#123;"chs_name":"", "description":"","etl":"","value":"","remark":""&#125;',</div><div class="line">     `num` double comment '&#123;"chs_name":"", "description":"","etl":"","value":"","remark":""&#125;'</div><div class="line">  )</div><div class="line">PARTITIONED BY ( `partition_date` string COMMENT '分区日期',  `hour` string COMMENT '小时')</div><div class="line">ROW FORMAT DELIMITED</div><div class="line">    --TODO: 导入MYSQL的表建议'\t'分隔</div><div class="line">    FIELDS TERMINATED BY '\t'</div><div class="line">    COLLECTION ITEMS TERMINATED BY '\002'</div><div class="line">    MAP KEYS TERMINATED BY '\003'</div><div class="line">    LINES TERMINATED BY '\n'</div><div class="line">STORED as textfile;</div></pre></td></tr></table></figure>
+<h1 id="查询数据并将数据写入到表中"><a href="#查询数据并将数据写入到表中" class="headerlink" title="查询数据并将数据写入到表中"></a>查询数据并将数据写入到表中</h1><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> OVERWRITE <span class="keyword">TABLE</span> user.user_action</div><div class="line"><span class="keyword">partition</span>(partition_date = <span class="string">'20180602'</span>, <span class="keyword">hour</span>=<span class="string">'0'</span>)</div><div class="line"><span class="keyword">select</span> <span class="keyword">action</span>,</div><div class="line">       <span class="keyword">sum</span>(<span class="keyword">num</span>) <span class="keyword">as</span> n</div><div class="line">  <span class="keyword">from</span> (</div><div class="line">        <span class="keyword">select</span> <span class="keyword">action</span>,</div><div class="line">               <span class="keyword">num</span></div><div class="line">          <span class="keyword">from</span> (</div><div class="line">               <span class="keyword">select</span> momo_id, </div><div class="line">                      event_num_map </div><div class="line">                 <span class="keyword">from</span> db.event_summary </div><div class="line">                <span class="keyword">where</span> partition_date = <span class="string">'20180602'</span></div><div class="line">                  <span class="keyword">and</span> <span class="keyword">size</span>(event_num_map)&gt;<span class="number">0</span></div><div class="line">          )a</div><div class="line">          LATERAL <span class="keyword">VIEW</span> EXPLODE(event_num_map)t <span class="keyword">AS</span> <span class="keyword">action</span>, <span class="keyword">num</span></div><div class="line">    </div><div class="line">  )b</div><div class="line">  <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">action</span>;</div></pre></td></tr></table></figure>
+<p>该表从db.event_summary中查询数据然后吸入到user.user_action表中。需要注意db.event_summay中的event_num_map字段是一个map，map的key是action，value是action的数量。这里使用了一个函数LATERAL VIEW EXPLODE，用来map展开。</p>
+<h1 id="一些常用函数"><a href="#一些常用函数" class="headerlink" title="一些常用函数"></a>一些常用函数</h1><h2 id="ROW-NUMBER-OVER-函数"><a href="#ROW-NUMBER-OVER-函数" class="headerlink" title="ROW_NUMBER() OVER()函数"></a>ROW_NUMBER() OVER()函数</h2><p>ROW_NUMBER() OVER()函数用来为每条记录返回一个行号，可以用来对记录进行排序并返回该序号，需要从1开始排序。<br>OVER()是一个聚合函数，可以对记录进行分组和排序。ROW_NUMBER()不能单独使用，必须搭配OVER()才能使用，否则会报错。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select *, row_number() over() as r from mytable;</div></pre></td></tr></table></figure></p>
+<p>配合partition by/order by<br>按照某个字段排序后返回行号<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select *, row_number() over(partition by aaaaab order by num desc) r from mytable;</div></pre></td></tr></table></figure></p>
+<p>按照aaaaab分组后，并根据aaaaaab进行倒序排列。</p>
+<h1 id="SQL中的类型转换"><a href="#SQL中的类型转换" class="headerlink" title="SQL中的类型转换"></a>SQL中的类型转换</h1><p>需要使用cast()函数进行类型转换。</p>
+<blockquote>
+<p>cast(str_column as int) </p>
+</blockquote>
+<h1 id="一些经验的总结"><a href="#一些经验的总结" class="headerlink" title="一些经验的总结"></a>一些经验的总结</h1><h2 id="一个表中分时段记录内容的统一查询"><a href="#一个表中分时段记录内容的统一查询" class="headerlink" title="一个表中分时段记录内容的统一查询"></a>一个表中分时段记录内容的统一查询</h2><h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>遇到的情况是这样的，有一个表A，表A中有24个字段（event_0_map … event_24_map）用来记录对应小时内每个用户各自发生的一些事情的数量。表结构如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">id string = 1000010</div><div class="line">event_0_map = &#123;&apos;event0&apos;:200, &apos;event2&apos;:100&#125;</div><div class="line">...</div><div class="line">event_24_map = &#123;&apos;event0&apos;:500, &apos;event2&apos;:800&#125;</div><div class="line">partition = &apos;20180101&apos;</div></pre></td></tr></table></figure></p>
+<p>现在有一个需求：需要统计每个小时发生事件最多的前100个事件</p>
+<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>因为是每个小时执行的任务，而且每个小时的数据是存放在不同的字段里面，而字段名在SQL中是不可以拼接的，如：event_24_map，无法来拼接，因此有两种方案。</p>
+<h4 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h4><p>生成24个任务，每个任务的SQL都一样，只是查询的字段不一样<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">select action,</div><div class="line">       num</div><div class="line">  from (</div><div class="line">       select id, </div><div class="line">              event_0_map </div><div class="line">         from online.tableA </div><div class="line">        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">          and size(event_0_map)&gt;0</div><div class="line">  )a0</div><div class="line">  LATERAL VIEW EXPLODE(event_0_map)t AS action, num</div></pre></td></tr></table></figure></p>
+<h4 id="方案二-推荐"><a href="#方案二-推荐" class="headerlink" title="方案二(推荐)"></a>方案二(推荐)</h4><p>将所有的字段同时解析，生成一个大表，在对大表进行过滤查询<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">select action,</div><div class="line">       num</div><div class="line">  from (</div><div class="line">		select action,</div><div class="line">		       num,</div><div class="line">		       &apos;00&apos; as hour</div><div class="line">		  from (</div><div class="line">		       select id, </div><div class="line">		              event_0_map </div><div class="line">		         from online.tableA </div><div class="line">		        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">		          and size(event_0_map)&gt;0</div><div class="line">		  )a0</div><div class="line">		  LATERAL VIEW EXPLODE(event_0_map)t AS action, num</div><div class="line">		union all</div><div class="line">		select action,</div><div class="line">		       num,</div><div class="line">		       &apos;01&apos; as hour</div><div class="line">		  from (</div><div class="line">		       select id, </div><div class="line">		              event_2_map </div><div class="line">		         from online.tableA </div><div class="line">		        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">		          and size(event_2_map)&gt;0</div><div class="line">		  )a1</div><div class="line">		  LATERAL VIEW EXPLODE(event_2_map)t AS action, num</div><div class="line">	) data</div><div class="line"> where hour = &apos;$&#123;partition_hour&#125;&apos;</div></pre></td></tr></table></figure></p>
+<h2 id="表的删除和恢复"><a href="#表的删除和恢复" class="headerlink" title="表的删除和恢复"></a>表的删除和恢复</h2><p>在使用Hive的表的过程中，难免会有对表进行删除的情况，其实把表删除后，数据文件还是存在的，那么如何将数据按照新表的结构恢复一下呢？可以如下操作，但是需要注意的是，对于新增的字段，值是NULL。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">drop table db.table_test;</div><div class="line">...</div><div class="line">create table xxx...</div><div class="line">...</div><div class="line">MSCK REPAIR TABLE db.table_test;</div></pre></td></tr></table></figure>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/07/10/easyUseMapreduce/" itemprop="url">
                   Easy Use Mapreduce
                 </a>
@@ -903,6 +1031,118 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
+                  Python Subprocess
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
+              2017-02-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
+<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
                   Python Datetime
                 </a>
@@ -969,118 +1209,6 @@
               阅读全文 &raquo;
             </a>
           </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
         
       
     </div>
@@ -2444,120 +2572,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/08/17/spark-streaming/" itemprop="url">
-                  Spark Streaming Programming Guide
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-08-17T16:40:48+08:00" content="2016-08-17">
-              2016-08-17
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是Spark Streaming手册的翻译文档，会随着自己的实现进行更新，官方文档请<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html" title="Spark Streming Programming Guide">参考</a>。</p>
-<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>Spark Streaming是核心Spark API的一个延伸，它对实时数据流进行可扩展的、高吞吐量的、容灾的进行处理。数据可以从很多源（如Kafka、Flume、Kinesis或TCP socket）进行提取，然后被复杂的算法组合处理，这些复杂的算法可以使用高级别的函数，如map、reduce、join和window。最后，被处理过的数据可以推出到外部文件系统、数据库和实时图表中。实际上你可以在数据流上应用Spark的<a href="http://spark.apache.org/docs/latest/ml-guide.html" title="Machine Learning Library (MLlib) Guide">机器学习</a>和<a href="http://spark.apache.org/docs/latest/graphx-programming-guide.html" title="GraphX Programming Guide">图处理</a>。<br><img src="http://oaavtz33a.bkt.clouddn.com/streaming-arch.png" alt="spark streaming architecture" title="spark streaming architecture"><br>在内部，它如下工作。Spark Streaming接收实时的输入数据流，并将数据划分到批次中，然后在批次中数据被Spark引擎处理并生成最终的结果流。<br><img src="http://oaavtz33a.bkt.clouddn.com/streaming-flow.png" alt="Spark Streaming data flow" title="Spark Streaming data flow"><br>Spark Streaming提供了一个高级别的抽象，叫做discretized stream或DStream，它代表了一个连续的数据流。DStream可以从来自数据源（如Kafka、Flume和Kinesis）的输入数据流创建，也可以通过在其他DStream上应用高级别的操作来创建，一个DStream以一个<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD" title="RDD">RDDs</a>序列来表示。<br>本指南展示了如何开始使用DStreams来编写Spark Streaming程序。你可以使用Scala、Java或Python（从Spark1.2中引入）来编写Spark Streaming程序，这些语言的代码都会在本指南中提供。你会发现tabs在本指南中随处可见，是你可以在不同语言的代码片段之间任意选择。<br><strong>注意：</strong>在Python中有少量的APIs是不同或不可用的。贯穿整个指南，你会发现<em>Python API</em>标签高亮了这些不同。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/08/17/spark-streaming/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2603,7 +2617,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">29</span>
+              <span class="site-state-item-count">30</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2620,7 +2634,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-count">20</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
