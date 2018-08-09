@@ -1,0 +1,674 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Submitting ApplicationsSpark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。
+Bunding Your Application’s Dependencies如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark 2.3.1 Submit Applications">
+<meta property="og:url" content="http://baimoon.github.io/2018/08/09/spark-2-3-1-submit-applications/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="Submitting ApplicationsSpark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。
+Bunding Your Application’s Dependencies如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一">
+<meta property="og:updated_time" content="2018-08-09T10:23:19.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark 2.3.1 Submit Applications">
+<meta name="twitter:description" content="Submitting ApplicationsSpark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。
+Bunding Your Application’s Dependencies如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/08/09/spark-2-3-1-submit-applications/"/>
+
+  <title> Spark 2.3.1 Submit Applications | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark 2.3.1 Submit Applications
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-09T15:33:36+08:00" content="2018-08-09">
+              2018-08-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h1><p>Spark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。</p>
+<h2 id="Bunding-Your-Application’s-Dependencies"><a href="#Bunding-Your-Application’s-Dependencies" class="headerlink" title="Bunding Your Application’s Dependencies"></a>Bunding Your Application’s Dependencies</h2><p>如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一个spark集群。要完成这些，需要创建一个assembly jar(uber jar)来包含你的代码和代码的依赖。sbt和Maven都有assembly插件。当创建assembly jar时，排除Spark和Hadoop提供的依赖，因为这些不需要绑定，因为这些将由集群管理器在运行时提供。一旦你弄好了assembly jar，你就可以如下所示在调用 bin/spark-submit脚本是传递你的jar。<br>对于Python，你可以使用spark-submit的–py-files参数来添加.py、.zip或.egg文件，让他们和你的应用一起分发。如果你依赖多个python文件，我们推荐将他们打到一个.zip或.egg包中。</p>
+<h2 id="Launching-Applications-with-spark-submit"><a href="#Launching-Applications-with-spark-submit" class="headerlink" title="Launching Applications with spark-submit"></a>Launching Applications with spark-submit</h2><p>一旦一个用户应用被绑定，就可以使用bin/spark-submit脚本来启动这个应用。这个脚本负责设置Spark的classpath和它依赖，而且脚本支持由Spark支持的不同的集群管理器和部署模式。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt; \</div><div class="line">  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... # other options</div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+<p>一些常用的选项：</p>
+<blockquote>
+<p>–class：你应用的执行程序(如：org.apache.spark.example.SparkPi)<br>–master：集群的master URL（如：spark://23.195.26.187:7077）<br>–deploy-mode：在worker节点(cluster)上部署你的driver还是在本地作为一个额外的客户端(client)来部署。默认是client。<br>–conf：以key=velue格式配置的任意的Spark配置属性。对于包含空格的值，使用双引号包含起来，如”key=value”。<br>application-jar：指向你的应用程序和它依赖的jar的路径。这个URL必须是你集群内部全局可见，例如，一个hdfs://路径或一个在所有节点上都存在的file://路径。<br>application-arguments：任何需要传递给你的主类的主方法的参数。</p>
+</blockquote>
+<p>常见的部署策略是，在一个与你的worker机位置相同的gateway机器上提交你的应用。在这种设置中，client模式是合适的，driver在spark-submit进程中被直接启动，这种方式像是集群的一个client。这个应用的输入和输出被打印到控制台。因此这种模式特别适合那些涉及REPL的应用。</p>
+<p>此外，如果你的应用是用一个远离worker机器的机器上提交的，通常使用cluster模式来降低drivers和executors之间的网络传输。目前，standalone模式还不能够为Python应用提供cluster模式。</p>
+<p>对于Python应用，在<application-jar>处传递一个.py来代替一个jar，在–py-files中添加.zip、.egg或.py，作为搜索目录。</application-jar></p>
+<p>这里有一些选项可用，用来指定使用的集群管理器。例如，对于cluster部署模式的standalone管理器管理的Saprk集群，你可以指定 –supervise 来保证在非0退出代码时，driver被自动重启。要枚举spark-submit所有可用的选项，使用–help运行spark-submit。这里有些常用的选项：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># Run application locally on 8 cores</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master local[8] \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  100</div><div class="line"></div><div class="line"># Run on a Spark standalone cluster in client deploy mode</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Spark standalone cluster in cluster deploy mode with supervise</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --supervise \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a YARN cluster</div><div class="line">export HADOOP_CONF_DIR=XXX</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master yarn \</div><div class="line">  --deploy-mode cluster \  # can be client for client mode</div><div class="line">  --executor-memory 20G \</div><div class="line">  --num-executors 50 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run a Python application on a Spark standalone cluster</div><div class="line">./bin/spark-submit \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  examples/src/main/python/pi.py \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Mesos cluster in cluster deploy mode with supervise</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master mesos://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --supervise \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  http://path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Kubernetes cluster in cluster deploy mode</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master k8s://xx.yy.zz.ww:443 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --num-executors 50 \</div><div class="line">  http://path/to/examples.jar \</div><div class="line">  1000</div></pre></td></tr></table></figure></p>
+<h2 id="Master-URLs"><a href="#Master-URLs" class="headerlink" title="Master URLs"></a>Master URLs</h2><p>传递给Spark的master URL可以是下面格式中的一个：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Master URL</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">local</td>
+<td style="text-align:left">使用单个线程以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[K]</td>
+<td style="text-align:left">使用K个线程以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[K, F]</td>
+<td style="text-align:left">使用K个线程以本地模式运行Spark，允许最多F个失败</td>
+</tr>
+<tr>
+<td style="text-align:left">local[*]</td>
+<td style="text-align:left">使用与你机器逻辑核数相同的线程，以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[*, F]</td>
+<td style="text-align:left">使用于你机器逻辑核数相同的香橙，以本地模式运行Spark，允许最多F个失败</td>
+</tr>
+<tr>
+<td style="text-align:left">spark://HOST:PORT</td>
+<td style="text-align:left">连接到给定的以standalone模式运行的集群的Master。端口必须是你的master所配置使用的，默认为7077</td>
+</tr>
+<tr>
+<td style="text-align:left">spark://HOST1:PORT1,HOST2:PORT2</td>
+<td style="text-align:left">连接到使用了Zookeeper以standalone模式运行的带有standby master的集群。这个列表必须包含了使用Zookeeper配置的高可用集群的所有master的host。端口必须是你的master所配置使用的，默认为7077。</td>
+</tr>
+<tr>
+<td style="text-align:left">mesos://HOST:PORT</td>
+<td style="text-align:left">连接到给定的以MESOS模式运行的集群。端口必须是你的配置中使用的，默认为5050。或者，对于使用了Zookeeper的Mesos集群，使用mesos://zk://…配合–deploy-mode cluster来提交，HOST:PORT应该被配置为连接到MesosClusterDispatcher。</td>
+</tr>
+<tr>
+<td style="text-align:left">yarn</td>
+<td style="text-align:left">以cluster或client模式连接到yarn集群，连接模式通过 –deploy-mode来指定。这个集群的位置将基于HADOOP_CONF_DIR或YARN_CONF_DIR变量来找到。</td>
+</tr>
+<tr>
+<td style="text-align:left">k8s://HOST:PORT</td>
+<td style="text-align:left">以cluster模式连接到Kubernetes集群。Client模式当前还不支持，将会在未来被支持。HOST和PORT指向[Kubernetes API Server]。默认使用TLS连接。想要强制使用不安全的连接，你可以使用k8s://<a href="http://HOST:PORT。" target="_blank" rel="external">http://HOST:PORT。</a></td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/08/09/spark-2-3-1-overview/" rel="next" title="Spark 2.3.1 Overview">
+                <i class="fa fa-chevron-left"></i> Spark 2.3.1 Overview
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">1.</span> <span class="nav-text">Submitting Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Bunding-Your-Application’s-Dependencies"><span class="nav-number">1.1.</span> <span class="nav-text">Bunding Your Application’s Dependencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Launching-Applications-with-spark-submit"><span class="nav-number">1.2.</span> <span class="nav-text">Launching Applications with spark-submit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-URLs"><span class="nav-number">1.3.</span> <span class="nav-text">Master URLs</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

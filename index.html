@@ -248,6 +248,300 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/08/09/spark-2-3-1-submit-applications/" itemprop="url">
+                  Spark 2.3.1 Submit Applications
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-09T15:33:36+08:00" content="2018-08-09">
+              2018-08-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h1><p>Spark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。</p>
+<h2 id="Bunding-Your-Application’s-Dependencies"><a href="#Bunding-Your-Application’s-Dependencies" class="headerlink" title="Bunding Your Application’s Dependencies"></a>Bunding Your Application’s Dependencies</h2><p>如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一个spark集群。要完成这些，需要创建一个assembly jar(uber jar)来包含你的代码和代码的依赖。sbt和Maven都有assembly插件。当创建assembly jar时，排除Spark和Hadoop提供的依赖，因为这些不需要绑定，因为这些将由集群管理器在运行时提供。一旦你弄好了assembly jar，你就可以如下所示在调用 bin/spark-submit脚本是传递你的jar。<br>对于Python，你可以使用spark-submit的–py-files参数来添加.py、.zip或.egg文件，让他们和你的应用一起分发。如果你依赖多个python文件，我们推荐将他们打到一个.zip或.egg包中。</p>
+<h2 id="Launching-Applications-with-spark-submit"><a href="#Launching-Applications-with-spark-submit" class="headerlink" title="Launching Applications with spark-submit"></a>Launching Applications with spark-submit</h2><p>一旦一个用户应用被绑定，就可以使用bin/spark-submit脚本来启动这个应用。这个脚本负责设置Spark的classpath和它依赖，而且脚本支持由Spark支持的不同的集群管理器和部署模式。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt; \</div><div class="line">  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... # other options</div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+<p>一些常用的选项：</p>
+<blockquote>
+<p>–class：你应用的执行程序(如：org.apache.spark.example.SparkPi)<br>–master：集群的master URL（如：spark://23.195.26.187:7077）<br>–deploy-mode：在worker节点(cluster)上部署你的driver还是在本地作为一个额外的客户端(client)来部署。默认是client。<br>–conf：以key=velue格式配置的任意的Spark配置属性。对于包含空格的值，使用双引号包含起来，如”key=value”。<br>application-jar：指向你的应用程序和它依赖的jar的路径。这个URL必须是你集群内部全局可见，例如，一个hdfs://路径或一个在所有节点上都存在的file://路径。<br>application-arguments：任何需要传递给你的主类的主方法的参数。</p>
+</blockquote>
+<p>常见的部署策略是，在一个与你的worker机位置相同的gateway机器上提交你的应用。在这种设置中，client模式是合适的，driver在spark-submit进程中被直接启动，这种方式像是集群的一个client。这个应用的输入和输出被打印到控制台。因此这种模式特别适合那些涉及REPL的应用。</p>
+<p>此外，如果你的应用是用一个远离worker机器的机器上提交的，通常使用cluster模式来降低drivers和executors之间的网络传输。目前，standalone模式还不能够为Python应用提供cluster模式。</p>
+<p>对于Python应用，在<application-jar>处传递一个.py来代替一个jar，在–py-files中添加.zip、.egg或.py，作为搜索目录。</application-jar></p>
+<p>这里有一些选项可用，用来指定使用的集群管理器。例如，对于cluster部署模式的standalone管理器管理的Saprk集群，你可以指定 –supervise 来保证在非0退出代码时，driver被自动重启。要枚举spark-submit所有可用的选项，使用–help运行spark-submit。这里有些常用的选项：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line"># Run application locally on 8 cores</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master local[8] \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  100</div><div class="line"></div><div class="line"># Run on a Spark standalone cluster in client deploy mode</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Spark standalone cluster in cluster deploy mode with supervise</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --supervise \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a YARN cluster</div><div class="line">export HADOOP_CONF_DIR=XXX</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master yarn \</div><div class="line">  --deploy-mode cluster \  # can be client for client mode</div><div class="line">  --executor-memory 20G \</div><div class="line">  --num-executors 50 \</div><div class="line">  /path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run a Python application on a Spark standalone cluster</div><div class="line">./bin/spark-submit \</div><div class="line">  --master spark://207.184.161.138:7077 \</div><div class="line">  examples/src/main/python/pi.py \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Mesos cluster in cluster deploy mode with supervise</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master mesos://207.184.161.138:7077 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --supervise \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --total-executor-cores 100 \</div><div class="line">  http://path/to/examples.jar \</div><div class="line">  1000</div><div class="line"></div><div class="line"># Run on a Kubernetes cluster in cluster deploy mode</div><div class="line">./bin/spark-submit \</div><div class="line">  --class org.apache.spark.examples.SparkPi \</div><div class="line">  --master k8s://xx.yy.zz.ww:443 \</div><div class="line">  --deploy-mode cluster \</div><div class="line">  --executor-memory 20G \</div><div class="line">  --num-executors 50 \</div><div class="line">  http://path/to/examples.jar \</div><div class="line">  1000</div></pre></td></tr></table></figure></p>
+<h2 id="Master-URLs"><a href="#Master-URLs" class="headerlink" title="Master URLs"></a>Master URLs</h2><p>传递给Spark的master URL可以是下面格式中的一个：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Master URL</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">local</td>
+<td style="text-align:left">使用单个线程以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[K]</td>
+<td style="text-align:left">使用K个线程以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[K, F]</td>
+<td style="text-align:left">使用K个线程以本地模式运行Spark，允许最多F个失败</td>
+</tr>
+<tr>
+<td style="text-align:left">local[*]</td>
+<td style="text-align:left">使用与你机器逻辑核数相同的线程，以本地模式运行Spark</td>
+</tr>
+<tr>
+<td style="text-align:left">local[*, F]</td>
+<td style="text-align:left">使用于你机器逻辑核数相同的香橙，以本地模式运行Spark，允许最多F个失败</td>
+</tr>
+<tr>
+<td style="text-align:left">spark://HOST:PORT</td>
+<td style="text-align:left">连接到给定的以standalone模式运行的集群的Master。端口必须是你的master所配置使用的，默认为7077</td>
+</tr>
+<tr>
+<td style="text-align:left">spark://HOST1:PORT1,HOST2:PORT2</td>
+<td style="text-align:left">连接到使用了Zookeeper以standalone模式运行的带有standby master的集群。这个列表必须包含了使用Zookeeper配置的高可用集群的所有master的host。端口必须是你的master所配置使用的，默认为7077。</td>
+</tr>
+<tr>
+<td style="text-align:left">mesos://HOST:PORT</td>
+<td style="text-align:left">连接到给定的以MESOS模式运行的集群。端口必须是你的配置中使用的，默认为5050。或者，对于使用了Zookeeper的Mesos集群，使用mesos://zk://…配合–deploy-mode cluster来提交，HOST:PORT应该被配置为连接到MesosClusterDispatcher。</td>
+</tr>
+<tr>
+<td style="text-align:left">yarn</td>
+<td style="text-align:left">以cluster或client模式连接到yarn集群，连接模式通过 –deploy-mode来指定。这个集群的位置将基于HADOOP_CONF_DIR或YARN_CONF_DIR变量来找到。</td>
+</tr>
+<tr>
+<td style="text-align:left">k8s://HOST:PORT</td>
+<td style="text-align:left">以cluster模式连接到Kubernetes集群。Client模式当前还不支持，将会在未来被支持。HOST和PORT指向[Kubernetes API Server]。默认使用TLS连接。想要强制使用不安全的连接，你可以使用k8s://<a href="http://HOST:PORT。" target="_blank" rel="external">http://HOST:PORT。</a></td>
+</tr>
+</tbody>
+</table>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/08/09/spark-2-3-1-overview/" itemprop="url">
+                  Spark 2.3.1 Overview
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-09T12:45:35+08:00" content="2018-08-09">
+              2018-08-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Spark-Overview"><a href="#Spark-Overview" class="headerlink" title="Spark Overview"></a>Spark Overview</h1><p>Apache Spark是一个很快的用于一般目的的集群计算系统。它在Java、Python和R语言上提供了高级别的API，并且提供了一个支持一般图计算的优化引擎。它还提供了一组丰富的高级别的工具，包括SQL和结构化数据处理所需要的Spark SQL、机器学习所需要的MLlib、图处理所需要的GraphX以及Spark Streaming。</p>
+<h2 id="Downloading"><a href="#Downloading" class="headerlink" title="Downloading"></a>Downloading</h2><p>从项目网站的下载页获取Spark。这个文档为是针对的Spark2.3.1版本。Spark为了使用HDFS和YARN使用了Hadoop客户端库。这个下载中预置了一些常用的Hadoop版本。用户还可以下载一个”Hadoop free”库通过Spark的classpath指定Hadoop版本来运行Spark。Scala和Java用户可以在自己的项目的中使用Spark的Mave依赖来包含Spark，而Python用户在未来也可以从PyPI中安装Spark。</p>
+<p>如果你喜欢从源码构建Spark，可以通过这个链接来操作。</p>
+<p>Spark能够运行在Windowns和类UNIX的系统上。在一台机器上以本地模式运行很容易–你需要做的事情就是在你的系统路径中安装java或者在环境变量JAVA_HOME中指向Java的安装。</p>
+<p>Spark运行在Java 8+， Python 2.7+/3.4+或R 3.1+上。对于Scala API，Spark2.3.1使用的是Scala2.11。你需要使用一个合适Scala版本（Scala2.11+）。</p>
+<p>注意，对于Java 7、Python 2.6以及2.6.5以前的Hadoop版本的支持，已经在Spark 2.2.0中移除。对于Scala2.10版本的支持在Spark 2.3.0中移除了。</p>
+<h2 id="Running-the-Examples-and-Shell"><a href="#Running-the-Examples-and-Shell" class="headerlink" title="Running the Examples and Shell"></a>Running the Examples and Shell</h2><p>Spark带有一些简单的样例程序。Scala、Java和R的样例都在examples/src/main目录下。想要运行一个Java或Scala样例程序，需要使用顶级Spark目录下bin/run-example <class> [params]。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/run-example SparkPi 10</div></pre></td></tr></table></figure></class></p>
+<p>你还可以通过Scala shell的一个修改版，以交互的方式运行Saprk。这对于学习这个框架是很好的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-shell --master local[2]</div></pre></td></tr></table></figure></p>
+<p>其中的–master选项指定了一个分布式集群的master的URL，或者使用一个线程以本地模式运行，或者local[N]表示使用N个线程以本地模式运行。你可以从使用本地模式做测试来开始。对于选项的全部列表，使用使用–help选项来运行Spark shell。<br>Spark还提供了一个Python的API。想要在Python解析器中以交互方式运行Spark，可以使用 bin/pyspark：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/pyspark --master local[2]</div></pre></td></tr></table></figure></p>
+<p>样例application也提供了Python版本。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit examples/src/main/python/pi.py 10</div></pre></td></tr></table></figure></p>
+<p>从Spark1.4开始Spark也提供了R API的样例。要以R解析器中以交互方式运行Spark，可以使用 bin/sparkR:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/sparkR --master local[2]</div></pre></td></tr></table></figure></p>
+<p>样例程序同样也提供了R语言版本的，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit examples/src/main/r/dataframe.R</div></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/07/13/HiveStudy/" itemprop="url">
                   Hive Study
                 </a>
@@ -1031,6 +1325,118 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
+                  Python Subprocess
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
+              2017-02-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
+<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
                   Python Datetime
                 </a>
@@ -1097,118 +1503,6 @@
               阅读全文 &raquo;
             </a>
           </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
         
       
     </div>
@@ -1724,120 +2018,6 @@
             
               
                 
-                <a class="post-title-link" href="/blog/2016/11/10/log4j/" itemprop="url">
-                  Log4j Architecture
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
-              2016-11-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
-                    <span itemprop="name">Logging</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j">链接</a></p>
-<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/11/10/log4j/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
                 <a class="post-title-link" href="/blog/2016/11/10/log4j-configuration/" itemprop="url">
                   Log4j Configuration
                 </a>
@@ -1902,6 +2082,120 @@
 <h1 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h1><p>将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。<br>配置Log4j 2版本，能够通过下面四种方法中的任意一种来完成：<br>1、通过一个以XML、JSON、YAML或properties格式的配置文件。<br>2、编程方式，通过创建一个ConfigurationFactory和Configuration实现。<br>3、编程方式，通过调用在Configuration接口中的APIs来添加组件到默认配置。<br>4、编程方式，通过调用内部Logger类的方法。<br>本文主要关注通过一个配置文件来配置Log4j。对于通过编程方式来配置Log4j，可以在<a href="http://logging.apache.org/log4j/2.x/manual/extending.html" title="Extending Log4j 2">Extending Log4j 2</a>和<a href="http://logging.apache.org/log4j/2.x/manual/customconfig.html" title="Programmatic Log4j Configuration">Programmatic Log4j Configuration</a>。<br>注意，不同于Log4j 1.x，Log4j 2的公共API没有公开关于添加、修改和移除appenders和filter的方法，或者以任何方式来操作配置。</p>
           <div class="post-more-link text-center">
             <a class="btn" href="/blog/2016/11/10/log4j-configuration/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/11/10/log4j/" itemprop="url">
+                  Log4j Architecture
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j">链接</a></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/11/10/log4j/#more" rel="contents">
               阅读全文 &raquo;
             </a>
           </div>
@@ -2301,277 +2595,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/10/spark-tuningSpark/" itemprop="url">
-                  Tuning Spark
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-10T23:28:56+08:00" content="2016-09-10">
-              2016-09-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是Tuning Spark文档的翻译，原文档<a href="http://spark.apache.org/docs/latest/tuning.html" title="Tuning Spark">请参考</a>，本文主要用于个人学习。</p>
-<h1 id="Tuning-Spark"><a href="#Tuning-Spark" class="headerlink" title="Tuning Spark"></a>Tuning Spark</h1><p>因为大多数Spark计算是内存中的计算，因此集群中的任何资源都能够成为Spark程序的瓶颈：CPU、网络带宽或内存。通常，如果数据装载到内存中，瓶颈可能是网络带宽，但是有些时候，你还需要做一些调整，例如以序列化格式存储RDDs，以降低内存的使用。本指南覆盖了两个主题：数据序列化和内存调整，其中数据序列化对好的网络性能是至关重要的，并且还可以降低内存的使用。我们还会概述其他一些小的主题。</p>
-<h2 id="Data-Serialization"><a href="#Data-Serialization" class="headerlink" title="Data Serialization"></a>Data Serialization</h2><p>序列化在任何分布式application的执行中扮演了很重要的角色。那些序列化缓慢的对象或消费很大数量byte的格式将极大的减慢计算。通常，这是优化一个Spark application首先要调整的东西。Spark的目标是在方便（允许你在你的操作中使用任何Java类型）和性能之间达到一个平衡。它提供了两种序列化库：</p>
-<ul>
-<li>Java serialization: 默认，Spark使用Java的ObjectOutputStream框架进行序列化对象操作，能够和任何你实现了java.io.Serializable接口的类型一起工作。通过继承java.io.Externalizable，你能够更加近的控制你的序列化的执行。Java序列化是灵活的，但是通常是慢的，这导致对于很多类会有很大的序列化格式。</li>
-<li>Kryo serialization: Spark能够使用Kryo库（版本2）来更快的序列化对象。相对于Java序列化Kryo显然是更快且更加简单的（通常是10倍还多），但是不支持所有的可序列化类型，并且需要你在程序中将你要使用的类进行注册以便获取更好的执行。</li>
-</ul>
-<p>通过使用SparkConf初始化你的job，并调用conf.set(“spark.serializer”, “org.apache.spark.serializer.KryoSerializer”)来转换为使用Kryo。这个设置不止为了wroker节点混洗数据配置序列化生成器，当序列化RDDs到磁盘时也有用。Kryo不作为默认序列化生成器的唯一原因是需要自定义注册，但是我们推荐在任何网络集中型application中使用它。<br>Spark自动的很多常用的核心Scala类包含Kryo序列化生成器，涵盖在Twitter chill库的AllScalaRegistrar中。<br>要使用Kryo注册你自己的自定义类，使用registerKryoClasses方法。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> conf = <span class="keyword">new</span> <span class="type">SparkConf</span>().setMaster(...).setAppName(...)</div><div class="line">conf.registerKryoClasses(<span class="type">Array</span>(classOf[<span class="type">MyClass1</span>], classOf[<span class="type">MyClass2</span>]))</div><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(conf)</div></pre></td></tr></table></figure></p>
-<p><a href="https://github.com/EsotericSoftware/kryo" title="Kryo">Kryo documntation</a>描述了更加高级的注册选项，如添加自定义序列化编码器。<br>如果你的对象很大，你可能需要增加spark.kryoserializer.buffer配置的值。这个值需要足够大以便保存你要序列化的最大对象。<br>最后，如果你没有注册你的自定义，Kryo将仍然能够工作，但是它将存储每个对象的全类名，这样损耗很大。</p>
-<h2 id="Memory-Tuning"><a href="#Memory-Tuning" class="headerlink" title="Memory Tuning"></a>Memory Tuning</h2><p>在调整内存的用法中，有三种值得考虑：被你的对象使用的内存的总量（你可能想要将整个数据集装配到内存中）、访问这些对象的开销和垃圾回收的开销（如果你在这些对象）。<br>默认，Java对象是快速访问的，但是在它们字段的内部很容消费掉比原始数据多2-5倍的空间 。这是因为有如下原因：</p>
-<ul>
-<li>每个不同的Java对象有一个”object header”，它大概是是16个字节，并包含信息，诸如一个指向它的class的指针。对于一个带有非常少数据的对象（假设一个Int字段），这可能要比数据大很多。</li>
-<li>Java Strings在原生的string数据上有一个大概40字节的开销（因为它们被存储到一个Chars数组中，并且保存了额外的数据，如长度），并且每个字符以两个字节存储，因为String内部使用的UTF-16进行编码。因此一个包含10个字符的字符串很容易消耗掉60个字节。</li>
-<li>常见的集合类，如HashMap和LinkedList，使用linked数据结构，每个数据项是一个包装对象（如Map.Entry）。这种对象不只有header，而且还有指针（通常是8个字节）指向列表中的下一个对象。</li>
-<li>原始类型常常以包装对象来存储，诸如java.lang.Integer。</li>
-</ul>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/09/10/spark-tuningSpark/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/08/spark-streaming-kafka/" itemprop="url">
-                  Spark Streaming + Kafka Integration Guide
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-08T16:45:09+08:00" content="2016-09-08">
-              2016-09-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文是Spark Streaming + Kafka Integration Guide文档的翻译，原文请<a href="http://spark.apache.org/docs/latest/streaming-kafka-integration.html" title="Spark Streaming + Kafka Integration Guide" target="_blank" rel="external">参考</a>。另外，本文主要用于个人学习使用。</p>
-<h1 id="Spark-Streaming-Kafka-Integration-Guide"><a href="#Spark-Streaming-Kafka-Integration-Guide" class="headerlink" title="Spark Streaming + Kafka Integration Guide"></a>Spark Streaming + Kafka Integration Guide</h1><p><a href="http://kafka.apache.org/" title="Apache Kafka" target="_blank" rel="external">Apache Kafka</a>是一个发布-订阅的消息队列，作为一个分布式的、分片的、副本提交的日志服务。这里解释如何配置Spark Streaming来从Kafka接收数据。有两种方法来达到这个目的 - 老的方法是使用Receiver和Kafka的高级API，还有一个新的实验性解决方法（在Spark 1.3版本中引入），不需要使用Receiver。它们有不同的编程模式、执行特征和语义保证，因此请仔细阅读。</p>
-<h2 id="Approach-1-Receiver-based-Approach"><a href="#Approach-1-Receiver-based-Approach" class="headerlink" title="Approach 1: Receiver-based Approach"></a>Approach 1: Receiver-based Approach</h2><p>这个方法使用一个receiver来接收数据。这个Receiver使用Kafka高级别consumer API来实现。和所有receivers一样，通过一个Receiver从Kafka接收到的数据被存储到Spark executors中，然后Spark Streaming启动jobs来处理数据。<br>然而，根据默认配置，这个解决方法会因为故障而丢失数据（查看<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#receiver-reliability" title="Receiver Reliability" target="_blank" rel="external">receiver reliabillity</a>。要确保零数据丢失，你需要额外的在Spark Streaming中启用Write Ahead Logs(从Spark 1.2版本中引入)。这将同步的将从Kafka接收到的数据到以写ahead日志的方式波存到分布式文件系统中（如HDFS），因此所有的数据能够从故障中恢复。查看Streaming programming guide中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#deploying-applications" title="Deploying Applications" target="_blank" rel="external">Deploying section</a>获取关于Write Ahead Logs的详细信息）。<br>接下来，我们讨论如何在你的streaming application中使用这个方法。</p>
-<p>1、<strong>Linking:</strong> 对于使用SBT或Maven项目描述的Scala或Java application，使用如下的坐标链接你的streaming application（查看programming guide中的[Linking section]获取更多信息）。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.spark</div><div class="line">artifactId = spark-streaming-kafka<span class="number">-0</span><span class="number">-8</span>_2<span class="number">.11</span></div><div class="line">version = <span class="number">2.0</span><span class="number">.0</span></div></pre></td></tr></table></figure></p>
-<p>对于Python application，你需要在部署你的application时添加上面的库以及它的依赖。查看Deploying分项的内容。<br>2、<strong>Programming:</strong> 在streaming application代码中，导入KafkaUtils并创建一个输入DStream，如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.streaming.kafka._</div><div class="line"></div><div class="line"><span class="keyword">val</span> kafkaStream = <span class="type">KafkaUtils</span>.createStream(streamingContext, </div><div class="line">    [<span class="type">ZK</span> quorum], [consumer group id], [per-topic number of <span class="type">Kafka</span> partitions to consume])</div></pre></td></tr></table></figure></p>
-<p>你还可以指定key和value的类以及它们使用createStream的变体的相关解码类。查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.streaming.kafka.KafkaUtils$" title="KafkaUtils" target="_blank" rel="external">API docs</a>和<a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/KafkaWordCount.scala" title="KafkaWordCount" target="_blank" rel="external">example</a>。</p>
-<h4 id="需要注意的几点："><a href="#需要注意的几点：" class="headerlink" title="需要注意的几点："></a>需要注意的几点：</h4><ul>
-<li>Kafka中topic的partitions与Spark Streaming中RDDs生成的partitions没有关联。因此在KafkaUtils.createStream()中增加特定于topic的partition的数量只是增加使用的线程的数量，使用这些线程在单个receiver中对topic进行消费。它不会增加Spark数据的并发处理。参考主要文档获取它的更多信息。</li>
-<li>多个Kafka输入DStream能够使用不同的group和topics来创建，以便使用多个receiver来并行接收数据。</li>
-<li>如果你使用一个可靠的文件系统（像HDFS）启用了Write Ahead logs，接收到的数据已经被复制到日志中。因此，对于输入流存储的存储级别为StorageLevel.MEMORY_AND_DISK_SER（那就是KafkaUtils.createStream(…, StorageLevel.MEMORY_AND_DISK_SER)）。</li>
-</ul>
-<p>3、<strong>Deploying:</strong> 对于任何Spark application，spark-submit被使用来启动你的application。然而，对于Scala/Java application和Python application之间有轻微的不同。<br>对于Scala和Java application，如果你使用SBT或Maven作为项目管理，那么打包spark-streaming-kafka-0-8_2.11和它的依赖到application的JAR中。确保spark-core_2.11和spark-streaming_2.11作为依赖进行标记，因为他们已经安装到Spark中了。然后，使用spark-submit来启动你的application（查看主要编程指南中的<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#deploying-applications" title="Deploying Applications" target="_blank" rel="external">Deploying section</a>）。<br>对于Python application，它缺少SBT/Maven项目管理，spark-streaming-kafka-0-8_2.11和它的依赖可以使用–packages直接添加到spark-submit（查看<a href="http://spark.apache.org/docs/latest/submitting-applications.html" title="Submitting Applications" target="_blank" rel="external">Application Submission Guide</a>）。这样：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit --packages org.apache.spark:spark-streaming-kafka-0-8_2.11:2.0.0 ...</div></pre></td></tr></table></figure></p>
-<p>或者，你能够从<a href="http://search.maven.org/#search|ga|1|a%3A%22spark-streaming-kafka-0-8-assembly_2.11%22%20AND%20v%3A%222.0.0%22" target="_blank" rel="external">Maven repository</a>下载Maven坐标的JAR并使用–jars将其添加到spark-submit。</p>
-<h2 id="Approach-2-Direct-Approach-No-Receivers"><a href="#Approach-2-Direct-Approach-No-Receivers" class="headerlink" title="Approach 2: Direct Approach (No Receivers)"></a>Approach 2: Direct Approach (No Receivers)</h2><p>这个新的五receiver的直接解决方法已经在Spark 1.3版本中引入，来确保健壮的端对端的保证。代替receivers来接收数据，这个方法周期性的查询Kafka来获取每个topic + partition中最后的offset，然后相应的定义每个batch中处理offset的范围。当处理数据的job启动时，使用Kafka的简单API从Kafka中读取定义的offset范围（类似从文件系统中读取文件）。注意这是一个在Spark 1.3中引入的实验性特征，用于Scala和Java API，在Spark 1.4中才有了Python的API。<br>这个解决方案在基于receiver的解决方案上有如下优势：</p>
-<ul>
-<li><em>Simplified Parallelism:</em> 不需要创建多个输入Kafka streams以及联合他们。使用directStream，Spark Streaming将会创建和要消费的Kafka partitions数量相同的RDD partitions，这样将病习惯你的从Kafka读取数据。因此在Kafka和RDD partitions之间有一个一对一的映射，这样更加容易理解和调整。</li>
-<li><em>Efficiency:</em> 在第一个解决方案中要实现零数据丢失需要将数据存储到Write Ahead Log中，这种方式是进一步的复制数据。这实际上是效率低的，因为数据实际上复制了两次-一次被Kafka，另一次被Write Ahead Log。第二种解决方案消除了这个问题，因为没有了receiver，因此不需要Write Ahead Log。只要你有足够的Kafka保留时间，message能够从Kafka中恢复。</li>
-<li><em>Exactly-once semantics:</em> 第一种解决方案使用Kafka的高级API将消费掉的offset存储到Zookeeper中。这是从Kafka消费数据的传统方式。而这种解决方案（和write ahead log混合）能够保证零数据丢失（例如至少一次的语义），在一些故障下，有很小的可能性是一些数据会消费两次。这种存在是因为由Spark Streaming可靠的接收的数据和由Zookeeper跟踪的offsets之间的矛盾造成的。因此，在第二解决方案中，我们使用了简单的Kafka API，简单的API没有使用Zookeeper。通过Spark Streaming中它的checkpoints来跟踪offset。这消除了Spark Streaming和Zookeeper/Kafka之间的差异，因此尽管有故障，但是被Spark Streaming接收到的记录实际上只有一次。为了达到输出你的结果只有一次的语义，你的输出操作将数据保存到外部存储中必须是幂等或原子事务的，这样来保存结果和offset（查看主编程指南中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#semantics-of-output-operations" title="Semantics of output operations" target="_blank" rel="external">Semantics of output operations</a>获取更多信息）。</li>
-</ul>
-<p>注意，这种解决方案中一个不利条件是不会在Zookeeper中更新offset，因此那些基于Zookeeper的监控工具将不会更新进度。然而，你能够在这种解决方案中访问每个batch中处理过的offsets并自己更新到Zookeeper（参考下面）。<br>接下来，我们讨论如何在你的application中使用这种解决方案。</p>
-<ul>
-<li><p><strong>Linking:</strong> 这种解决方案在Scala和Java application中支持。使用如下的坐标来连接你的SBT/Maven项目（查看主要编程指南中<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html#linking" title="Linking" target="_blank" rel="external">Linking section</a>获取更多信息）。</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.spark</div><div class="line">artifactId = spark-streaming-kafka<span class="number">-0</span><span class="number">-8</span>_2<span class="number">.11</span></div><div class="line">version = <span class="number">2.0</span><span class="number">.0</span></div></pre></td></tr></table></figure>
-</li>
-<li><p><strong>Programming:</strong> 在Streaming application代码中，引入KafkaUtils并如下创建一个输入DStream。</p>
-<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.streaming.kafka._</div><div class="line"></div><div class="line"><span class="keyword">val</span> directKafkaStream = <span class="type">KafkaUtils</span>.createDirectStream[</div><div class="line">    [key <span class="class"><span class="keyword">class</span>], [value class], [key decoder class], [value decoder class] ](<span class="params"></span></span></div><div class="line">    streamingContext, [map of <span class="type">Kafka</span> parameters], [set of topics to consume])</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<p>你还可以传递一个<em>messageHandler</em>到<em>createDirectStream</em>来访问<em>MessageAndMetadata</em>，MessageAndMetadata包含了关于当前message的元数据和要将它转换成的目标类型。查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.streaming.kafka.KafkaUtils$" title="KafkaUtils" target="_blank" rel="external">API docs</a>和<a href="https://github.com/apache/spark/blob/master/examples/src/main/scala/org/apache/spark/examples/streaming/DirectKafkaWordCount.scala" title="DirectKafkaWordCount" target="_blank" rel="external">examples</a>。<br>在Kafka的参数中，你必须指定metadata.broker.list或bootstrap.servers。默认，它将从每个Kafka partition的最后的offset处开始消费。如果你在Kafka参数中设置auto.offset.reset为smallest，那么它将从最小的offset处开始消费。<br>使用KafkaUtils.createDirectStream的其他变量，你还能够从任意offset处开始消费。此外，如果你想要访问每个batch中已经消费的Kafka offset，你可以如下这么做。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Hold a reference to the current offset ranges, so it can be used downstream</span></div><div class="line"><span class="keyword">var</span> offsetRanges = <span class="type">Array</span>[<span class="type">OffsetRange</span>]()</div><div class="line"></div><div class="line">directKafkaStream.transform &#123; rdd =&gt;</div><div class="line">  offsetRanges = rdd.asInstanceOf[<span class="type">HasOffsetRanges</span>].offsetRanges</div><div class="line">  rdd</div><div class="line">&#125;.map &#123;</div><div class="line">          ...</div><div class="line">&#125;.foreachRDD &#123; rdd =&gt;</div><div class="line">  <span class="keyword">for</span> (o &lt;- offsetRanges) &#123;</div><div class="line">    println(<span class="string">s"<span class="subst">$&#123;o.topic&#125;</span> <span class="subst">$&#123;o.partition&#125;</span> <span class="subst">$&#123;o.fromOffset&#125;</span> <span class="subst">$&#123;o.untilOffset&#125;</span>"</span>)</div><div class="line">  &#125;</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>如果你想要基于Zookeeper的Kafka监控工具来展示streaming application的进度，你还可以使用这个来更新Zookeeper。<br>注意到HasOffsetRanges的类型转换，将只有它在第一个方法在directKafkaStream上调用完成后才会成功，不会晚于一个方法链（不知道这句是否正确）。你能够使用transform()方法来代替foreachRDD()方法来作为你调用的第一个方法以便访问offsets，然后调用进一步的Spark方法。然而，需要注意的是在任何shuffle或repartition方法之后，RDD partition和Kafka partition之间的一对一映射将不再维持，例如reduceByKey()方法或window()方法。<br>另一个需要注意的是，因为这个解决方案没有使用receiver，标准的receiver-related（spark.streaming.receiver.<em>格式的配置）将不会应用到由这种解决方案生成的输入DStreams上（但是会应用到其他输入DStream上）。相反，会是用spark.streaming.kafka.</em>的配置。一个重要的东西是spark.streaming.kafka.maxRatePerPartition，它将限制该API的从每个Kafka partition读取数据的速度（每秒message的条数）。</p>
-<ul>
-<li><strong>Deploying:</strong> 这跟第一种解决方案中的相同。</li>
-</ul>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2617,7 +2640,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">30</span>
+              <span class="site-state-item-count">32</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2625,7 +2648,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>

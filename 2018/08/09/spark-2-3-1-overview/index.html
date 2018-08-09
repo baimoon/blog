@@ -84,24 +84,19 @@
 
 
 
-<meta name="description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
-这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
-ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
+<meta name="description" content="Spark OverviewApache Spark是一个很快的用于一般目的的集群计算系统。它在Java、Python和R语言上提供了高级别的API，并且提供了一个支持一般图计算的优化引擎。它还提供了一组丰富的高级别的工具，包括SQL和结构化数据处理所需要的Spark SQL、机器学习所需要的MLlib、图处理所需要的GraphX以及Spark Streaming。
+Downloading从项目网">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Cluster Mode Overview">
-<meta property="og:url" content="http://baimoon.github.io/2016/07/26/spark-clusterModeOverview/index.html">
+<meta property="og:title" content="Spark 2.3.1 Overview">
+<meta property="og:url" content="http://baimoon.github.io/2018/08/09/spark-2-3-1-overview/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
-这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
-ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
-<meta property="og:image" content="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png">
-<meta property="og:updated_time" content="2016-08-13T16:00:02.000Z">
+<meta property="og:description" content="Spark OverviewApache Spark是一个很快的用于一般目的的集群计算系统。它在Java、Python和R语言上提供了高级别的API，并且提供了一个支持一般图计算的优化引擎。它还提供了一组丰富的高级别的工具，包括SQL和结构化数据处理所需要的Spark SQL、机器学习所需要的MLlib、图处理所需要的GraphX以及Spark Streaming。
+Downloading从项目网">
+<meta property="og:updated_time" content="2018-08-09T07:25:26.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Cluster Mode Overview">
-<meta name="twitter:description" content="本文是对Cluster Mode Overview的翻译，请多提宝贵意见。
-这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取application submission guide来学习如何在一个集群上发布application。
-ComponentsSpark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程">
-<meta name="twitter:image" content="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png">
+<meta name="twitter:title" content="Spark 2.3.1 Overview">
+<meta name="twitter:description" content="Spark OverviewApache Spark是一个很快的用于一般目的的集群计算系统。它在Java、Python和R语言上提供了高级别的API，并且提供了一个支持一般图计算的优化引擎。它还提供了一组丰富的高级别的工具，包括SQL和结构化数据处理所需要的Spark SQL、机器学习所需要的MLlib、图处理所需要的GraphX以及Spark Streaming。
+Downloading从项目网">
 
 
 
@@ -122,9 +117,9 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
 
 
 
-  <link rel="canonical" href="http://baimoon.github.io/2016/07/26/spark-clusterModeOverview/"/>
+  <link rel="canonical" href="http://baimoon.github.io/2018/08/09/spark-2-3-1-overview/"/>
 
-  <title> Cluster Mode Overview | Baimoon's Note </title>
+  <title> Spark 2.3.1 Overview | Baimoon's Note </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -254,7 +249,7 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
             
             
               
-                Cluster Mode Overview
+                Spark 2.3.1 Overview
               
             
           </h1>
@@ -266,8 +261,8 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-07-26T15:06:27+08:00" content="2016-07-26">
-              2016-07-26
+            <time itemprop="dateCreated" datetime="2018-08-09T12:45:35+08:00" content="2018-08-09">
+              2018-08-09
             </time>
           </span>
 
@@ -280,8 +275,8 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
-                    <span itemprop="name">spark</span>
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
                   </a>
                 </span>
 
@@ -311,74 +306,18 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
       
 
       
-        <p>本文是对<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="Cluster Mode Overview" target="_blank" rel="external">Cluster Mode Overview</a>的翻译，请多提宝贵意见。</p>
-<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications">application submission guide</a>来学习如何在一个集群上发布application。</p>
-<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程序）中的SparkContext进行协调。<br>特别的，要在一个cluster运行，SparkContext能够连接到几个类型的cluster managers（Spark自己的standalone cluster manager、Mesos或YARN），通过application来分配资源。一旦连接到，Spark要求集群中node上的executors进程来为你的application计算并存储数据。接下来，它发送你的应用程序代码（通过JAR或Python文件传递给SparkContext）给executors。最终，SparkContext发送tasks给executors来执行。</p>
-<p><img src="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png" alt="架构" title="架构"></p>
-<a id="more"></a>
-<p>关于这个架构，有些有用的东西需要注意：</p>
-<blockquote>
-<p>1、每个application拥有自己的executor进程，executor进程会在整个application期间等待并以多线程方式运行tasks。这对于隔离各个application是有好处的，在scheduling端（每个driver安排它自己的tasks）和executor端（来自不同applications的tasks运行在不同的JVMs中）。这意味着数据不能在不同的Spark application（SparkContext的实例）之间共享数据，除非是将数据写到外部存储系统。<br>2、Spark是不可知的底层cluster manager。只要它能够得到executor进程，它们彼此相互通信，在一个cluster manager运行它是相当的容易，同时支持其他applications（例如，Mesos/YARN）。<br>3、driver驱动程序必须在贯穿它的生命期内监听并接收来自它的executors的连接（例如，查看在network config 章节中的spark.driver.port、park.fileserver.port）。因此，driver程序必须是从worker node可寻址的。<br>4、因为driver在cluster上安排tasks，它应该与worker节点运行的很近，最好的是在相同的本地网络区域。如果你想要发送请求到远程cluster，打开一个到driver的RPC并从附近进行提交操作要比从一个距离worker nodes很远的driver提交任务更好。</p>
-</blockquote>
-<h2 id="Cluster-Manager-Types"><a href="#Cluster-Manager-Types" class="headerlink" title="Cluster Manager Types"></a>Cluster Manager Types</h2><p>当前这个系统支持三种cluster managers：</p>
-<blockquote>
-<p>1、standalone - 一个简单的cluster manager，它使得构建一个集群变得很容易。<br>2、Apache Mesoso - 一个一般的cluster manager，可以运行Hadoop MapReduce和service applications。<br>3、Hadoop YARN - Hadoop 2中的资源管理器。</p>
-</blockquote>
-<p>另外，Spark的EC2 launch scripts是的Spark很容易在Amazon EC2上发布一个standalone cluster。</p>
-<h2 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h2><p>使用spark-submit脚本，能够将applications提交到任意类型的cluster。</p>
-<h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><p>每个driver program都有一个web UI，通常是在4040端口，它显示了运行tasks、executors和存储使用的信息。简单的，在web浏览器中输入 http://<driver-node>:4040来访问这个UI。这个monitor guide同时描述其他监控选项。</driver-node></p>
-<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a>Job Scheduling</h2><p>在资源分配上，Spark给出了across应用(在cluster manager级别上)和within application(如果多个计算发生在同一个SparkContext上)。job scheduling overview对此做了更多的描述。</p>
-<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p>下面的表格总结了你将经常看到的一些涉及cluster的概念：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">term</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">Application</td>
-<td style="text-align:left">用户在Spark上构建的程序。有一个驱动程序和cluster上的executor构成。</td>
-</tr>
-<tr>
-<td style="text-align:left">Application jar</td>
-<td style="text-align:left">一个包含了用户Spark Application的jar。在一些情况下，用户可能想要创建一个”超级jar”来包含他的application和application的依赖。用户的jar永远不要包含Hadoop和Spark的库，这些库会在运行的时候自动进行添加。</td>
-</tr>
-<tr>
-<td style="text-align:left">Driver program</td>
-<td style="text-align:left">执行application的main()函数，并创建SparkContext的进程。</td>
-</tr>
-<tr>
-<td style="text-align:left">Cluster manager</td>
-<td style="text-align:left">在集群上用于获取资源的一个额外的服务（如：standalone、Mesos、YARN）。</td>
-</tr>
-<tr>
-<td style="text-align:left">Deploy mode</td>
-<td style="text-align:left">区分driver进程在哪里运行。在”cluster”模式中，框架在集群内不发送driver。在”client”模式中，提交者在集群外部发送driver。</td>
-</tr>
-<tr>
-<td style="text-align:left">Worker node</td>
-<td style="text-align:left">那些在cluster中运行application代码的节点。</td>
-</tr>
-<tr>
-<td style="text-align:left">Exceutor</td>
-<td style="text-align:left">将一个application发送到一个worker node的进程，它运行task并在数据保存到内存或磁盘上。每个application都有自己的executors。</td>
-</tr>
-<tr>
-<td style="text-align:left">Task</td>
-<td style="text-align:left">一个将要被发送到一个executor的工作单元。</td>
-</tr>
-<tr>
-<td style="text-align:left">Job</td>
-<td style="text-align:left">一个由多个任务组成的并行计算，并引发一个到Spark action（如save、collect）的响应。</td>
-</tr>
-<tr>
-<td style="text-align:left">Stage</td>
-<td style="text-align:left">每个job被拆分成小的任务集合，被称为Stage，并且它们彼此依赖（与MapReduce中map阶段和reduce阶段类似）；你将在driver的日志中看到数据。</td>
-</tr>
-</tbody>
-</table>
+        <h1 id="Spark-Overview"><a href="#Spark-Overview" class="headerlink" title="Spark Overview"></a>Spark Overview</h1><p>Apache Spark是一个很快的用于一般目的的集群计算系统。它在Java、Python和R语言上提供了高级别的API，并且提供了一个支持一般图计算的优化引擎。它还提供了一组丰富的高级别的工具，包括SQL和结构化数据处理所需要的Spark SQL、机器学习所需要的MLlib、图处理所需要的GraphX以及Spark Streaming。</p>
+<h2 id="Downloading"><a href="#Downloading" class="headerlink" title="Downloading"></a>Downloading</h2><p>从项目网站的下载页获取Spark。这个文档为是针对的Spark2.3.1版本。Spark为了使用HDFS和YARN使用了Hadoop客户端库。这个下载中预置了一些常用的Hadoop版本。用户还可以下载一个”Hadoop free”库通过Spark的classpath指定Hadoop版本来运行Spark。Scala和Java用户可以在自己的项目的中使用Spark的Mave依赖来包含Spark，而Python用户在未来也可以从PyPI中安装Spark。</p>
+<p>如果你喜欢从源码构建Spark，可以通过这个链接来操作。</p>
+<p>Spark能够运行在Windowns和类UNIX的系统上。在一台机器上以本地模式运行很容易–你需要做的事情就是在你的系统路径中安装java或者在环境变量JAVA_HOME中指向Java的安装。</p>
+<p>Spark运行在Java 8+， Python 2.7+/3.4+或R 3.1+上。对于Scala API，Spark2.3.1使用的是Scala2.11。你需要使用一个合适Scala版本（Scala2.11+）。</p>
+<p>注意，对于Java 7、Python 2.6以及2.6.5以前的Hadoop版本的支持，已经在Spark 2.2.0中移除。对于Scala2.10版本的支持在Spark 2.3.0中移除了。</p>
+<h2 id="Running-the-Examples-and-Shell"><a href="#Running-the-Examples-and-Shell" class="headerlink" title="Running the Examples and Shell"></a>Running the Examples and Shell</h2><p>Spark带有一些简单的样例程序。Scala、Java和R的样例都在examples/src/main目录下。想要运行一个Java或Scala样例程序，需要使用顶级Spark目录下bin/run-example <class> [params]。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/run-example SparkPi 10</div></pre></td></tr></table></figure></class></p>
+<p>你还可以通过Scala shell的一个修改版，以交互的方式运行Saprk。这对于学习这个框架是很好的：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-shell --master local[2]</div></pre></td></tr></table></figure></p>
+<p>其中的–master选项指定了一个分布式集群的master的URL，或者使用一个线程以本地模式运行，或者local[N]表示使用N个线程以本地模式运行。你可以从使用本地模式做测试来开始。对于选项的全部列表，使用使用–help选项来运行Spark shell。<br>Spark还提供了一个Python的API。想要在Python解析器中以交互方式运行Spark，可以使用 bin/pyspark：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/pyspark --master local[2]</div></pre></td></tr></table></figure></p>
+<p>样例application也提供了Python版本。如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit examples/src/main/python/pi.py 10</div></pre></td></tr></table></figure></p>
+<p>从Spark1.4开始Spark也提供了R API的样例。要以R解析器中以交互方式运行Spark，可以使用 bin/sparkR:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/sparkR --master local[2]</div></pre></td></tr></table></figure></p>
+<p>样例程序同样也提供了R语言版本的，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit examples/src/main/r/dataframe.R</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -410,16 +349,16 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/blog/2016/07/25/spark-submittingApplications/" rel="next" title="Submitting Applications">
-                <i class="fa fa-chevron-left"></i> Submitting Applications
+              <a href="/blog/2018/07/13/HiveStudy/" rel="next" title="Hive Study">
+                <i class="fa fa-chevron-left"></i> Hive Study
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
             
-              <a href="/blog/2016/07/27/unix-commonCommand/" rel="prev" title="Unix Common Command">
-                Unix Common Command <i class="fa fa-chevron-right"></i>
+              <a href="/blog/2018/08/09/spark-2-3-1-submit-applications/" rel="prev" title="Spark 2.3.1 Submit Applications">
+                Spark 2.3.1 Submit Applications <i class="fa fa-chevron-right"></i>
               </a>
             
           </div>
@@ -555,7 +494,7 @@ ComponentsSpark application在集群上作为一组独立的进程运行，并�
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Components"><span class="nav-number">1.</span> <span class="nav-text">Components</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster-Manager-Types"><span class="nav-number">2.</span> <span class="nav-text">Cluster Manager Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">3.</span> <span class="nav-text">Submitting Applications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring"><span class="nav-number">4.</span> <span class="nav-text">Monitoring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Job-Scheduling"><span class="nav-number">5.</span> <span class="nav-text">Job Scheduling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Glossary"><span class="nav-number">6.</span> <span class="nav-text">Glossary</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-Overview"><span class="nav-number">1.</span> <span class="nav-text">Spark Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Downloading"><span class="nav-number">1.1.</span> <span class="nav-text">Downloading</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Running-the-Examples-and-Shell"><span class="nav-number">1.2.</span> <span class="nav-text">Running the Examples and Shell</span></a></li></ol></li></ol></div>
             
           </div>
         </section>
