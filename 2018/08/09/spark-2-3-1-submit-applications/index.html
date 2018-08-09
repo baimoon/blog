@@ -92,7 +92,7 @@ Bunding Your Application’s Dependencies如果你的代码依赖其他项目，
 <meta property="og:site_name" content="Baimoon's Note">
 <meta property="og:description" content="Submitting ApplicationsSpark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。
 Bunding Your Application’s Dependencies如果你的代码依赖其他项目，那么你需要将它们和你的应用一并打包，以便分发代码到一">
-<meta property="og:updated_time" content="2018-08-09T10:23:19.000Z">
+<meta property="og:updated_time" content="2018-08-09T16:11:48.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark 2.3.1 Submit Applications">
 <meta name="twitter:description" content="Submitting ApplicationsSpark的bin目录下的spark-submit脚本用于在一个集群上启动一个应用。通过一个统一的接口，它可以使用所有Spark支持的集群管理器，因此你不需要针对每种集群管理器来单独配置你的应用。
@@ -368,6 +368,15 @@ Bunding Your Application’s Dependencies如果你的代码依赖其他项目，
 </tr>
 </tbody>
 </table>
+<h2 id="Loading-Configuration-from-a-File"><a href="#Loading-Configuration-from-a-File" class="headerlink" title="Loading Configuration from a File"></a>Loading Configuration from a File</h2><p>spark-submit脚本能够从一个属性文件中加载默认的Spark配置属性值，并传递它们到你的应用。默认它将从<br>Spark目录的conf/spark-defaults.conf中读取选项。<br>加载默认Spark配置，这种方式可以避免给spark-submit设置有确切值的选项（有些选项的值是固定的）。例如，如果设置了spark.master属性，你就可以在spark-submit中忽略–master项了。通常，在SparkConf中设置的值具有最高优先级，其次是传递给spark-submit的值，最后是默认文件里的值。</p>
+<p>如果你无法确认配置项的值来自哪里，你可以在运行spark-submit是使用-verbose选项，将细粒度的调试信息打印出来。</p>
+<h2 id="Advanced-Dependency-Management"><a href="#Advanced-Dependency-Management" class="headerlink" title="Advanced Dependency Management"></a>Advanced Dependency Management</h2><p>在使用spark-submit的时候，应用程序jar以及使用–jars选项包含的人和jar将会自动传输到集群。–jars后面提供的URLs必须以逗号分隔。那个列表被包含在driver和executor的classpath中。目录范围在–jars中不起作用。<br>Spark使用如下的URL模式来允许不同的策略传递jar：</p>
+<blockquote>
+<p>file: 绝对路径，并且file:/ URLs由driver的HTTP文件服务提供服务，每个executor从driver的HTTP服务拉取文件。<br>hdfs:、http:、https:、ftp: 这些按照期望的那样从URI拉取文件和Jars。<br>local: 一个以local:/开头的URI，希望作为每个worker节点上的本地文件而存在。这意味着将不会发生网络IO。这种适用于将较大文件或jar推送到每个worker或通过NFS、GlusterFS等共享较大文件或Jar的方式。</p>
+</blockquote>
+<p>注意，JARs和文件会为每个运行在executor节点上的SparkContext拷贝一份到工作目录。随着时间的推移，这将耗费大量的空间，因此需要清理。对于使用YARN的方式，清理将会自动方式；对于使用standalone方式的，自动清理工作可以通过spark.worker.cleanup.appDataTtl属性配置。</p>
+<p>用户还可以通过使用-packages提供以逗号分隔的Maven坐标列表来包含任何其他依赖。使用此命令时，所有传递的依赖都将被处理。另外，使用–repositories选项，还可以用来添加maven库。多个库之间使用逗号分隔。这些命令可以被pyspark、spark-shell以及spark-submit来使用来包含Saprk包。<br>对于Python，–py-files选项可以被用来分发.egg、.zip以及.py文件到executors。</p>
+<h2 id="More-Information"><a href="#More-Information" class="headerlink" title="More Information"></a>More Information</h2><p>一旦你部署了你的应用，cluster mode overview 描述了分布式执行中的各个组件，以及如何监控和调试应用。</p>
 
       
     </div>
@@ -540,7 +549,7 @@ Bunding Your Application’s Dependencies如果你的代码依赖其他项目，
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">1.</span> <span class="nav-text">Submitting Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Bunding-Your-Application’s-Dependencies"><span class="nav-number">1.1.</span> <span class="nav-text">Bunding Your Application’s Dependencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Launching-Applications-with-spark-submit"><span class="nav-number">1.2.</span> <span class="nav-text">Launching Applications with spark-submit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-URLs"><span class="nav-number">1.3.</span> <span class="nav-text">Master URLs</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">1.</span> <span class="nav-text">Submitting Applications</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Bunding-Your-Application’s-Dependencies"><span class="nav-number">1.1.</span> <span class="nav-text">Bunding Your Application’s Dependencies</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Launching-Applications-with-spark-submit"><span class="nav-number">1.2.</span> <span class="nav-text">Launching Applications with spark-submit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Master-URLs"><span class="nav-number">1.3.</span> <span class="nav-text">Master URLs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Loading-Configuration-from-a-File"><span class="nav-number">1.4.</span> <span class="nav-text">Loading Configuration from a File</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Advanced-Dependency-Management"><span class="nav-number">1.5.</span> <span class="nav-text">Advanced Dependency Management</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-Information"><span class="nav-number">1.6.</span> <span class="nav-text">More Information</span></a></li></ol></li></ol></div>
             
           </div>
         </section>
