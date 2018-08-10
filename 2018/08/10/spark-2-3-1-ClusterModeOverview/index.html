@@ -68,7 +68,7 @@
 <link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
 
 
-  <meta name="keywords" content="mapreduce," />
+  <meta name="keywords" content="spark," />
 
 
 
@@ -84,22 +84,19 @@
 
 
 
-<meta name="description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
-#使用Python执行MR
-Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
+<meta name="description" content="Cluster Mode Overview本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。
+ComponentsSpark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Easy Use Mapreduce">
-<meta property="og:url" content="http://baimoon.github.io/2018/07/10/easyUseMapreduce/index.html">
+<meta property="og:title" content="Spark 2.3.1 Cluster Mode Overview">
+<meta property="og:url" content="http://baimoon.github.io/2018/08/10/spark-2-3-1-ClusterModeOverview/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
-#使用Python执行MR
-Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
-<meta property="og:updated_time" content="2018-07-10T09:36:04.000Z">
+<meta property="og:description" content="Cluster Mode Overview本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。
+ComponentsSpark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协">
+<meta property="og:updated_time" content="2018-08-10T07:09:46.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Easy Use Mapreduce">
-<meta name="twitter:description" content="本文用来记录MR的使用，已经遇到的一些问题和解决方法
-#使用Python执行MR
-Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-import sysimport jsonimport time#加载编码reload(sys)sys.setdefaultencoding(&apos;utf-8&apos;)for lin">
+<meta name="twitter:title" content="Spark 2.3.1 Cluster Mode Overview">
+<meta name="twitter:description" content="Cluster Mode Overview本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。
+ComponentsSpark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协">
 
 
 
@@ -120,9 +117,9 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
 
 
 
-  <link rel="canonical" href="http://baimoon.github.io/2018/07/10/easyUseMapreduce/"/>
+  <link rel="canonical" href="http://baimoon.github.io/2018/08/10/spark-2-3-1-ClusterModeOverview/"/>
 
-  <title> Easy Use Mapreduce | Baimoon's Note </title>
+  <title> Spark 2.3.1 Cluster Mode Overview | Baimoon's Note </title>
 </head>
 
 <body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
@@ -252,7 +249,7 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
             
             
               
-                Easy Use Mapreduce
+                Spark 2.3.1 Cluster Mode Overview
               
             
           </h1>
@@ -264,8 +261,8 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-07-10T15:19:55+08:00" content="2018-07-10">
-              2018-07-10
+            <time itemprop="dateCreated" datetime="2018-08-10T11:17:30+08:00" content="2018-08-10">
+              2018-08-10
             </time>
           </span>
 
@@ -278,8 +275,8 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
               <span class="post-meta-item-text">分类于</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/bigdata/" itemprop="url" rel="index">
-                    <span itemprop="name">bigdata</span>
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
                   </a>
                 </span>
 
@@ -309,20 +306,70 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
       
 
       
-        <p>本文用来记录MR的使用，已经遇到的一些问题和解决方法</p>
-<p>#使用Python执行MR</p>
-<h2 id="Mapper的写法"><a href="#Mapper的写法" class="headerlink" title="Mapper的写法"></a>Mapper的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> json</div><div class="line"><span class="keyword">import</span> time</div><div class="line"></div><div class="line"><span class="comment">#加载编码</span></div><div class="line">reload(sys)</div><div class="line">sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line"></div><div class="line"><span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">    j = json.loads(line.strip())</div><div class="line">    <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (j.get(<span class="string">"name"</span>), j.get(<span class="string">"age"</span>))</div></pre></td></tr></table></figure>
-<h2 id="Reducer的写法"><a href="#Reducer的写法" class="headerlink" title="Reducer的写法"></a>Reducer的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line">  <span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line">  </div><div class="line">  <span class="keyword">import</span> sys</div><div class="line">  <span class="keyword">import</span> json</div><div class="line">  <span class="keyword">import</span> time</div><div class="line">  </div><div class="line">  <span class="comment">#加载编码</span></div><div class="line">  reload(sys)</div><div class="line">  sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line">  </div><div class="line">  uri_count = &#123;&#125;</div><div class="line">  <span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">      data = line.strip().split(<span class="string">"\t"</span>)</div><div class="line">      key = <span class="string">"%s-%s"</span> % (data[<span class="number">0</span>], data[<span class="number">1</span>])</div><div class="line">      c = uri_count.get(key, <span class="number">0</span>)</div><div class="line">      uri_count[key] = c + <span class="number">1</span></div><div class="line">  </div><div class="line">  <span class="keyword">for</span> key <span class="keyword">in</span> uri_count:</div><div class="line">      <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (key, uri_count.get(key, <span class="number">0</span>))</div></pre></td></tr></table></figure>
-<p>从上面的代码可以看出来，python的脚本需要从标准输入(sys.stdin)中接入数据。</p>
-<h2 id="执行Mapreduce"><a href="#执行Mapreduce" class="headerlink" title="执行Mapreduce"></a>执行Mapreduce</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">/home/hadoop/yarn-2.8.1/bin/hadoop jar /home/hadoop/yarn-2.8.1/share/hadoop/tools/lib/hadoop-streaming-2.8.1.jar \</div><div class="line">-D mapreduce.job.queuename=bigdata.queue \</div><div class="line">-input hdfs://nameservice1/data/mylogs/api_request/2018/07/03/*/* \</div><div class="line">-output /tmp/20180703SpecialUri \</div><div class="line">-mapper &quot;specialUriMapper.py&quot; \</div><div class="line">-reducer &quot;specialUriReducer.py&quot; \</div><div class="line">-file /home/hadoop/script/user_action/specialUriMapper.py \</div><div class="line">-file /home/hadoop/script/user_action/specialUriReducer.py \</div><div class="line">-file /home/hadoop/script/user_action/kickA.log</div></pre></td></tr></table></figure>
-<p>参数说明：</p>
+        <h1 id="Cluster-Mode-Overview"><a href="#Cluster-Mode-Overview" class="headerlink" title="Cluster Mode Overview"></a>Cluster Mode Overview</h1><p>本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。</p>
+<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协调合作。<br>具体来说，要在集群上运行application，SparkContext能够连接到某种类型的集群管理器（Spark自己的standalone集群管理器、Mesos或YARN），集群管理器能够跨application分配资源。一旦连接成功，Spark得到集群节点上的executor，这些executor为你的application执行计算以及存储数据。接下来SparkContext发送你的application代码（由传递给你SparkContext的JAR或Python文件定义）到executor。最终，SparkContext发送任务到executor来运行。</p>
+<p>此处是图片<img src=""><br>关于这个结构，有一些有用的东西需要注意：</p>
 <blockquote>
-<p>-D mapreduce.job.queuename用指定需要运行MR的队列<br>-input MR的输入<br>-output MR的输出<br>-mapper 指定执行MR中Mapper的程序<br>-reducer 指定执行MR中Reducer的程序<br>-file 需要一起上传的文件，如果python程序中使用了其他的数据文件，可以通过这个参数一起上传。</p>
+<p>1、每个application会得到自己的executor进程，这些executor在这个application持续期间保持不变并以多线程运行任务。这样的好处是application彼此隔离，无论是在调度方面（每个driver调度它自己的任务）还是executor方面（来自不同application的任务运行在不同的JVM中）。因此，这也意味着数据在不同的Spark application之间是不能共享的，除非借助其他外部存储。<br>2、Spark与底层集群管理器无关。只要它能够得到executor进程，并且它们能够彼此通信，这样即使是在支持其他application的集群管理器上也能相对简单的运行。<br>3、在driver程序整个生命周期内，它必须监听并接受来自它的executor的连接（查看网路配置章节spark.driver.port）。因此，driver程序对于它的worker节点来说必须是可以迅指的。<br>4、因为driver在集群上调度任务，因此它应该靠近worker节点，最好是在相同的局域网内。如果你想要远程向集群发送请求，最好为你的driver打开一个RPC，让它就近提交，而不是在远离worker节点的地方运行driver。</p>
 </blockquote>
-<p>其他一些参数：</p>
+<h2 id="Cluster-Manager-Types"><a href="#Cluster-Manager-Types" class="headerlink" title="Cluster Manager Types"></a>Cluster Manager Types</h2><p>系统当前支持3种集群管理器：</p>
 <blockquote>
-<p>-D mapreduce.job.name Job的名称<br>-D mapreduce.job.user.name<br>-D mapreduce.job.node-label-expression<br>-D mapreduce.job.queuename<br>-D mapreduce.map.memory.mb<br>-D mapreduce.reduce.memory.mb</p>
+<p>Stangalone - Spark自带的一种集群管理器，使用它能够很容易的构建集群。<br>Apache Mesos - 一个很普遍的集群管理器，它还能够运行Hadoop的MapReduce和服务应用。<br>Hadoop YARN -    Hadoop2种的资源管理器。<br>Kubernetes - 一个开源的系统，用于自动部署、扩展以及管理application。</p>
 </blockquote>
+<h2 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h2><p>使用spark-submit脚本可以将application提交到任何类型集群。<a href="/blog/2018/08/09/spark-2-3-1-submit-applications">application submission guide</a>描述了应该如何做。</p>
+<h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><p>每个driver程序都有一个Web UI，端口一般是4040，这个web UI展示了运行的任务、executor已经存储的使用情况。通过在浏览器中输入http://<driver-node>:4040就可以访问这个UI。<a href="http://spark.apache.org/docs/latest/monitoring.html" title="monitoring guide" target="_blank" rel="external">monitoring guide</a>描述了其他的监控项。</driver-node></p>
+<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a>Job Scheduling</h2><p>spark给出了两种资源分配，一种是跨applications（在集群管理器级别上），一种是application中（在相同SparkContext上出现多次计算的情况）。<a href="http://spark.apache.org/docs/latest/job-scheduling.html" title="job scheduling overview" target="_blank" rel="external">job scheduling overview</a>描述了详细信息。</p>
+<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p>下面的表格列出了常用的一些集群概念：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Term</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Application</td>
+<td style="text-align:left">在Spark上构建的用户程序。由一个driver程序和集群上的executors组成。</td>
+</tr>
+<tr>
+<td style="text-align:left">Application jar</td>
+<td style="text-align:left">一个包含了用户的Spark application的jar。在某些情况下用户可能想要创建一个”uber jar”来包含他们的application以及依赖。用户的jar应当不要包含Hadoop或Spark的库，因为这些库会在运行时自动被添加。</td>
+</tr>
+<tr>
+<td style="text-align:left">Driver program</td>
+<td style="text-align:left">运行application的main函数并创建SparkContext的进程。</td>
+</tr>
+<tr>
+<td style="text-align:left">Cluster</td>
+<td style="text-align:left">一个额外的服务，用来获取集群上的资源（如standalong manager、Mesos或YARN）。</td>
+</tr>
+<tr>
+<td style="text-align:left">Deploy mode</td>
+<td style="text-align:left">用来区分在哪里运行driver进程。在“cluster”模式中，系统在集群内部启动driver。在“client”模式中，在集群之外启动driver。</td>
+</tr>
+<tr>
+<td style="text-align:left">Worker node</td>
+<td style="text-align:left">集群中任何可以运行application的节点。</td>
+</tr>
+<tr>
+<td style="text-align:left">Executor</td>
+<td style="text-align:left">在worker节点上启动的用来处理application的进程，它执行任务并在内存或磁盘上保存数据。每个application都有自己的exectors。</td>
+</tr>
+<tr>
+<td style="text-align:left">Task</td>
+<td style="text-align:left">发送给executor的一个工作单元。</td>
+</tr>
+<tr>
+<td style="text-align:left">Job</td>
+<td style="text-align:left">由多个tasks组成的一个并行计算，并为一个spark action产生结果（如 save、collect）。 你将会在driver的日志中看到它们。</td>
+</tr>
+<tr>
+<td style="text-align:left">Stage</td>
+<td style="text-align:left">每个job被划分为一更小的task，称为stage，这些stage相互依赖（类似MapReduce中map阶段和reduce阶段）。你将会在driver的日志中看到他们。</td>
+</tr>
+</tbody>
+</table>
 
       
     </div>
@@ -345,7 +392,7 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
       
         <div class="post-tags">
           
-            <a href="/blog/tags/mapreduce/" rel="tag">#mapreduce</a>
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
           
         </div>
       
@@ -354,17 +401,13 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/blog/2018/06/29/netty-study/" rel="next" title="netty-study">
-                <i class="fa fa-chevron-left"></i> netty-study
+              <a href="/blog/2018/08/09/spark-2-3-1-submit-applications/" rel="next" title="Spark 2.3.1 Submit Applications">
+                <i class="fa fa-chevron-left"></i> Spark 2.3.1 Submit Applications
               </a>
             
           </div>
 
           <div class="post-nav-prev post-nav-item">
-            
-              <a href="/blog/2018/07/13/HiveStudy/" rel="prev" title="Hive Study">
-                Hive Study <i class="fa fa-chevron-right"></i>
-              </a>
             
           </div>
         </div>
@@ -499,7 +542,7 @@ Mapper的写法1234567891011121314#! /usr/bin/env python# -*- coding: utf-8 -*-i
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Mapper的写法"><span class="nav-number">1.</span> <span class="nav-text">Mapper的写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Reducer的写法"><span class="nav-number">2.</span> <span class="nav-text">Reducer的写法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行Mapreduce"><span class="nav-number">3.</span> <span class="nav-text">执行Mapreduce</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Cluster-Mode-Overview"><span class="nav-number">1.</span> <span class="nav-text">Cluster Mode Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Components"><span class="nav-number">1.1.</span> <span class="nav-text">Components</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Cluster-Manager-Types"><span class="nav-number">1.2.</span> <span class="nav-text">Cluster Manager Types</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Submitting-Applications"><span class="nav-number">1.3.</span> <span class="nav-text">Submitting Applications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Monitoring"><span class="nav-number">1.4.</span> <span class="nav-text">Monitoring</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Job-Scheduling"><span class="nav-number">1.5.</span> <span class="nav-text">Job Scheduling</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Glossary"><span class="nav-number">1.6.</span> <span class="nav-text">Glossary</span></a></li></ol></li></ol></div>
             
           </div>
         </section>

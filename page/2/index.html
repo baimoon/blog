@@ -248,6 +248,131 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/09/18/ganglia-installAndConfig/" itemprop="url">
+                  Ganglia Install And Config
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-18T17:30:07+08:00" content="2016-09-18">
+              2016-09-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/ganglia/" itemprop="url" rel="index">
+                    <span itemprop="name">ganglia</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是ganglia的安装和配置的笔记</p>
+<h1 id="Ganglia的安装"><a href="#Ganglia的安装" class="headerlink" title="Ganglia的安装"></a>Ganglia的安装</h1><p>首先，ganglia由gmond、gmetad和gweb三部分组成。</p>
+<h2 id="gmond"><a href="#gmond" class="headerlink" title="gmond"></a>gmond</h2><p>gmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。<br>gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和APR等在大多数现行的linux上都有安装。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmond</div></pre></td></tr></table></figure></p>
+<h2 id="gmetad"><a href="#gmetad" class="headerlink" title="gmetad"></a>gmetad</h2><p>gmetad （Ganglia Meta Daemon）是一种从其他gmetad或gmond源收集指标数据，并将数据以RRD格式存储到磁盘的服务。gmetad为从主机组收集的特定指标信息提供了简单的查询机制，并支持分级授权，使得创建联合检测域成为可能。<br>gmetad除了需要安装gmond所需的依赖之外，还需要RDDtool库。它用来存储和显示从其他gmetad和gmond源收集的时间序列数据。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmetad</div></pre></td></tr></table></figure></p>
+<h2 id="gweb"><a href="#gweb" class="headerlink" title="gweb"></a>gweb</h2><p>完整的Ganglia不能缺少网络接口：gweb（Ganglia Web）。gweb是一种利用浏览器显示gmetad所存储数据的PHP前端。<br>Ganglia 3.4的Web接口是一个独立的发布包，其源代码也是独立的。gweb 3.4支持gmond/gmetad 3.4.x及以上版本；gweb未来版本可能需要与gmond/gmetad未来版本相匹配。建议安装或更新gweb的时候查看安装文档，以获取更多信息。<br>安装gweb需要如下需求：</p>
+<ul>
+<li>Apache Web Server</li>
+<li>PHP 5.2级更新版本</li>
+<li>PHP JSON扩展的安装和启用</li>
+</ul>
+<p>首先安装Apache和PHP<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install httpd php</div></pre></td></tr></table></figure></p>
+<p>用户还需要启用PHP的JSON扩展，通过检查/etc/php.d/json.ini文件来检查JSON的扩展状态，如果已经启用扩展，文件中应该包含下面的语句：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">extension=json.ini</div></pre></td></tr></table></figure></p>
+<p>下载最新的gweb(<a href="https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2">https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2</a>:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">tar -xvzf ganglia-web-major.minor.release.tar.gz</div><div class="line"><span class="built_in">cd</span> ganglia-web-major.minor.release</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/09/18/ganglia-installAndConfig/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/09/10/spark-tuningSpark/" itemprop="url">
                   Tuning Spark
                 </a>
@@ -1710,7 +1835,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

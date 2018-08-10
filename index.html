@@ -248,6 +248,180 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-ClusterModeOverview/" itemprop="url">
+                  Spark 2.3.1 Cluster Mode Overview
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-10T11:17:30+08:00" content="2018-08-10">
+              2018-08-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Cluster-Mode-Overview"><a href="#Cluster-Mode-Overview" class="headerlink" title="Cluster Mode Overview"></a>Cluster Mode Overview</h1><p>本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。</p>
+<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协调合作。<br>具体来说，要在集群上运行application，SparkContext能够连接到某种类型的集群管理器（Spark自己的standalone集群管理器、Mesos或YARN），集群管理器能够跨application分配资源。一旦连接成功，Spark得到集群节点上的executor，这些executor为你的application执行计算以及存储数据。接下来SparkContext发送你的application代码（由传递给你SparkContext的JAR或Python文件定义）到executor。最终，SparkContext发送任务到executor来运行。</p>
+<p>此处是图片<img src=""><br>关于这个结构，有一些有用的东西需要注意：</p>
+<blockquote>
+<p>1、每个application会得到自己的executor进程，这些executor在这个application持续期间保持不变并以多线程运行任务。这样的好处是application彼此隔离，无论是在调度方面（每个driver调度它自己的任务）还是executor方面（来自不同application的任务运行在不同的JVM中）。因此，这也意味着数据在不同的Spark application之间是不能共享的，除非借助其他外部存储。<br>2、Spark与底层集群管理器无关。只要它能够得到executor进程，并且它们能够彼此通信，这样即使是在支持其他application的集群管理器上也能相对简单的运行。<br>3、在driver程序整个生命周期内，它必须监听并接受来自它的executor的连接（查看网路配置章节spark.driver.port）。因此，driver程序对于它的worker节点来说必须是可以迅指的。<br>4、因为driver在集群上调度任务，因此它应该靠近worker节点，最好是在相同的局域网内。如果你想要远程向集群发送请求，最好为你的driver打开一个RPC，让它就近提交，而不是在远离worker节点的地方运行driver。</p>
+</blockquote>
+<h2 id="Cluster-Manager-Types"><a href="#Cluster-Manager-Types" class="headerlink" title="Cluster Manager Types"></a>Cluster Manager Types</h2><p>系统当前支持3种集群管理器：</p>
+<blockquote>
+<p>Stangalone - Spark自带的一种集群管理器，使用它能够很容易的构建集群。<br>Apache Mesos - 一个很普遍的集群管理器，它还能够运行Hadoop的MapReduce和服务应用。<br>Hadoop YARN -    Hadoop2种的资源管理器。<br>Kubernetes - 一个开源的系统，用于自动部署、扩展以及管理application。</p>
+</blockquote>
+<h2 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h2><p>使用spark-submit脚本可以将application提交到任何类型集群。<a href="/blog/2018/08/09/spark-2-3-1-submit-applications">application submission guide</a>描述了应该如何做。</p>
+<h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><p>每个driver程序都有一个Web UI，端口一般是4040，这个web UI展示了运行的任务、executor已经存储的使用情况。通过在浏览器中输入http://<driver-node>:4040就可以访问这个UI。<a href="http://spark.apache.org/docs/latest/monitoring.html" title="monitoring guide" target="_blank" rel="external">monitoring guide</a>描述了其他的监控项。</driver-node></p>
+<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a>Job Scheduling</h2><p>spark给出了两种资源分配，一种是跨applications（在集群管理器级别上），一种是application中（在相同SparkContext上出现多次计算的情况）。<a href="http://spark.apache.org/docs/latest/job-scheduling.html" title="job scheduling overview" target="_blank" rel="external">job scheduling overview</a>描述了详细信息。</p>
+<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p>下面的表格列出了常用的一些集群概念：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Term</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Application</td>
+<td style="text-align:left">在Spark上构建的用户程序。由一个driver程序和集群上的executors组成。</td>
+</tr>
+<tr>
+<td style="text-align:left">Application jar</td>
+<td style="text-align:left">一个包含了用户的Spark application的jar。在某些情况下用户可能想要创建一个”uber jar”来包含他们的application以及依赖。用户的jar应当不要包含Hadoop或Spark的库，因为这些库会在运行时自动被添加。</td>
+</tr>
+<tr>
+<td style="text-align:left">Driver program</td>
+<td style="text-align:left">运行application的main函数并创建SparkContext的进程。</td>
+</tr>
+<tr>
+<td style="text-align:left">Cluster</td>
+<td style="text-align:left">一个额外的服务，用来获取集群上的资源（如standalong manager、Mesos或YARN）。</td>
+</tr>
+<tr>
+<td style="text-align:left">Deploy mode</td>
+<td style="text-align:left">用来区分在哪里运行driver进程。在“cluster”模式中，系统在集群内部启动driver。在“client”模式中，在集群之外启动driver。</td>
+</tr>
+<tr>
+<td style="text-align:left">Worker node</td>
+<td style="text-align:left">集群中任何可以运行application的节点。</td>
+</tr>
+<tr>
+<td style="text-align:left">Executor</td>
+<td style="text-align:left">在worker节点上启动的用来处理application的进程，它执行任务并在内存或磁盘上保存数据。每个application都有自己的exectors。</td>
+</tr>
+<tr>
+<td style="text-align:left">Task</td>
+<td style="text-align:left">发送给executor的一个工作单元。</td>
+</tr>
+<tr>
+<td style="text-align:left">Job</td>
+<td style="text-align:left">由多个tasks组成的一个并行计算，并为一个spark action产生结果（如 save、collect）。 你将会在driver的日志中看到它们。</td>
+</tr>
+<tr>
+<td style="text-align:left">Stage</td>
+<td style="text-align:left">每个job被划分为一更小的task，称为stage，这些stage相互依赖（类似MapReduce中map阶段和reduce阶段）。你将会在driver的日志中看到他们。</td>
+</tr>
+</tbody>
+</table>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/08/09/spark-2-3-1-submit-applications/" itemprop="url">
                   Spark 2.3.1 Submit Applications
                 </a>
@@ -2479,131 +2653,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/18/ganglia-installAndConfig/" itemprop="url">
-                  Ganglia Install And Config
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-18T17:30:07+08:00" content="2016-09-18">
-              2016-09-18
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/ganglia/" itemprop="url" rel="index">
-                    <span itemprop="name">ganglia</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是ganglia的安装和配置的笔记</p>
-<h1 id="Ganglia的安装"><a href="#Ganglia的安装" class="headerlink" title="Ganglia的安装"></a>Ganglia的安装</h1><p>首先，ganglia由gmond、gmetad和gweb三部分组成。</p>
-<h2 id="gmond"><a href="#gmond" class="headerlink" title="gmond"></a>gmond</h2><p>gmond（Ganglia Monitoring Daemon）是一种轻量级服务，安装在每台需要手机指标数据的节点主机上。它通过侦听/通告协议与集群内其他节点共享数据。<br>gmond的安装很简单，其所依赖的库，libconfuse、pkgconfig、PCRE和APR等在大多数现行的linux上都有安装。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmond</div></pre></td></tr></table></figure></p>
-<h2 id="gmetad"><a href="#gmetad" class="headerlink" title="gmetad"></a>gmetad</h2><p>gmetad （Ganglia Meta Daemon）是一种从其他gmetad或gmond源收集指标数据，并将数据以RRD格式存储到磁盘的服务。gmetad为从主机组收集的特定指标信息提供了简单的查询机制，并支持分级授权，使得创建联合检测域成为可能。<br>gmetad除了需要安装gmond所需的依赖之外，还需要RDDtool库。它用来存储和显示从其他gmetad和gmond源收集的时间序列数据。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo yum install ganglia-gmetad</div></pre></td></tr></table></figure></p>
-<h2 id="gweb"><a href="#gweb" class="headerlink" title="gweb"></a>gweb</h2><p>完整的Ganglia不能缺少网络接口：gweb（Ganglia Web）。gweb是一种利用浏览器显示gmetad所存储数据的PHP前端。<br>Ganglia 3.4的Web接口是一个独立的发布包，其源代码也是独立的。gweb 3.4支持gmond/gmetad 3.4.x及以上版本；gweb未来版本可能需要与gmond/gmetad未来版本相匹配。建议安装或更新gweb的时候查看安装文档，以获取更多信息。<br>安装gweb需要如下需求：</p>
-<ul>
-<li>Apache Web Server</li>
-<li>PHP 5.2级更新版本</li>
-<li>PHP JSON扩展的安装和启用</li>
-</ul>
-<p>首先安装Apache和PHP<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install httpd php</div></pre></td></tr></table></figure></p>
-<p>用户还需要启用PHP的JSON扩展，通过检查/etc/php.d/json.ini文件来检查JSON的扩展状态，如果已经启用扩展，文件中应该包含下面的语句：<br><figure class="highlight php"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">extension=json.ini</div></pre></td></tr></table></figure></p>
-<p>下载最新的gweb(<a href="https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2">https://sourceforge.net/projects/ganglia/files/gweb/)，然后编译Makefile来安装gweb2</a>:<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">tar -xvzf ganglia-web-major.minor.release.tar.gz</div><div class="line"><span class="built_in">cd</span> ganglia-web-major.minor.release</div></pre></td></tr></table></figure></p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/09/18/ganglia-installAndConfig/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2649,7 +2698,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">33</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
