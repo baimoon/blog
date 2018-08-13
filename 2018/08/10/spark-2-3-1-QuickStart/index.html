@@ -1,0 +1,633 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Quick Start本指南快速的介绍如何使用Spark。我们将通过Spark的交互式shell（用Python或Scala）首先引入API，然后展示如何用Java、Scala和Python写application。要遵循这个指南，首先需要从Spark的网站上下载Spark包。因为我们不使用HDFS，因此你可以现在任何版本的Hadoop。注意，在Spark 2.0之前，Spark的主要程序接口是R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark_2.3.1_QuickStart">
+<meta property="og:url" content="http://baimoon.github.io/2018/08/10/spark-2-3-1-QuickStart/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="Quick Start本指南快速的介绍如何使用Spark。我们将通过Spark的交互式shell（用Python或Scala）首先引入API，然后展示如何用Java、Scala和Python写application。要遵循这个指南，首先需要从Spark的网站上下载Spark包。因为我们不使用HDFS，因此你可以现在任何版本的Hadoop。注意，在Spark 2.0之前，Spark的主要程序接口是R">
+<meta property="og:updated_time" content="2018-08-13T10:30:48.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark_2.3.1_QuickStart">
+<meta name="twitter:description" content="Quick Start本指南快速的介绍如何使用Spark。我们将通过Spark的交互式shell（用Python或Scala）首先引入API，然后展示如何用Java、Scala和Python写application。要遵循这个指南，首先需要从Spark的网站上下载Spark包。因为我们不使用HDFS，因此你可以现在任何版本的Hadoop。注意，在Spark 2.0之前，Spark的主要程序接口是R">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/08/10/spark-2-3-1-QuickStart/"/>
+
+  <title> spark_2.3.1_QuickStart | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                spark_2.3.1_QuickStart
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-10T15:20:56+08:00" content="2018-08-10">
+              2018-08-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h1><p>本指南快速的介绍如何使用Spark。我们将通过Spark的交互式shell（用Python或Scala）首先引入API，然后展示如何用Java、Scala和Python写application。<br>要遵循这个指南，首先需要从Spark的网站上下载Spark包。因为我们不使用HDFS，因此你可以现在任何版本的Hadoop。<br>注意，在Spark 2.0之前，Spark的主要程序接口是Resillent Distributed Dataset(RDD)。在Spark 2.0之后，RDD被Dataset所代替，Dataset类似于RDD的强类型，但是底层有更佳丰富的优化。RDD接口仍然被支持，你可以在<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>。然而，我们高度推荐你使用Dataset，它比RDD有更好的性能。查看<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html" title="SQL programming guide" target="_blank" rel="external">SQL programming guide</a> 以获取更多关于Dataset的详细信息。</p>
+<h2 id="Interactive-Analysis-with-the-Spak-Shell"><a href="#Interactive-Analysis-with-the-Spak-Shell" class="headerlink" title="Interactive Analysis with the Spak Shell"></a>Interactive Analysis with the Spak Shell</h2><h3 id="Basics"><a href="#Basics" class="headerlink" title="Basics"></a>Basics</h3><p>Spark的shell提供了简单的方式来学习API，以及一种强大的工具来交互式的分析数据。可以通过Scala（它运行在Java虚拟机上，因此它是学习已有Java库的很好方式）或Python来使用。通过在Spark目录下运行如下脚本来启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-shell</div></pre></td></tr></table></figure></p>
+<p>Spark的主要抽象是一个名为Dataset的分布式项目（数据条目–一条条的数据）集合。Dataset可以通过Hadoop InputFormates（如HDFS文件）来创建，或者由其他Dataset来转换。我们根据Spark源目录下README文件中的文本来创建一个新的Dataset：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val textFile = spark.read.textFile(&quot;README.md&quot;)</div><div class="line">textFile: org.apache.spark.sql.Dataset[String] = [value: string]</div></pre></td></tr></table></figure></p>
+<p>通过调用一些action，你可以直接冲Dataset获取值，或者将这个Dataset转换为另一个新的Dataset。对于更多的细节，请查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset &#39;API doc" target="_blank" rel="external">API doc</a>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.count() // Number of items in this Dataset</div><div class="line">res0: Long = 126 // May be different from yours as README.md will change over time, similar to other outputs</div><div class="line"></div><div class="line">scala&gt; textFile.first() // First item in this Dataset</div><div class="line">res1: String = # Apache Spark</div></pre></td></tr></table></figure></p>
+<p>现在，我们将这个Dataset转换为一个新的。我们调用filter，将会返回一个包含文件子集合的新的Dataset。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val linesWithSpark = textFile.filter(line =&gt; line.contains(&quot;Spark&quot;))</div><div class="line">linesWithSpark: org.apache.spark.sql.Dataset[String] = [value: string]</div></pre></td></tr></table></figure></p>
+<p>我们可以将转换和action串联在一起：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.filter(line =&gt; line.contains(&quot;Spark&quot;)).count() // How many lines contain &quot;Spark&quot;?</div><div class="line">res3: Long = 15</div></pre></td></tr></table></figure></p>
+<h2 id="More-on-Dataset-Operations"><a href="#More-on-Dataset-Operations" class="headerlink" title="More on Dataset Operations"></a>More on Dataset Operations</h2><p>Dataset的转换和action可以被用于更加复杂的计算。假设我们要找出含有打你最多的一行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.map(line =&gt; line.split(&quot; &quot;).size).reduce((a, b) =&gt; if (a &gt; b) a else b)</div><div class="line">res4: Long = 15</div></pre></td></tr></table></figure></p>
+<p>它首先将一个行映射为一个数值，这创建了一个新的Dataset。reduce在Dataset上被调用，用来找到最大的数。map和reduce的参数是Scala的函数（闭包），也可以使用任何语言的特性或Scala/Java库。例如，我们在任意地方调用函数的声明（引入）。我们将使用Math.max()函数来使代码更加容易理解：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">scala&gt; import java.lang.Math</div><div class="line">import java.lang.Math</div><div class="line"></div><div class="line">scala&gt; textFile.map(line =&gt; line.split(&quot; &quot;).size).reduce((a, b) =&gt; Math.max(a, b))</div><div class="line">res5: Int = 15</div></pre></td></tr></table></figure></p>
+<p>一个常用的数据流是MapReduce。Spark能够很轻松的实现MapReduce流：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val wordCounts = textFile.flatMap(line =&gt; line.split(&quot; &quot;)).groupByKey(identity).count()</div><div class="line">wordCounts: org.apache.spark.sql.Dataset[(String, Long)] = [value: string, count(1): bigint]</div></pre></td></tr></table></figure></p>
+<p>这里，我们调用flatMap将行的Dataset转换为一个单词的Dataset，接着利用groupbyKey和count的组合来计算每个单词在文件中出现的次数(String, Long对)从而生成一个新的Dataset。要在shell中收集单词的数量，我们可以调用collect：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; wordCounts.collect()</div><div class="line">res6: Array[(String, Int)] = Array((means,1), (under,2), (this,3), (Because,1), (Pyhon,2), (agree,1), (cluster.,1), ...)</div></pre></td></tr></table></figure></p>
+<h2 id="Caching"><a href="#Caching" class="headerlink" title="Caching"></a>Caching</h2><p>Spark还支持将数据集合缓存到集群端内存缓存中。这在数据被反复访问时非常有用，例如当查询一个非常热门的数据集时，又或是在运行一个类似PageRank这样的迭代算法时。作为一个简单的例子，我们将linesWithSpark数据进行缓存：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">scala&gt; linesWithSpark.cache()</div><div class="line">res7: linesWithSpark.type = [value: string]</div><div class="line"></div><div class="line">scala&gt; linesWithSpark.count()</div><div class="line">res8: Long = 15</div><div class="line"></div><div class="line">scala&gt; linesWithSpark.count()</div><div class="line">res9: Long = 15</div></pre></td></tr></table></figure></p>
+<p>使用Spark来分析并缓存一个100行的文本开起来很愚蠢。有意思的是，这些相同的函数可以被用在非常大的数据集上，即使它们跨越数十个甚至数百个节点。你可以通过连接bin/spark-shell到一个集群来进行交互式操作，就像<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html#using-the-shell" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>中描述的。</p>
+<h2 id="Self-Contained-Applications"><a href="#Self-Contained-Applications" class="headerlink" title="Self-Contained Applications"></a>Self-Contained Applications</h2><p>假设我们想要使用Spark API写一个自包含的application。我们将使用Scala(利用sbt)、Java(利用Maven)和Pyton(利用pip)来实现一个简单的application。<br>这里我们将使用Maven来构建一个application JAR，其他类似的构建系统也可以。<br>我们将创建一个非常简单的Spark application，SimpleApp.java<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">/* SimpleApp.java */</div><div class="line">import org.apache.spark.sql.SparkSession;</div><div class="line">import org.apache.spark.sql.Dataset;</div><div class="line"></div><div class="line">public class SimpleApp &#123;</div><div class="line">  public static void main(String[] args) &#123;</div><div class="line">    String logFile = &quot;YOUR_SPARK_HOME/README.md&quot;; // Should be some file on your system</div><div class="line">    SparkSession spark = SparkSession.builder().appName(&quot;Simple Application&quot;).getOrCreate();</div><div class="line">    Dataset&lt;String&gt; logData = spark.read().textFile(logFile).cache();</div><div class="line"></div><div class="line">    long numAs = logData.filter(s -&gt; s.contains(&quot;a&quot;)).count();</div><div class="line">    long numBs = logData.filter(s -&gt; s.contains(&quot;b&quot;)).count();</div><div class="line"></div><div class="line">    System.out.println(&quot;Lines with a: &quot; + numAs + &quot;, lines with b: &quot; + numBs);</div><div class="line"></div><div class="line">    spark.stop();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这段代码用来计算Spark README文件中包含’a’的行数，和包含’b’的行数。注意你需要将YOUR_SPARK_HOME替换为Spark的安装位置。和之前使用Spark shell不同，Spark shell会初始化它自己的SparkSession，而在代码中初始化SparkSession是程序的一部分。<br>要构建这个程序，我们还需要写一个Maven的pom.xml文件，在这个文件中列出Spark的依赖。注意Spark的依赖和Scala的版本要对应。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&lt;project&gt;</div><div class="line">  &lt;groupId&gt;edu.berkeley&lt;/groupId&gt;</div><div class="line">  &lt;artifactId&gt;simple-project&lt;/artifactId&gt;</div><div class="line">  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;</div><div class="line">  &lt;name&gt;Simple Project&lt;/name&gt;</div><div class="line">  &lt;packaging&gt;jar&lt;/packaging&gt;</div><div class="line">  &lt;version&gt;1.0&lt;/version&gt;</div><div class="line">  &lt;dependencies&gt;</div><div class="line">    &lt;dependency&gt; &lt;!-- Spark dependency --&gt;</div><div class="line">      &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</div><div class="line">      &lt;artifactId&gt;spark-sql_2.11&lt;/artifactId&gt;</div><div class="line">      &lt;version&gt;2.3.1&lt;/version&gt;</div><div class="line">    &lt;/dependency&gt;</div><div class="line">  &lt;/dependencies&gt;</div><div class="line">&lt;/project&gt;</div></pre></td></tr></table></figure></p>
+<p>我们根据规范列出了Maven的目录结构：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ find .</div><div class="line">./pom.xml</div><div class="line">./src</div><div class="line">./src/main</div><div class="line">./src/main/java</div><div class="line">./src/main/java/SimpleApp.java</div></pre></td></tr></table></figure></p>
+<p>现在我们可以使用Maven进行打包，并使用./bin/spark-submit来执行它。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"># Package a JAR containing your application</div><div class="line">$ mvn package</div><div class="line">...</div><div class="line">[INFO] Building jar: &#123;..&#125;/&#123;..&#125;/target/simple-project-1.0.jar</div><div class="line"></div><div class="line"># Use spark-submit to run your application</div><div class="line">$ YOUR_SPARK_HOME/bin/spark-submit \</div><div class="line">  --class &quot;SimpleApp&quot; \</div><div class="line">  --master local[4] \</div><div class="line">  target/simple-project-1.0.jar</div><div class="line">...</div><div class="line">Lines with a: 46, Lines with b: 23</div></pre></td></tr></table></figure></p>
+<h2 id="Where-to-Go-from-Here"><a href="#Where-to-Go-from-Here" class="headerlink" title="Where to Go from Here"></a>Where to Go from Here</h2><p>恭喜你运行了自己的第一个Spark application！</p>
+<blockquote>
+<p>对于API的更深了解，可以从<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>和<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html" title="SQL programming guide" target="_blank" rel="external">SQL programming guide</a>或者查看 ‘Programming Guides’菜单来了解其他组件。<br>想要在集群上运行application，去<a href="http://spark.apache.org/docs/latest/cluster-overview.html" title="deployment overview" target="_blank" rel="external">deployment overview</a>。<br>最后，Spark在examples目录中包含了一些例子（Scala, Java, Python, R）。你可以如下运行它们：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># For Scala and Java, use run-example:</div><div class="line">./bin/run-example SparkPi</div><div class="line"></div><div class="line"># For Python examples, use spark-submit directly:</div><div class="line">./bin/spark-submit examples/src/main/python/pi.py</div><div class="line"></div><div class="line"># For R examples, use spark-submit directly:</div><div class="line">./bin/spark-submit examples/src/main/r/dataframe.R</div></pre></td></tr></table></figure></p>
+</blockquote>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/08/10/spark-2-3-1-MonitoringAndInstrumentation/" rel="next" title="spark_2.3.1_MonitoringAndInstrumentation">
+                <i class="fa fa-chevron-left"></i> spark_2.3.1_MonitoringAndInstrumentation
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2018/08/10/spark-2-3-1-SparkSQL-DataFramesAndDatasetsGuide/" rel="prev" title="spark_2.3.1_SparkSQL_DataFramesAndDatasetsGuide">
+                spark_2.3.1_SparkSQL_DataFramesAndDatasetsGuide <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">37</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Quick-Start"><span class="nav-number">1.</span> <span class="nav-text">Quick Start</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Interactive-Analysis-with-the-Spak-Shell"><span class="nav-number">1.1.</span> <span class="nav-text">Interactive Analysis with the Spak Shell</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Basics"><span class="nav-number">1.1.1.</span> <span class="nav-text">Basics</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#More-on-Dataset-Operations"><span class="nav-number">1.2.</span> <span class="nav-text">More on Dataset Operations</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Caching"><span class="nav-number">1.3.</span> <span class="nav-text">Caching</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Self-Contained-Applications"><span class="nav-number">1.4.</span> <span class="nav-text">Self-Contained Applications</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Where-to-Go-from-Here"><span class="nav-number">1.5.</span> <span class="nav-text">Where to Go from Here</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -248,6 +248,440 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/08/13/ambari/" itemprop="url">
+                  Ambari
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-13T10:42:44+08:00" content="2018-08-13">
+              2018-08-13
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/hadoop/" itemprop="url" rel="index">
+                    <span itemprop="name">hadoop</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文用来记录Ambari的学习</p>
+<h1 id="Ambari的简单介绍"><a href="#Ambari的简单介绍" class="headerlink" title="Ambari的简单介绍"></a>Ambari的简单介绍</h1><p>从Ambari的作用来说，它是用来创建、管理、监控Hadoop生态（例如hadoop、hive、hbase、Sqoop以及Zookeeper）集群的工具。Ambari就是为了让Hadoop已经相关的大数据软件更容易使用的一个工具。Ambari支持的平台组建也越来越多，如流行的Spark、Storm等计算框架，已经资源调度平台YARN等，都可以通过Ambari来轻松部署。</p>
+<p>Ambari自称也是一个分布式架构的软件，主要由两部分组成：Ambari Server和Ambari Agent。用户通过Ambari Server来通知Ambari Agent来安装对应的软件；Agent会定时的发送各个机器每个软件模块的状态给Ambari Server，最终这些信息会呈现在Ambari的GUI中，方便用户了解集群中各个模块的状态，并进行维护。</p>
+<h1 id="Ambari的架构和工作原理"><a href="#Ambari的架构和工作原理" class="headerlink" title="Ambari的架构和工作原理"></a>Ambari的架构和工作原理</h1><p>Ambari Server会读取Stack和Service的配置文件。当用Ambari创建集群的时候，Ambari Server传送Stack和Service的配置文件配以及Service生命周期的控制脚本到Ambari Agent。Agent拿到配置文件后，会下载安装公共资源里的软件包。安装完成后，Ambari Server会通知Agent去启动Service。之后，Ambari Server会定时发送命令道Agent检查Service的状态，Agent上报给Server并显示在Ambari的UI上。<br>Ambari Server支持其他API，这样能够很容易的扩展或定制Ambari。<br>如果有安全方面的要求，Ambari支持Kerberos认证的hadoop集群。</p>
+<blockquote>
+<p>Ambari web：用户交互界面，通过HTTP发送使用Rest API与Ambari Server进行交互。<br>Ambari Server：Ambari服务器，用于和Web、Agent进行交互，并且包含了Agent的所有控制逻辑，Server产生的数据存储在DB中。<br>Ambari Agent：守护进程，主要包含节点状态与执行结果信息汇报给Server，以及接受Server操作命令的两个消息队列。<br>Host：安装实际大数据服务组件的物理机器，每台机器都有Ambari Agent和Metrcis Monitor守护进程服务。<br>Metrics Collector：主要包括将Metrics monitor汇报的监控信息存储到Hbase，以及提供给Ambari Server的查询接口。</p>
+</blockquote>
+<h1 id="Ambari的自定义命令"><a href="#Ambari的自定义命令" class="headerlink" title="Ambari的自定义命令"></a>Ambari的自定义命令</h1><p>在Ambari的Stack中，每个Service都有start、stop、status和configure这样的命令，我们称为生命周期的控制命令。Service的每个模块必须实现这几个命令。为了让用户可以更好的控制每个service以及模块，Ambari支持了自定义命令。<br>具体的自定义命令配置在每个Service的metainfo.xml中。不过不同的模块类型，呈现在GUI的方式是不一样的。当一个service的Master模块增加一个自定义命令时，该命令会显示在该Service的Service Action List中。如果点击这个命令，Ambari Server就会通知Master所在机器的Agent，Agent就会执行该自定义命令的逻辑。当增加一个自定义命令给Slave或Client类型的Component，该命令会呈现在机器的Component页面。在哪个机器的Component页面点击该命令，Ambari Server就会通知对应机器的Agent调用这个自定义的命令接口。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-SparkSQL-DataFramesAndDatasetsGuide/" itemprop="url">
+                  spark_2.3.1_SparkSQL_DataFramesAndDatasetsGuide
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-10T15:21:30+08:00" content="2018-08-10">
+              2018-08-10
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-QuickStart/" itemprop="url">
+                  spark_2.3.1_QuickStart
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-10T15:20:56+08:00" content="2018-08-10">
+              2018-08-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h1><p>本指南快速的介绍如何使用Spark。我们将通过Spark的交互式shell（用Python或Scala）首先引入API，然后展示如何用Java、Scala和Python写application。<br>要遵循这个指南，首先需要从Spark的网站上下载Spark包。因为我们不使用HDFS，因此你可以现在任何版本的Hadoop。<br>注意，在Spark 2.0之前，Spark的主要程序接口是Resillent Distributed Dataset(RDD)。在Spark 2.0之后，RDD被Dataset所代替，Dataset类似于RDD的强类型，但是底层有更佳丰富的优化。RDD接口仍然被支持，你可以在<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>。然而，我们高度推荐你使用Dataset，它比RDD有更好的性能。查看<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html" title="SQL programming guide" target="_blank" rel="external">SQL programming guide</a> 以获取更多关于Dataset的详细信息。</p>
+<h2 id="Interactive-Analysis-with-the-Spak-Shell"><a href="#Interactive-Analysis-with-the-Spak-Shell" class="headerlink" title="Interactive Analysis with the Spak Shell"></a>Interactive Analysis with the Spak Shell</h2><h3 id="Basics"><a href="#Basics" class="headerlink" title="Basics"></a>Basics</h3><p>Spark的shell提供了简单的方式来学习API，以及一种强大的工具来交互式的分析数据。可以通过Scala（它运行在Java虚拟机上，因此它是学习已有Java库的很好方式）或Python来使用。通过在Spark目录下运行如下脚本来启动：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-shell</div></pre></td></tr></table></figure></p>
+<p>Spark的主要抽象是一个名为Dataset的分布式项目（数据条目–一条条的数据）集合。Dataset可以通过Hadoop InputFormates（如HDFS文件）来创建，或者由其他Dataset来转换。我们根据Spark源目录下README文件中的文本来创建一个新的Dataset：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val textFile = spark.read.textFile(&quot;README.md&quot;)</div><div class="line">textFile: org.apache.spark.sql.Dataset[String] = [value: string]</div></pre></td></tr></table></figure></p>
+<p>通过调用一些action，你可以直接冲Dataset获取值，或者将这个Dataset转换为另一个新的Dataset。对于更多的细节，请查看<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset &#39;API doc" target="_blank" rel="external">API doc</a>。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.count() // Number of items in this Dataset</div><div class="line">res0: Long = 126 // May be different from yours as README.md will change over time, similar to other outputs</div><div class="line"></div><div class="line">scala&gt; textFile.first() // First item in this Dataset</div><div class="line">res1: String = # Apache Spark</div></pre></td></tr></table></figure></p>
+<p>现在，我们将这个Dataset转换为一个新的。我们调用filter，将会返回一个包含文件子集合的新的Dataset。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val linesWithSpark = textFile.filter(line =&gt; line.contains(&quot;Spark&quot;))</div><div class="line">linesWithSpark: org.apache.spark.sql.Dataset[String] = [value: string]</div></pre></td></tr></table></figure></p>
+<p>我们可以将转换和action串联在一起：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.filter(line =&gt; line.contains(&quot;Spark&quot;)).count() // How many lines contain &quot;Spark&quot;?</div><div class="line">res3: Long = 15</div></pre></td></tr></table></figure></p>
+<h2 id="More-on-Dataset-Operations"><a href="#More-on-Dataset-Operations" class="headerlink" title="More on Dataset Operations"></a>More on Dataset Operations</h2><p>Dataset的转换和action可以被用于更加复杂的计算。假设我们要找出含有打你最多的一行：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; textFile.map(line =&gt; line.split(&quot; &quot;).size).reduce((a, b) =&gt; if (a &gt; b) a else b)</div><div class="line">res4: Long = 15</div></pre></td></tr></table></figure></p>
+<p>它首先将一个行映射为一个数值，这创建了一个新的Dataset。reduce在Dataset上被调用，用来找到最大的数。map和reduce的参数是Scala的函数（闭包），也可以使用任何语言的特性或Scala/Java库。例如，我们在任意地方调用函数的声明（引入）。我们将使用Math.max()函数来使代码更加容易理解：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">scala&gt; import java.lang.Math</div><div class="line">import java.lang.Math</div><div class="line"></div><div class="line">scala&gt; textFile.map(line =&gt; line.split(&quot; &quot;).size).reduce((a, b) =&gt; Math.max(a, b))</div><div class="line">res5: Int = 15</div></pre></td></tr></table></figure></p>
+<p>一个常用的数据流是MapReduce。Spark能够很轻松的实现MapReduce流：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; val wordCounts = textFile.flatMap(line =&gt; line.split(&quot; &quot;)).groupByKey(identity).count()</div><div class="line">wordCounts: org.apache.spark.sql.Dataset[(String, Long)] = [value: string, count(1): bigint]</div></pre></td></tr></table></figure></p>
+<p>这里，我们调用flatMap将行的Dataset转换为一个单词的Dataset，接着利用groupbyKey和count的组合来计算每个单词在文件中出现的次数(String, Long对)从而生成一个新的Dataset。要在shell中收集单词的数量，我们可以调用collect：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala&gt; wordCounts.collect()</div><div class="line">res6: Array[(String, Int)] = Array((means,1), (under,2), (this,3), (Because,1), (Pyhon,2), (agree,1), (cluster.,1), ...)</div></pre></td></tr></table></figure></p>
+<h2 id="Caching"><a href="#Caching" class="headerlink" title="Caching"></a>Caching</h2><p>Spark还支持将数据集合缓存到集群端内存缓存中。这在数据被反复访问时非常有用，例如当查询一个非常热门的数据集时，又或是在运行一个类似PageRank这样的迭代算法时。作为一个简单的例子，我们将linesWithSpark数据进行缓存：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">scala&gt; linesWithSpark.cache()</div><div class="line">res7: linesWithSpark.type = [value: string]</div><div class="line"></div><div class="line">scala&gt; linesWithSpark.count()</div><div class="line">res8: Long = 15</div><div class="line"></div><div class="line">scala&gt; linesWithSpark.count()</div><div class="line">res9: Long = 15</div></pre></td></tr></table></figure></p>
+<p>使用Spark来分析并缓存一个100行的文本开起来很愚蠢。有意思的是，这些相同的函数可以被用在非常大的数据集上，即使它们跨越数十个甚至数百个节点。你可以通过连接bin/spark-shell到一个集群来进行交互式操作，就像<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html#using-the-shell" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>中描述的。</p>
+<h2 id="Self-Contained-Applications"><a href="#Self-Contained-Applications" class="headerlink" title="Self-Contained Applications"></a>Self-Contained Applications</h2><p>假设我们想要使用Spark API写一个自包含的application。我们将使用Scala(利用sbt)、Java(利用Maven)和Pyton(利用pip)来实现一个简单的application。<br>这里我们将使用Maven来构建一个application JAR，其他类似的构建系统也可以。<br>我们将创建一个非常简单的Spark application，SimpleApp.java<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">/* SimpleApp.java */</div><div class="line">import org.apache.spark.sql.SparkSession;</div><div class="line">import org.apache.spark.sql.Dataset;</div><div class="line"></div><div class="line">public class SimpleApp &#123;</div><div class="line">  public static void main(String[] args) &#123;</div><div class="line">    String logFile = &quot;YOUR_SPARK_HOME/README.md&quot;; // Should be some file on your system</div><div class="line">    SparkSession spark = SparkSession.builder().appName(&quot;Simple Application&quot;).getOrCreate();</div><div class="line">    Dataset&lt;String&gt; logData = spark.read().textFile(logFile).cache();</div><div class="line"></div><div class="line">    long numAs = logData.filter(s -&gt; s.contains(&quot;a&quot;)).count();</div><div class="line">    long numBs = logData.filter(s -&gt; s.contains(&quot;b&quot;)).count();</div><div class="line"></div><div class="line">    System.out.println(&quot;Lines with a: &quot; + numAs + &quot;, lines with b: &quot; + numBs);</div><div class="line"></div><div class="line">    spark.stop();</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这段代码用来计算Spark README文件中包含’a’的行数，和包含’b’的行数。注意你需要将YOUR_SPARK_HOME替换为Spark的安装位置。和之前使用Spark shell不同，Spark shell会初始化它自己的SparkSession，而在代码中初始化SparkSession是程序的一部分。<br>要构建这个程序，我们还需要写一个Maven的pom.xml文件，在这个文件中列出Spark的依赖。注意Spark的依赖和Scala的版本要对应。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">&lt;project&gt;</div><div class="line">  &lt;groupId&gt;edu.berkeley&lt;/groupId&gt;</div><div class="line">  &lt;artifactId&gt;simple-project&lt;/artifactId&gt;</div><div class="line">  &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;</div><div class="line">  &lt;name&gt;Simple Project&lt;/name&gt;</div><div class="line">  &lt;packaging&gt;jar&lt;/packaging&gt;</div><div class="line">  &lt;version&gt;1.0&lt;/version&gt;</div><div class="line">  &lt;dependencies&gt;</div><div class="line">    &lt;dependency&gt; &lt;!-- Spark dependency --&gt;</div><div class="line">      &lt;groupId&gt;org.apache.spark&lt;/groupId&gt;</div><div class="line">      &lt;artifactId&gt;spark-sql_2.11&lt;/artifactId&gt;</div><div class="line">      &lt;version&gt;2.3.1&lt;/version&gt;</div><div class="line">    &lt;/dependency&gt;</div><div class="line">  &lt;/dependencies&gt;</div><div class="line">&lt;/project&gt;</div></pre></td></tr></table></figure></p>
+<p>我们根据规范列出了Maven的目录结构：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">$ find .</div><div class="line">./pom.xml</div><div class="line">./src</div><div class="line">./src/main</div><div class="line">./src/main/java</div><div class="line">./src/main/java/SimpleApp.java</div></pre></td></tr></table></figure></p>
+<p>现在我们可以使用Maven进行打包，并使用./bin/spark-submit来执行它。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"># Package a JAR containing your application</div><div class="line">$ mvn package</div><div class="line">...</div><div class="line">[INFO] Building jar: &#123;..&#125;/&#123;..&#125;/target/simple-project-1.0.jar</div><div class="line"></div><div class="line"># Use spark-submit to run your application</div><div class="line">$ YOUR_SPARK_HOME/bin/spark-submit \</div><div class="line">  --class &quot;SimpleApp&quot; \</div><div class="line">  --master local[4] \</div><div class="line">  target/simple-project-1.0.jar</div><div class="line">...</div><div class="line">Lines with a: 46, Lines with b: 23</div></pre></td></tr></table></figure></p>
+<h2 id="Where-to-Go-from-Here"><a href="#Where-to-Go-from-Here" class="headerlink" title="Where to Go from Here"></a>Where to Go from Here</h2><p>恭喜你运行了自己的第一个Spark application！</p>
+<blockquote>
+<p>对于API的更深了解，可以从<a href="http://spark.apache.org/docs/latest/rdd-programming-guide.html" title="RDD programming guide" target="_blank" rel="external">RDD programming guide</a>和<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html" title="SQL programming guide" target="_blank" rel="external">SQL programming guide</a>或者查看 ‘Programming Guides’菜单来了解其他组件。<br>想要在集群上运行application，去<a href="http://spark.apache.org/docs/latest/cluster-overview.html" title="deployment overview" target="_blank" rel="external">deployment overview</a>。<br>最后，Spark在examples目录中包含了一些例子（Scala, Java, Python, R）。你可以如下运行它们：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"># For Scala and Java, use run-example:</div><div class="line">./bin/run-example SparkPi</div><div class="line"></div><div class="line"># For Python examples, use spark-submit directly:</div><div class="line">./bin/spark-submit examples/src/main/python/pi.py</div><div class="line"></div><div class="line"># For R examples, use spark-submit directly:</div><div class="line">./bin/spark-submit examples/src/main/r/dataframe.R</div></pre></td></tr></table></figure></p>
+</blockquote>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-MonitoringAndInstrumentation/" itemprop="url">
+                  spark_2.3.1_MonitoringAndInstrumentation
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-08-10T15:20:35+08:00" content="2018-08-10">
+              2018-08-10
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-ClusterModeOverview/" itemprop="url">
                   Spark 2.3.1 Cluster Mode Overview
                 </a>
@@ -1508,6 +1942,118 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
+                  Python Subprocess
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
+              2017-02-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
+<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
                   Python Datetime
                 </a>
@@ -1574,118 +2120,6 @@
               阅读全文 &raquo;
             </a>
           </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
         
       
     </div>
@@ -2180,479 +2614,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/11/10/log4j/" itemprop="url">
-                  Log4j Architecture
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
-              2016-11-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
-                    <span itemprop="name">Logging</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j">链接</a></p>
-<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/11/10/log4j/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/11/10/log4j-configuration/" itemprop="url">
-                  Log4j Configuration
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
-              2016-11-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
-                    <span itemprop="name">Logging</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文用来学习关于Log4j的配置（通过配置文件的方式），<a href="http://logging.apache.org/log4j/2.x/manual/configuration.html" title="Configuration">原文档连接</a></p>
-<h1 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h1><p>将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。<br>配置Log4j 2版本，能够通过下面四种方法中的任意一种来完成：<br>1、通过一个以XML、JSON、YAML或properties格式的配置文件。<br>2、编程方式，通过创建一个ConfigurationFactory和Configuration实现。<br>3、编程方式，通过调用在Configuration接口中的APIs来添加组件到默认配置。<br>4、编程方式，通过调用内部Logger类的方法。<br>本文主要关注通过一个配置文件来配置Log4j。对于通过编程方式来配置Log4j，可以在<a href="http://logging.apache.org/log4j/2.x/manual/extending.html" title="Extending Log4j 2">Extending Log4j 2</a>和<a href="http://logging.apache.org/log4j/2.x/manual/customconfig.html" title="Programmatic Log4j Configuration">Programmatic Log4j Configuration</a>。<br>注意，不同于Log4j 1.x，Log4j 2的公共API没有公开关于添加、修改和移除appenders和filter的方法，或者以任何方式来操作配置。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/11/10/log4j-configuration/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/28/kafka-document/" itemprop="url">
-                  Apache Kafka
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-28T15:46:13+08:00" content="2016-09-28">
-              2016-09-28
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Kafka/" itemprop="url" rel="index">
-                    <span itemprop="name">Kafka</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文是Kafka 0.10.0文档的翻译，主要用于自学。</p>
-<h1 id="1-Getting-Started"><a href="#1-Getting-Started" class="headerlink" title="1 Getting Started"></a>1 Getting Started</h1><h2 id="1-1-Introduction"><a href="#1-1-Introduction" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h2><p>Kafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。<br>那意味着什么？<br>首先我们浏览一下基本的消息队列术语：</p>
-<ul>
-<li>Kafka以一种类型持续messages的提供称为topics。</li>
-<li>我们称那些publish message到一个Kafka topic的进程为producers。</li>
-<li>我们称那些subscribe到topics并处理被publish的message的进程为consumers。</li>
-<li>kafka作为一个集群而运行，集群由一个或多个server组成，每个server成为一个broker。</li>
-</ul>
-<p>因此，整体来看，producers通过网络发送messages到Kafka集群，同样Kafka又为consumers服务，像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/producer_consumer.png" alt="producer_consumer" title="producer and consumer"><br>clients和servers之间的通信是通过一个简单的、高性能的、跨语言的TCP协议完成的。我们为Kafka提供了一个Java client，但是clients在很多语言中都可用。</p>
-<h3 id="Topics-and-Logs"><a href="#Topics-and-Logs" class="headerlink" title="Topics and Logs"></a>Topics and Logs</h3><p>首先我们学习由Kafka提供的高级别的抽象 - topic。<br>一个topic是一种或一个提供的名称，用来publish message。对于每个topic，Kafka集群维持着一个分区日志，看起来像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/log_anatomy.png" alt="Anatomy of a Topic" title="Anatomy of a Topic"><br>每个partition是一个顺序的、不可变的连续添加的消息队列。partitions中的每个message分配一个序列id号，称为offset，用来唯一标识partition中的每条message。<br>Kafka集群保存所有publish过来的message-不管它们是否被消费，保存时长可配置。例如，如果日志保存设置为两天，那么一个message在publish后两天内是可以被消费的，但是两天之后，它将被删除以释放空间。kafka的性能对于不同数据大小是恒定有效的，因此很多的数据不是个问题。<br>实际上每个consumer仅有被保存的元数据是consumer在日志中的位置，称为offset。这个offset由consumer控制：通常一个consumer按照它读取的message，线性的推进它的offset，但是这个位置由consumer控制并且consumer能够以任意顺序消费message。例如一个consumer可以重置到一个原来的offset来重新处理。<br>这个特征的组合意味着Kafka consumer是非常廉价的 - 它们能够自由的来去，而不会影响集群或其他consumer。例如，你可以使用我们的命令行工具来tail任何topic的内容，而不需要任何已经存在的consumers改变它所消费的内容。<br>日志中的partitions有几个用途。首先，它们允许日志扩展到单个server所能容纳的日志大小之外。一个partition必须位于它所属的server上，但是一个topic可能有很多的partitions，因此它能够持有任意数量的数据。其次，它们的行为类似一个并行单元 - 汇聚更多于一点。</p>
-<h3 id="Distribution"><a href="#Distribution" class="headerlink" title="Distribution"></a>Distribution</h3><p>日志的partitions在Kafka集群中跨server分布，每个server为一个共享的partition处理数据和请求。每个partition为了容灾，跨server保存多个备份，备份的数量可以配置。<br>每个partition有一个server扮演”leader”的角色，并有零个或多个servers扮演”followers”的角色。leader为partition处理所有的读和写的请求，而follower只是被动的复制leader。如果leader失效了，follower中的一个将自动成为新的leader。每个server为它自己一些的partitions扮演一个leader角色，为其他的partition扮演一个follower的角色，因此每个server在集群中的负载是很均衡的。</p>
-<h3 id="Producers"><a href="#Producers" class="headerlink" title="Producers"></a>Producers</h3><p>Producers将数据publish到它们选择的topics中。Producer负责哪些message被分配到topic的哪些partition中。这可以通过简单的轮转来完成以平衡负载，或者可以一致性的partition定义函数来完成（例如基于message的某些key）。在分区上用的更多的是第二种。</p>
-<h3 id="Consumers"><a href="#Consumers" class="headerlink" title="Consumers"></a>Consumers</h3><p>传统的消息传输有两种模式：queuing和publish-subscribe。在队列方式中，一个consumers池从一个server中读取，每条message只会到达某个consumer；在发布-订阅方式中，message广播给所有的consumers。Kafka提供了单个consumer抽象，它概括了上面两种方式 - consumer group。<br>consumers使用一个consumer群名称来标识它们自己，每个publish到一个topic的message被传递到每个订阅了topic的consumer组的一个consumer实例。consumer实例能够在单独的进程或单独的机器上。<br>如果所有的consumer实例拥有相同的consumer组，那么工作方式与一个传统的跨consumers负载均衡的队列类似。<br>如果所有的consumer实例都有不同的consumer组，那么工作方式与发布-订阅类似，所有的message会广播给所有的consumer。<br>更常见的，尽管我们发现那些topics有少数量的consumer组，然而每个都是一个逻辑订阅者。每个组由多个consumer实例组成，这样具有扩展性和容灾性。这也是publish-subscrib的定义，只不过subscriber是一个consumer群，而不是单个进程。<br>相对于传统消息传输系统，Kafka有更强的顺序保证。<br><img src="http://oaavtz33a.bkt.clouddn.com/consumer-groups.png" alt="consumer-groups" title="一个有两个server组成的Kafka集群有四个partitions(P0-P3)和两个consumer组。consumer组A有两个consumer实例，而组B有四个实例"><br>一个传统队列在server上按顺序保存messages，如果多个consumer从队列中消费数据，那么server以message存储的顺序拿出message。然而，虽然server按照顺序拿出message，但是message以异步方式投递给consumers，因此它们可能在不同的consumer上以不同的顺序到达。这意味着在并行消费的情况中消息的顺序丢失了。消息传输系统通过一个”exclusive consumer”的概念来解决这个问题，它只允许一个进程从队列中消费，但是这意味着没有并行处理。<br>Kafka做的更好一些。通过一个并行概念-partition-在topics中，Kafka能够在一个consumer进程池上同时提供顺序保证和负载均衡。这是通过将topic中的partitions分配给consumer组中的consumers来完成的，因此每个partition有组中确切的一个consumer来消费。通过这样，我们确保consumer值读取那一个partition，并以顺序消费数据。因为有很多partitions在很多consumer实例上是均衡负载的。注意，一个consumer组中的consumer实例不能多余partitions的数量。<br>Kafka只是在一个partition中提供了一个整体的顺序，而不是在一个topic的不同partition之间。对于大多applications，每个分区的排序联合根据key划分数据的能力是充分的。如果你要求在message上有整体的顺序，这可以通过使用一个topic只有一个partition来完成，这也意味着每个consuemr组只有一个consumer进程。</p>
-<h3 id="Guarantees"><a href="#Guarantees" class="headerlink" title="Guarantees"></a>Guarantees</h3><p>在高层次上，Kafka给了如下的保证：</p>
-<ul>
-<li>由一个producer发送到一个特定topic partition的Messages将会以它们被发送的顺序添加。那就是，如果一个message M1与发送message M2的producer是一个，并且M1先被发送，那么M1将有一个比M2小的offset，并且要比M2更早的添加到日志中。</li>
-<li>一个consumer看到messages的顺序是messages存储的顺序。</li>
-<li>对于使用了复制因子为N的topic，在不丢失任何提交到log的messages丢失，我们允许最多N-1个server故障。</li>
-</ul>
-<p>这些保证的更多细节在文档的design章节中给出。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/09/28/kafka-document/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/09/21/flume-install/" itemprop="url">
-                  Flume Install
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-09-21T21:01:12+08:00" content="2016-09-21">
-              2016-09-21
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Flume/" itemprop="url" rel="index">
-                    <span itemprop="name">Flume</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。<br>在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source和sink，完全可以保证数据零丢失。<br>本文使用的例子中采用的是内存channel，这种channel的缺点是存储长度有限，重启数据丢失，有点就是速度快，低延迟。至于source，使用的是avro。最后是sink，因为我得目的是将数据写入到HDFS中，以后Hadoop集群或Spark集群进行计算，因此使用的hdfs类型的sink。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/09/21/flume-install/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -2698,7 +2659,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-count">37</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2706,7 +2667,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2715,7 +2676,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-count">21</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

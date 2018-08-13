@@ -248,6 +248,479 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/11/10/log4j/" itemprop="url">
+                  Log4j Architecture
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j">链接</a></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/11/10/log4j/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/11/10/log4j-configuration/" itemprop="url">
+                  Log4j Configuration
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文用来学习关于Log4j的配置（通过配置文件的方式），<a href="http://logging.apache.org/log4j/2.x/manual/configuration.html" title="Configuration">原文档连接</a></p>
+<h1 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h1><p>将日志请求插入到application代码中需要相当多的计划和努力。观察表明，大约百分之四的代码用于记录日志。因此，即使是一般大小的application也将会有数以千计的日志片段嵌套在代码中。考虑到这个数量，如何不需要手动修改就能管理这些日志片段就显得十分重要。<br>配置Log4j 2版本，能够通过下面四种方法中的任意一种来完成：<br>1、通过一个以XML、JSON、YAML或properties格式的配置文件。<br>2、编程方式，通过创建一个ConfigurationFactory和Configuration实现。<br>3、编程方式，通过调用在Configuration接口中的APIs来添加组件到默认配置。<br>4、编程方式，通过调用内部Logger类的方法。<br>本文主要关注通过一个配置文件来配置Log4j。对于通过编程方式来配置Log4j，可以在<a href="http://logging.apache.org/log4j/2.x/manual/extending.html" title="Extending Log4j 2">Extending Log4j 2</a>和<a href="http://logging.apache.org/log4j/2.x/manual/customconfig.html" title="Programmatic Log4j Configuration">Programmatic Log4j Configuration</a>。<br>注意，不同于Log4j 1.x，Log4j 2的公共API没有公开关于添加、修改和移除appenders和filter的方法，或者以任何方式来操作配置。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/11/10/log4j-configuration/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/09/28/kafka-document/" itemprop="url">
+                  Apache Kafka
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-28T15:46:13+08:00" content="2016-09-28">
+              2016-09-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Kafka/" itemprop="url" rel="index">
+                    <span itemprop="name">Kafka</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是Kafka 0.10.0文档的翻译，主要用于自学。</p>
+<h1 id="1-Getting-Started"><a href="#1-Getting-Started" class="headerlink" title="1 Getting Started"></a>1 Getting Started</h1><h2 id="1-1-Introduction"><a href="#1-1-Introduction" class="headerlink" title="1.1 Introduction"></a>1.1 Introduction</h2><p>Kafka是一个分布式的、分区的、备份的提交日志服务。它提供了一个消息传输系统的功能，但是使用了一个独特的设计。<br>那意味着什么？<br>首先我们浏览一下基本的消息队列术语：</p>
+<ul>
+<li>Kafka以一种类型持续messages的提供称为topics。</li>
+<li>我们称那些publish message到一个Kafka topic的进程为producers。</li>
+<li>我们称那些subscribe到topics并处理被publish的message的进程为consumers。</li>
+<li>kafka作为一个集群而运行，集群由一个或多个server组成，每个server成为一个broker。</li>
+</ul>
+<p>因此，整体来看，producers通过网络发送messages到Kafka集群，同样Kafka又为consumers服务，像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/producer_consumer.png" alt="producer_consumer" title="producer and consumer"><br>clients和servers之间的通信是通过一个简单的、高性能的、跨语言的TCP协议完成的。我们为Kafka提供了一个Java client，但是clients在很多语言中都可用。</p>
+<h3 id="Topics-and-Logs"><a href="#Topics-and-Logs" class="headerlink" title="Topics and Logs"></a>Topics and Logs</h3><p>首先我们学习由Kafka提供的高级别的抽象 - topic。<br>一个topic是一种或一个提供的名称，用来publish message。对于每个topic，Kafka集群维持着一个分区日志，看起来像这样：<br><img src="http://oaavtz33a.bkt.clouddn.com/log_anatomy.png" alt="Anatomy of a Topic" title="Anatomy of a Topic"><br>每个partition是一个顺序的、不可变的连续添加的消息队列。partitions中的每个message分配一个序列id号，称为offset，用来唯一标识partition中的每条message。<br>Kafka集群保存所有publish过来的message-不管它们是否被消费，保存时长可配置。例如，如果日志保存设置为两天，那么一个message在publish后两天内是可以被消费的，但是两天之后，它将被删除以释放空间。kafka的性能对于不同数据大小是恒定有效的，因此很多的数据不是个问题。<br>实际上每个consumer仅有被保存的元数据是consumer在日志中的位置，称为offset。这个offset由consumer控制：通常一个consumer按照它读取的message，线性的推进它的offset，但是这个位置由consumer控制并且consumer能够以任意顺序消费message。例如一个consumer可以重置到一个原来的offset来重新处理。<br>这个特征的组合意味着Kafka consumer是非常廉价的 - 它们能够自由的来去，而不会影响集群或其他consumer。例如，你可以使用我们的命令行工具来tail任何topic的内容，而不需要任何已经存在的consumers改变它所消费的内容。<br>日志中的partitions有几个用途。首先，它们允许日志扩展到单个server所能容纳的日志大小之外。一个partition必须位于它所属的server上，但是一个topic可能有很多的partitions，因此它能够持有任意数量的数据。其次，它们的行为类似一个并行单元 - 汇聚更多于一点。</p>
+<h3 id="Distribution"><a href="#Distribution" class="headerlink" title="Distribution"></a>Distribution</h3><p>日志的partitions在Kafka集群中跨server分布，每个server为一个共享的partition处理数据和请求。每个partition为了容灾，跨server保存多个备份，备份的数量可以配置。<br>每个partition有一个server扮演”leader”的角色，并有零个或多个servers扮演”followers”的角色。leader为partition处理所有的读和写的请求，而follower只是被动的复制leader。如果leader失效了，follower中的一个将自动成为新的leader。每个server为它自己一些的partitions扮演一个leader角色，为其他的partition扮演一个follower的角色，因此每个server在集群中的负载是很均衡的。</p>
+<h3 id="Producers"><a href="#Producers" class="headerlink" title="Producers"></a>Producers</h3><p>Producers将数据publish到它们选择的topics中。Producer负责哪些message被分配到topic的哪些partition中。这可以通过简单的轮转来完成以平衡负载，或者可以一致性的partition定义函数来完成（例如基于message的某些key）。在分区上用的更多的是第二种。</p>
+<h3 id="Consumers"><a href="#Consumers" class="headerlink" title="Consumers"></a>Consumers</h3><p>传统的消息传输有两种模式：queuing和publish-subscribe。在队列方式中，一个consumers池从一个server中读取，每条message只会到达某个consumer；在发布-订阅方式中，message广播给所有的consumers。Kafka提供了单个consumer抽象，它概括了上面两种方式 - consumer group。<br>consumers使用一个consumer群名称来标识它们自己，每个publish到一个topic的message被传递到每个订阅了topic的consumer组的一个consumer实例。consumer实例能够在单独的进程或单独的机器上。<br>如果所有的consumer实例拥有相同的consumer组，那么工作方式与一个传统的跨consumers负载均衡的队列类似。<br>如果所有的consumer实例都有不同的consumer组，那么工作方式与发布-订阅类似，所有的message会广播给所有的consumer。<br>更常见的，尽管我们发现那些topics有少数量的consumer组，然而每个都是一个逻辑订阅者。每个组由多个consumer实例组成，这样具有扩展性和容灾性。这也是publish-subscrib的定义，只不过subscriber是一个consumer群，而不是单个进程。<br>相对于传统消息传输系统，Kafka有更强的顺序保证。<br><img src="http://oaavtz33a.bkt.clouddn.com/consumer-groups.png" alt="consumer-groups" title="一个有两个server组成的Kafka集群有四个partitions(P0-P3)和两个consumer组。consumer组A有两个consumer实例，而组B有四个实例"><br>一个传统队列在server上按顺序保存messages，如果多个consumer从队列中消费数据，那么server以message存储的顺序拿出message。然而，虽然server按照顺序拿出message，但是message以异步方式投递给consumers，因此它们可能在不同的consumer上以不同的顺序到达。这意味着在并行消费的情况中消息的顺序丢失了。消息传输系统通过一个”exclusive consumer”的概念来解决这个问题，它只允许一个进程从队列中消费，但是这意味着没有并行处理。<br>Kafka做的更好一些。通过一个并行概念-partition-在topics中，Kafka能够在一个consumer进程池上同时提供顺序保证和负载均衡。这是通过将topic中的partitions分配给consumer组中的consumers来完成的，因此每个partition有组中确切的一个consumer来消费。通过这样，我们确保consumer值读取那一个partition，并以顺序消费数据。因为有很多partitions在很多consumer实例上是均衡负载的。注意，一个consumer组中的consumer实例不能多余partitions的数量。<br>Kafka只是在一个partition中提供了一个整体的顺序，而不是在一个topic的不同partition之间。对于大多applications，每个分区的排序联合根据key划分数据的能力是充分的。如果你要求在message上有整体的顺序，这可以通过使用一个topic只有一个partition来完成，这也意味着每个consuemr组只有一个consumer进程。</p>
+<h3 id="Guarantees"><a href="#Guarantees" class="headerlink" title="Guarantees"></a>Guarantees</h3><p>在高层次上，Kafka给了如下的保证：</p>
+<ul>
+<li>由一个producer发送到一个特定topic partition的Messages将会以它们被发送的顺序添加。那就是，如果一个message M1与发送message M2的producer是一个，并且M1先被发送，那么M1将有一个比M2小的offset，并且要比M2更早的添加到日志中。</li>
+<li>一个consumer看到messages的顺序是messages存储的顺序。</li>
+<li>对于使用了复制因子为N的topic，在不丢失任何提交到log的messages丢失，我们允许最多N-1个server故障。</li>
+</ul>
+<p>这些保证的更多细节在文档的design章节中给出。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/09/28/kafka-document/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/09/21/flume-install/" itemprop="url">
+                  Flume Install
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-09-21T21:01:12+08:00" content="2016-09-21">
+              2016-09-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Flume/" itemprop="url" rel="index">
+                    <span itemprop="name">Flume</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要介绍自己在生产中使用flume的实际配置，以便以后查询。如果能够为他人提供参考，荣幸之至。<br>在Flume中分为三个部分source、channel和sink。source主要用于接收数据，sink用于写出数据，channel作为source和sink的连接、保存和转发使用。其中非常好用的是，channel可以使用Kafka，从而使得Flume具有了超强的存储能力，如果在加上可靠的source和sink，完全可以保证数据零丢失。<br>本文使用的例子中采用的是内存channel，这种channel的缺点是存储长度有限，重启数据丢失，有点就是速度快，低延迟。至于source，使用的是avro。最后是sink，因为我得目的是将数据写入到HDFS中，以后Hadoop集群或Spark集群进行计算，因此使用的hdfs类型的sink。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/09/21/flume-install/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/09/18/ganglia-installAndConfig/" itemprop="url">
                   Ganglia Install And Config
                 </a>
@@ -1835,7 +2308,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-count">37</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -1843,7 +2316,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-count">17</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -1852,7 +2325,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-count">21</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
