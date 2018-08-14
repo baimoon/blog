@@ -367,7 +367,7 @@
               
                 
                 <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-SparkSQL-DataFramesAndDatasetsGuide/" itemprop="url">
-                  spark_2.3.1_SparkSQL_DataFramesAndDatasetsGuide
+                  Spark 2.3.1 Spark SQL DataFrames and DatasetsGuide
                 </a>
               
             
@@ -386,9 +386,26 @@
           </span>
 
           
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.3.1</span>
+                  </a>
+                </span>
 
+                
+                
+
+              
+            </span>
           
-            
+
           
 
           
@@ -410,7 +427,20 @@
       
         
           
-            
+            <h1 id="Spark-SQL-DataFrames-and-Dataset-Guide"><a href="#Spark-SQL-DataFrames-and-Dataset-Guide" class="headerlink" title="Spark SQL, DataFrames and Dataset Guide"></a>Spark SQL, DataFrames and Dataset Guide</h1><h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>Spark SQL是一个用于结构化数据处理的Spark模块。与Spark RDD API不同，由Spark SQL提供的这些接口在结构化数据和结构化计算执行方面提供了更多信息。在内部，Spark SQL使用了这个额外信息来执行额外的优化。有几种与Spark SQL交互的方法，包括SQL和Dataset API。当计算一个结果时，相同的计算引擎会被使用，与你执行计算使用的API／语言无关。这种统一意味着开发者能够轻松在那些提供更加原始的方式处理给定转换的不同API之间进行来回切换。<br>本篇中所有例子使用的样例数据包含在Spark中，并能够使用spark-shell、pyspark shell或sparkR shell来运行。</p>
+<h3 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h3><p>Spark SQL的一种用法时执行SQL查询。Spark SQL还能够被用来从Hive实例中读取数据。关于如何配置这个特性，请参考<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#hive-tables" title="Hive Tables " target="_blank" rel="external">Hive Tables</a>。当在另一种编程语言中执行SQL时，结果会作为一个Dataset/DataFrame来返回。你还能够使用<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#running-the-spark-sql-cli" title="command-line" target="_blank" rel="external">command-line</a>或<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#running-the-thrift-jdbcodbc-server" title="JDBC/ODBC" target="_blank" rel="external">JDBC/ODBC</a>的方式与SQL接口进行交互。</p>
+<h3 id="Datasets-and-DataFrames"><a href="#Datasets-and-DataFrames" class="headerlink" title="Datasets and DataFrames"></a>Datasets and DataFrames</h3><p>一个Dataset就是一个分布式数据集。Dataset作为一个新接口在Spark 1.6中被添加，它提供了RDD的优点（强类型、能够使用强大的lambda函数）和Spark SQL的优化执行引擎的有点。一个Dataset能够根据JVM对象来构造，然后使用函数转换（map、flatMap、filter）进行操作。Dataset的API在Scala和Java中时可用的。Python还不支持Dataset API。但是因为Python的动态特性，Dataset API的很多优点已经可用了（例如你可以很自然的通过名称来访问某一行的一个字段 row.columnName）。对于R语言也是如此。<br>一个DataFrame是一个带有列名的数据集。它在概念上等同于关系数据库中的一个表或者一个是R语言或Python语言中data frame，但是底层具更加优化。DataFrame可以根据各种资源进行构建，例如：结构化的数据文件、Hive中的表、外部数据库以及已经存在的RDD。DataFrame API在Scala、Java、Python和R语言中都可用。在Scala和Java中，一个DataFrame相当于一个有很多行的Dataset。在<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset" title="Scala API" target="_blank" rel="external">Scala API</a>中，DataFrame相当于一个Dataset[Row]类型。而在<a href="http://spark.apache.org/docs/latest/api/java/index.html?org/apache/spark/sql/Dataset.html" title="Java API" target="_blank" rel="external">Java API</a>中，用户需要使用Dataset<row>来表述一个DataFrame。<br>在本文中，我们将经常引用Scala/Java由有Row组成的Dataset来表述DataFrame。</row></p>
+<h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><h3 id="Starting-Point-SparkSession"><a href="#Starting-Point-SparkSession" class="headerlink" title="Starting Point: SparkSession"></a>Starting Point: SparkSession</h3><p>Spark中，所有功能的切入点是<a href="http://spark.apache.org/docs/latest/api/java/index.html#org.apache.spark.sql.SparkSession" title="SparkSession" target="_blank" rel="external">SparkSession</a>类。要创建一个基本的SparkSession，只需要使用SparkSession.builder()<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</div><div class="line"></div><div class="line">SparkSession spark = SparkSession</div><div class="line">  .builder()</div><div class="line">  .appName(<span class="string">"Java Spark SQL basic example"</span>)</div><div class="line">  .config(<span class="string">"spark.some.config.option"</span>, <span class="string">"some-value"</span>)</div><div class="line">  .getOrCreate();</div></pre></td></tr></table></figure></p>
+<p>在Spark库的“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”目录下，查看完整的示例代码。<br>SparkSession是Spark 2.0的内置功能，用于提供Hive特性，包括用来写HiveQL查询、<br>访问Hive UDFs已经从Hive表中读取数据。要使用这些特性，你不需要配置Hive。</p>
+<h3 id="Creating-DataFrames"><a href="#Creating-DataFrames" class="headerlink" title="Creating DataFrames"></a>Creating DataFrames</h3><p>使用SparkSession，application能够从一个已经存在的RDD、一个Hive表或<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#data-sources" title="Spark data sources" target="_blank" rel="external">Spark data sources</a>来创建DataFrame。<br>作为一个例子，下面的代码根据一个JSON文件中的内容来创建一个DataFrame：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; df = spark.read().json(<span class="string">"examples/src/main/resources/people.json"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Displays the content of the DataFrame to stdout</span></div><div class="line">df.show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div></pre></td></tr></table></figure></p>
+<p>完整的代码，请查看Spark库中的“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”。</p>
+<h3 id="Untyped-Dataset-Operations-aka-DataFrame-Operations"><a href="#Untyped-Dataset-Operations-aka-DataFrame-Operations" class="headerlink" title="Untyped Dataset Operations(aka DataFrame Operations)"></a>Untyped Dataset Operations(aka DataFrame Operations)</h3><p>在Scala、Java、Python和R语言中，DataFrames针对不同的语言提供不同的结构化数据操作。正如上面提到的，在Spark2.0中，在Scala和Java的API中，DataFrames是以Dataset<row>来表述的。这些操作也被称为“无类型转换”，与强类型转换的Scala/Java Dataset的类型形成对比。<br>这里，我们展示了使用Dataset进行结构化数据处理的基本示例：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// col("...") is preferable to df.col("...")</span></div><div class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.apache.spark.sql.functions.col;</div><div class="line"></div><div class="line"><span class="comment">// Print the schema in a tree format</span></div><div class="line">df.printSchema();</div><div class="line"><span class="comment">// root</span></div><div class="line"><span class="comment">// |-- age: long (nullable = true)</span></div><div class="line"><span class="comment">// |-- name: string (nullable = true)</span></div><div class="line"></div><div class="line"><span class="comment">// Select only the "name" column</span></div><div class="line">df.select(<span class="string">"name"</span>).show();</div><div class="line"><span class="comment">// +-------+</span></div><div class="line"><span class="comment">// |   name|</span></div><div class="line"><span class="comment">// +-------+</span></div><div class="line"><span class="comment">// |Michael|</span></div><div class="line"><span class="comment">// |   Andy|</span></div><div class="line"><span class="comment">// | Justin|</span></div><div class="line"><span class="comment">// +-------+</span></div><div class="line"></div><div class="line"><span class="comment">// Select everybody, but increment the age by 1</span></div><div class="line">df.select(col(<span class="string">"name"</span>), col(<span class="string">"age"</span>).plus(<span class="number">1</span>)).show();</div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"><span class="comment">// |   name|(age + 1)|</span></div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"><span class="comment">// |Michael|     null|</span></div><div class="line"><span class="comment">// |   Andy|       31|</span></div><div class="line"><span class="comment">// | Justin|       20|</span></div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"></div><div class="line"><span class="comment">// Select people older than 21</span></div><div class="line">df.filter(col(<span class="string">"age"</span>).gt(<span class="number">21</span>)).show();</div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// |age|name|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// | 30|Andy|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"></div><div class="line"><span class="comment">// Count people by age</span></div><div class="line">df.groupBy(<span class="string">"age"</span>).count().show();</div><div class="line"><span class="comment">// +----+-----+</span></div><div class="line"><span class="comment">// | age|count|</span></div><div class="line"><span class="comment">// +----+-----+</span></div><div class="line"><span class="comment">// |  19|    1|</span></div><div class="line"><span class="comment">// |null|    1|</span></div><div class="line"><span class="comment">// |  30|    1|</span></div><div class="line"><span class="comment">// +----+-----+</span></div></pre></td></tr></table></figure></row></p>
+<p>完整的样例代码，查看Spark库的examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java。<br>在Dataset上能够执行的操作类型列表，可以查看<a href="http://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/Dataset.html" title="API Document" target="_blank" rel="external">API Document</a>。<br>除了简单的列引用和计算外，Dataset还有一个丰富的函数库，包括字符串的操作、日期的计算以及常用的数学操作等。完整的列表可以在<a href="http://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/functions.html" title="DataFrame Function Reference" target="_blank" rel="external">DataFrame Function Reference</a>找到。</p>
+<h3 id="Running-SQL-Queries-Programmatically"><a href="#Running-SQL-Queries-Programmatically" class="headerlink" title="Running SQL Queries Programmatically"></a>Running SQL Queries Programmatically</h3><p>SparkSession上的sql函数使application能够执行SQL查询，并返回一个Dataset<row>作为结果。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">import org.apache.spark.sql.Dataset;</div><div class="line">import org.apache.spark.sql.Row;</div><div class="line"></div><div class="line">// Register the DataFrame as a SQL temporary view</div><div class="line">df.createOrReplaceTempView(&quot;people&quot;);</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; sqlDF = spark.sql(&quot;SELECT * FROM people&quot;);</div><div class="line">sqlDF.show();</div><div class="line">// +----+-------+</div><div class="line">// | age|   name|</div><div class="line">// +----+-------+</div><div class="line">// |null|Michael|</div><div class="line">// |  30|   Andy|</div><div class="line">// |  19| Justin|</div><div class="line">// +----+-------+</div></pre></td></tr></table></figure></row></p>
+<p>完整的代码，请查看Spark库中的 examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java 。</p>
+<h3 id="Global-Temporary-View"><a href="#Global-Temporary-View" class="headerlink" title="Global Temporary View"></a>Global Temporary View</h3><p>在Spark SQL中，临时视图是session范围的，将会伴随着创建它的那个session的终止而消失。如果你想要跨session共享一个临时视图，并让它存活到application终止，你可以创建一个全局临时视图。全局视图与一个名为‘global_temp’的由系统保护的数据库进行绑定，我们必须使用这个特殊的名字来引用它，如：SELECT * FROM global_temp.view1。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Register the DataFrame as a global temporary view</span></div><div class="line">df.createGlobalTempView(<span class="string">"people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Global temporary view is tied to a system preserved database `global_temp`</span></div><div class="line">spark.sql(<span class="string">"SELECT * FROM global_temp.people"</span>).show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"></div><div class="line"><span class="comment">// Global temporary view is cross-session</span></div><div class="line">spark.newSession().sql(<span class="string">"SELECT * FROM global_temp.people"</span>).show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div></pre></td></tr></table></figure></p>
+<p>完整的代码，请查看“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”。</p>
+<h3 id="Creating-Datasets"><a href="#Creating-Datasets" class="headerlink" title="Creating Datasets"></a>Creating Datasets</h3>
           
         
       
@@ -1942,118 +1972,6 @@
             
               
                 
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
                 <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
                   Python Datetime
                 </a>
@@ -2120,6 +2038,118 @@
               阅读全文 &raquo;
             </a>
           </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
+                  Python Subprocess
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
+              2017-02-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
+<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
+
+          
         
       
     </div>
