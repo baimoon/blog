@@ -90,7 +90,7 @@
 <meta property="og:url" content="http://baimoon.github.io/2018/08/10/spark-2-3-1-SparkSQL-DataFramesAndDatasetsGuide/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
 <meta property="og:description" content="Spark SQL, DataFrames and Dataset GuideOverviewSpark SQL是一个用于结构化数据处理的Spark模块。与Spark RDD API不同，由Spark SQL提供的这些接口在结构化数据和结构化计算执行方面提供了更多信息。在内部，Spark SQL使用了这个额外信息来执行额外的优化。有几种与Spark SQL交互的方法，包括SQL和Dataset A">
-<meta property="og:updated_time" content="2018-08-15T11:09:53.000Z">
+<meta property="og:updated_time" content="2018-08-16T11:10:17.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark 2.3.1 Spark SQL DataFrames and DatasetsGuide">
 <meta name="twitter:description" content="Spark SQL, DataFrames and Dataset GuideOverviewSpark SQL是一个用于结构化数据处理的Spark模块。与Spark RDD API不同，由Spark SQL提供的这些接口在结构化数据和结构化计算执行方面提供了更多信息。在内部，Spark SQL使用了这个额外信息来执行额外的优化。有几种与Spark SQL交互的方法，包括SQL和Dataset A">
@@ -487,10 +487,199 @@
 <tbody>
 <tr>
 <td style="text-align:left">fileFormat</td>
+<td style="text-align:left">用来说明文件格式的存储格式包，包括”serde”、”input format”和”output format”。当前我们支持6中文件格式：sequencefile、rcfile、orc、parquet、textfile和avro。</td>
+</tr>
+<tr>
+<td style="text-align:left">inputFormat\outputFormat</td>
+<td style="text-align:left">这两个选项用来指定”InputFormat“和”OutputFormat“类的名字，例如：org.apache.hadoop.hive.qllio.orc.OrcInputFormat。这两个选项应该成对出现，如果你设置了”fileFormat”选项，那么你不能分别指定它们。</td>
+</tr>
+<tr>
+<td style="text-align:left">serde</td>
+<td style="text-align:left">这个选项指定了一个serde类。当设置了‘fileFormat’选项时，如果给定的‘fileFormat’已经包含了serde信息，那么不要设置这个选项。目前，“sequencefile”、“textfile”和“rcfile”不包含serde信息，因此你可以为这3种文件格式设置此选项。</td>
+</tr>
+<tr>
+<td style="text-align:left">fieldDelim, escapeDelim, collectionDelim, mapkeyDelim, lineDelim</td>
+<td style="text-align:left">这个选项只能被用于”textfile”的文件格式。它们定义了文件的换行符。</td>
 </tr>
 </tbody>
 </table>
-<h4 id="Interacting-with-Different-Versions-of-Hive-Metastore"><a href="#Interacting-with-Different-Versions-of-Hive-Metastore" class="headerlink" title="Interacting with Different Versions of Hive Metastore"></a>Interacting with Different Versions of Hive Metastore</h4>
+<p>其他属性使用OPTIONS进行定义，将作为Hive serde属性来考虑。</p>
+<h4 id="Interacting-with-Different-Versions-of-Hive-Metastore"><a href="#Interacting-with-Different-Versions-of-Hive-Metastore" class="headerlink" title="Interacting with Different Versions of Hive Metastore"></a>Interacting with Different Versions of Hive Metastore</h4><p>Spark SQL的Hive支持的最重要部分是与Hive metastore的交互，它使Spark SQL能够访问Hive表中的metadata。从Spark 1.4.0开始，使用下面描述的配置，Spark有一个独立的包用来访问不同版本的Hive metadata。注意，无论要去访问的metastore的Hive是什么版本，在Spark SQL内部将针对Hive 1.2.1进行编译，并使用这些类作为内部执行（serdes、UDFs、UDAFs等）。<br>下面的选项能够被用来配置获取metadata的Hive的版本：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property Name</th>
+<th style="text-align:left">Default</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">spark.sql.hive.metastore.version</td>
+<td style="text-align:left">1.2.1</td>
+<td style="text-align:left">Hive metadata的版本。可用的选项从0.12.0到1.2.1</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.hive.metastore.jars</td>
+<td style="text-align:left">builtin</td>
+<td style="text-align:left">被用于实例化HiveMetastoreClient的jar的位置。这个属性有三个选项：<br>1）builtin： 使用Hive 1.2.1，当-Phive被启用时，它与Spark assembly绑定。当这个选择了这个选项，spark.sql.hive.metastore.version必须是1.2.1或为定义。<br> 2) maven：从Maven库中下载指定版本的Hive jars。这个配置对于生产环境通常不推荐。<br> 3）JVM的标准classpath格式。这个classpath必须包含了Hive和它的依赖，以及对应的版本的Hadoop。这些jar只需要存在于driver上，但是如果你实在yarn资源管理器的集群上，那么你必须确保它们和你的application一起被打包。</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.hive.metastore. sharedPrefixes</td>
+<td style="text-align:left">com.mysql.jdbc,org.postgresql, com.microsoft.sqlserver,oracla.jdbc</td>
+<td style="text-align:left">那些需要使用类加载器加载的用于在Spark SQL和指定版本的Hive之间共享的类前缀，类前缀是一个逗号分隔的列表。一个需要被共享的类就是JDBC driver，它需要访问metastore。其他需要共享的类是那些需要与已经共享类交互的类。例如，由log4j使用的自定义appender。</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.hive.metastore. barrierPrefixes</td>
+<td style="text-align:left">(empty)</td>
+<td style="text-align:left">Spark SQL所连接的每个版本的Hive都应明确加载的类的前缀，列表以逗号分隔。例如，通常需要被共享的Hive UDFs在一个前缀中被声明（如，org.apache.spark.*）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="JDBC-To-Other-Databases"><a href="#JDBC-To-Other-Databases" class="headerlink" title="JDBC To Other Databases"></a>JDBC To Other Databases</h3><p>Spark SQL还有一个数据源，可以使用JDBC从其他数据库读取数据。这个功能比使用<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.JdbcRDD" title="jdbcRDD" target="_blank" rel="external">jdbcRDD</a>更加受欢迎。这是因为结果是作为一个DataFrame被返回，这样很容易的使用Spark SQL进行处理或与其他数据源相连接。JDBC数据源在Java或Python中使用起来也很容易，因为它不需要用户提供一个ClassTag。（注意，这不同于Spark SQL JDBC Server，Spark SQL JDBC Server允许其他application使用Spark SQL运行查询）<br>你需要在spark classpath中添加对应数据库的JDBC driver。例如，要从Spark shell连接到postgres，你应该运行如下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/spark-shell --driver-class-path postgresql-9.4.1207.jar --jars postgresql-9.4.1207.jar</div></pre></td></tr></table></figure></p>
+<p>使用Data Source API，远程数据库中的表可以被加载为一个DataFrame或Spark SQL临时视图。用户可以在数据源选项中指定JDBC的连接属性。连接通畅需要提供user和password属性，来登陆数据源。除了连接属性外，Spark还支持如下的选项，这些选项忽略大小写：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property Name</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">url</td>
+<td style="text-align:left">进行连接的JDBC URL。特定数据源的连接属性可能会在URL中设置。如：jdbc:postgresql://localhost/test?user=fred&amp;password=secret。</td>
+</tr>
+<tr>
+<td style="text-align:left">dbtable</td>
+<td style="text-align:left">要读取的JDBC表。注意，在SQL查询中的From子句中有效的任何东西，都能使用。例如，你可以在括号中使用子查询来代替全表。</td>
+</tr>
+<tr>
+<td style="text-align:left">driver</td>
+<td style="text-align:left">连接URL的JDBC driver的类名。</td>
+</tr>
+<tr>
+<td style="text-align:left">partitionColumn, lowerBound, upperBound</td>
+<td style="text-align:left">这些选项中的一个被指定，那么所有的都必须被指定。此外，numPartitions必须被指定。它们描述了多个worker并行读取表数据时，应该如何分区。partitionColumn必须是表中的数值列。注意，lowerBound和upperBound仅仅用来决定分区的幅度，而不是过滤表中的行。因此表中的所有行都将被分区并返回。这个选项只能被用于读取。</td>
+</tr>
+<tr>
+<td style="text-align:left">numPartitions</td>
+<td style="text-align:left">并行读写表的最大分区数。这也确定了JDBC连接的最大并发。如果写的分区数量超过了这个限制，我们可以在写数据之前调用coalesce(numPartitions)来减少它。</td>
+</tr>
+<tr>
+<td style="text-align:left">fetchsize</td>
+<td style="text-align:left">JDBC的提取大小，它确定了每次通信能够取得多少行。它能够帮助提升那些默认fetch size低的JDBC dirver的性能（比如，Orache的fetch size为10）。这个选项只能用于读操作。</td>
+</tr>
+<tr>
+<td style="text-align:left">batch</td>
+<td style="text-align:left">JDBC的batch大小，它确定了每次通信能够插入多少行。这能够帮助提升JDBC dirver的性能。这个选项只能用于写操作。默认值为1000。</td>
+</tr>
+<tr>
+<td style="text-align:left">isolationLevel</td>
+<td style="text-align:left">事务的隔离级别，应用于当前连接。它可以是：NONE\READ_COMMITTED\ READ_UNCOMMITTED\REPEATABLE_READ\SERIALIZABLE中的一个，通过JDBC连接对象来定义标准事务的隔离级别，默认为READ_UNCOMMITTED。这个选项只能用于写操作。请参考java.sql.Connection文档。</td>
+</tr>
+<tr>
+<td style="text-align:left">sessionInitStatement</td>
+<td style="text-align:left">session初始化声明。在到远程数据库的session被打开之后，开始读取数据之前，这个选项执行一个自定义语句（PL/SQL块）。使用这个来实现session的初始化代码。例如：option(“色上司哦那I逆天S塔特闷它”， “”“BEGIN execute immediate ‘alter session set “_serial_direct_read”=true’; END; “””)</td>
+</tr>
+<tr>
+<td style="text-align:left">truncate</td>
+<td style="text-align:left">这是一个与JDBC writer相关操作。当启用了SaveMode.Overwrite，这个选项控制删除已存在的表，而不是先drop表然后再创建表。这个更加有效率，并且避免了表的metadata被删除。然而在某些情况下，它无法工作，如新数据有不同的schema。该选项默认值为false。这个选项只用于写操作。</td>
+</tr>
+<tr>
+<td style="text-align:left">createTableOptions</td>
+<td style="text-align:left">这是一个与JDBC writer相关的操作。如果设置，该选项允许在创建表的时候设置特定数据库表和分区的选项（如，CREATE TABLE T(name string) ENGINE=InnoDB）。这个选项只能被用于写操作。</td>
+</tr>
+<tr>
+<td style="text-align:left">createTableColumnTypes</td>
+<td style="text-align:left">当创建表时，用来代替默认的数据库列类型。数据类型信息使用与CREATE TABLE columns语句（如：”name CHAR(64), comments VARCHAR(1024)”）相同的格式被指定。被指定的数据类型应该是有效的spark sql数据类型。本选项只能用于写操作。</td>
+</tr>
+<tr>
+<td style="text-align:left">customSchema</td>
+<td style="text-align:left">自定义schema用于从JDBC连接中读取数据。例如，”id DECIMAL(38, 0), name STRING”。你也可以指定部分字段，其他的时候默认类型映射。例如：”id DECIMAL(38, 0)”。列名称应该与JDBC表的相关列名称一致。用户可以指定Spark SQL的相关数据类型，而不是使用默认的。这个选项只能被用于读操作。</td>
+</tr>
+</tbody>
+</table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Note: JDBC loading and saving can be achieved via either the load/save or jdbc methods</span></div><div class="line"><span class="comment">// Loading data from a JDBC source</span></div><div class="line">Dataset&lt;Row&gt; jdbcDF = spark.read()</div><div class="line">  .format(<span class="string">"jdbc"</span>)</div><div class="line">  .option(<span class="string">"url"</span>, <span class="string">"jdbc:postgresql:dbserver"</span>)</div><div class="line">  .option(<span class="string">"dbtable"</span>, <span class="string">"schema.tablename"</span>)</div><div class="line">  .option(<span class="string">"user"</span>, <span class="string">"username"</span>)</div><div class="line">  .option(<span class="string">"password"</span>, <span class="string">"password"</span>)</div><div class="line">  .load();</div><div class="line"></div><div class="line">Properties connectionProperties = <span class="keyword">new</span> Properties();</div><div class="line">connectionProperties.put(<span class="string">"user"</span>, <span class="string">"username"</span>);</div><div class="line">connectionProperties.put(<span class="string">"password"</span>, <span class="string">"password"</span>);</div><div class="line">Dataset&lt;Row&gt; jdbcDF2 = spark.read()</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div><div class="line"></div><div class="line"><span class="comment">// Saving data to a JDBC source</span></div><div class="line">jdbcDF.write()</div><div class="line">  .format(<span class="string">"jdbc"</span>)</div><div class="line">  .option(<span class="string">"url"</span>, <span class="string">"jdbc:postgresql:dbserver"</span>)</div><div class="line">  .option(<span class="string">"dbtable"</span>, <span class="string">"schema.tablename"</span>)</div><div class="line">  .option(<span class="string">"user"</span>, <span class="string">"username"</span>)</div><div class="line">  .option(<span class="string">"password"</span>, <span class="string">"password"</span>)</div><div class="line">  .save();</div><div class="line"></div><div class="line">jdbcDF2.write()</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div><div class="line"></div><div class="line"><span class="comment">// Specifying create table column data types on write</span></div><div class="line">jdbcDF.write()</div><div class="line">  .option(<span class="string">"createTableColumnTypes"</span>, <span class="string">"name CHAR(64), comments VARCHAR(1024)"</span>)</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div></pre></td></tr></table></figure>
+<p>完整示例代码，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
+<h3 id="Troubleshooting"><a href="#Troubleshooting" class="headerlink" title="Troubleshooting"></a>Troubleshooting</h3><blockquote>
+<p>1、JDBC dirver类对于client session和所有executor的主类加载器是可访问的。这是因为Java的DriverManager会做一个安全检查，当DriverManager要打开一个连接时，检查结果会忽略所有主类加载器无法访问的driver。一个简便的方法是修改所有worker节点的compute_classpath.sh来包含你的driver JAR。<br>2、一些数据库，如H2，需要将所有名字转换为大写。你需要在Spark SQL中使用大写来引用那些名字。</p>
+</blockquote>
+<h2 id="Performance-Tuning"><a href="#Performance-Tuning" class="headerlink" title="Performance Tuning"></a>Performance Tuning</h2><p>通过将数据缓存到内存或开启一些创新选项，一些工作量是可以优化提升性能的。</p>
+<h3 id="Caching-Data-In-Memory"><a href="#Caching-Data-In-Memory" class="headerlink" title="Caching Data In Memory"></a>Caching Data In Memory</h3><p>通过调用spark.catalog.cacheTable(“tableName”)或dataFrame.cache()，Spark能够使用内存中列式格式来缓存表。Spark SQL将扫描需要的列，并自动调整压缩，以达到最小的内存使用和GC压力。你可以使用spark.catalog.uncacheTable(“tableName”)，将table从内存中移除。<br>配置内存缓存可以通过两种方式来实现：在SparkSession上调用setConf方法，或者使用SQL来执行SET key=value命令。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property Name</th>
+<th style="text-align:left">Default</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">spark.sql. inMemoryColumnarStorage.compressed</td>
+<td style="text-align:left">true</td>
+<td style="text-align:left">当设置为true的时候，Spark SQL将基于数据的统计自动为每一列选择一种压缩编码器。</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql. imMemoryColumnarStorage.batchSize</td>
+<td style="text-align:left">10000</td>
+<td style="text-align:left">控制列式缓存的批量大小。较大的批量size会影响内存会提高内存的利用率和压缩，但是会产生内存溢出的风险。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Other-Configuration-Options"><a href="#Other-Configuration-Options" class="headerlink" title="Other Configuration Options"></a>Other Configuration Options</h3><p>下面的选项也能够被用来提高查询的效率。随着Spark的优化，这些选项在未来可能会被废弃。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Property Name</th>
+<th style="text-align:left">Default</th>
+<th style="text-align:left">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">spark.sql.files.maxPartitionbytes</td>
+<td style="text-align:left">134217728 (128 MB)</td>
+<td style="text-align:left">读取文件时，单个分区的最大字节数。</td>
+</tr>
+<tr>
+<td style="text-align:left">saprk.sql.files.openCostInBytes</td>
+<td style="text-align:left">4194304 (4 MB)</td>
+<td style="text-align:left">打开一个文件的成本，通过在同一时间能够扫描的字节数来测量。当推送多个文件到一个partition时非常有用。提高这个值会更好，这样写小文件的partition要比写大文件的partition更加快（写小文件的partitin优先调度）。</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.broadcastTimeout</td>
+<td style="text-align:left">300</td>
+<td style="text-align:left">broadcast连接的等待时间，以秒为单位。</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.broadcastJoinThreshold</td>
+<td style="text-align:left">10485760 (10 MB)</td>
+<td style="text-align:left">当执行join操作时，为那些需要广播到所有worker节点的表设置最大字节数。通过设置这个值为-1，广播操作可以被禁用。注意，当前的统计只支持那些运行了ANALYZE TABLE <tablename> COMPUTE STATISTICS命令的Hive Metastore表。</tablename></td>
+</tr>
+<tr>
+<td style="text-align:left">spark.sql.shuffle.partitions</td>
+<td style="text-align:left">200</td>
+<td style="text-align:left">当为join或aggregation操作而混洗数据时，用来配置使用partitions的数量。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Broadcast-Hint-for-SQL-Queries"><a href="#Broadcast-Hint-for-SQL-Queries" class="headerlink" title="Broadcast Hint for SQL Queries"></a>Broadcast Hint for SQL Queries</h3><p>BROADCAST hint指导Spark在使用其他表或视图join指定表时，如何广播指定表。在Spark决定join方法时，broadcast hash join被优先考虑，即使统计高于spark.sql.autoBroadcastJoinThreshold的配置。当join两边都被指定了，Spark广播具有较低统计的那边。注意Spark不保证BHJ（broadcast hash join）总是被选择，因为不是所有的情况都支持BHJ。当broadcast nested loop join被选择时，我们仍然最重提示。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.apache.spark.sql.functions.broadcast;</div><div class="line">broadcast(spark.table(<span class="string">"src"</span>)).join(spark.table(<span class="string">"records"</span>), <span class="string">"key"</span>).show();</div></pre></td></tr></table></figure></p>
+<h2 id="Distributed-SQL-Engine"><a href="#Distributed-SQL-Engine" class="headerlink" title="Distributed SQL Engine"></a>Distributed SQL Engine</h2><p>使用Spark SQL的JDBC/ODBC或command-line interface，Spark SQL也能够具有分布式查询引擎的行为。在这种模式中，终端用户或application能够直接与Spark SQL交互来运行SQL查询，而不需要写任何的代码。</p>
+<h3 id="Running-the-Thrift-JDBC-ODBC-server"><a href="#Running-the-Thrift-JDBC-ODBC-server" class="headerlink" title="Running the Thrift JDBC/ODBC server"></a>Running the Thrift JDBC/ODBC server</h3><p>Thrift JDBC/ODBC server实现了相当于Hive 1.2.1中的HiveServer2。你可以使用Spark或Hive1.2.1的beeline脚本来测试JDBC server。<br>要启动JDBC/ODBC server，在Spark目录中运行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./sbin/start-thriftserver.sh</div></pre></td></tr></table></figure></p>
+<p>这个脚本接受所有bin/spark-submit命令的行的参数，并增加了一个–hiveconf选项用来指定Hive属性。你可以执行 ./sbin/start-thriftserver.sh –help来获取完整的可用属性列表。默认，这个server监听的是本地的10000端口。要想重写这个丢昂扣，你可以修改环境变量：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">export HIVE_SERVER2_THRIFT_PORT=&lt;listening-port&gt;</div><div class="line">export HIVE_SERVER2_THRIFT_BIND_HOST=&lt;listening-host&gt;</div><div class="line">./sbin/start-thriftserver.sh \</div><div class="line">  --master &lt;master-uri&gt; \</div><div class="line">  ...</div></pre></td></tr></table></figure></p>
+<p>或者修改系统属性：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">./sbin/start-thriftserver.sh \</div><div class="line">  --hiveconf hive.server2.thrift.port=&lt;listening-port&gt; \</div><div class="line">  --hiveconf hive.server2.thrift.bind.host=&lt;listening-host&gt; \</div><div class="line">  --master &lt;master-uri&gt;</div><div class="line">  ...</div></pre></td></tr></table></figure></p>
+<p>现在，你可以使用beeline来测试Thrift JDBC/ODBC server：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/beeline</div></pre></td></tr></table></figure></p>
+<p>在beeline中连接JDBC/ODBC server可以使用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">beeline&gt; !connect jdbc:hive2://localhost:10000</div></pre></td></tr></table></figure></p>
+<p>beeline将会询问你用户名和密码。在非安全模式中，输入你机器的用户名和空白的密码。对于安全模式，请遵循<a href="https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients" title="beeline documentation" target="_blank" rel="external">beeline documentation</a>的指导。</p>
+<p>通过替换conf/中hive-site.xml、core-site.mxl和hdfs-site.xml来完成Hive的配置。</p>
+<p>你可能还需要使用Hive提供的beeline脚本。</p>
+<p>Thrift JDBC server还支持通过HTTP协议发送thrift RPC messages。要启用HTTP模式，可以如下修改系统属性，或者修改conf中的hive-site.xml：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hive.server2.transport.mode - Set this to value: http</div><div class="line">hive.server2.thrift.http.port - HTTP port number to listen on; default is 10001</div><div class="line">hive.server2.http.endpoint - HTTP endpoint; default is cliservice</div></pre></td></tr></table></figure></p>
+<p>要进行测试，使用beeline以http模式连接到JDBC/ODBC server：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">beeline&gt; !connect jdbc:hive2://&lt;host&gt;:&lt;port&gt;/&lt;database&gt;?hive.server2.transport.mode=http;hive.server2.thrift.http.path=&lt;http_endpoint&gt;</div></pre></td></tr></table></figure></p>
+<h4 id="Running-the-Spark-SQL-CLI"><a href="#Running-the-Spark-SQL-CLI" class="headerlink" title="Running the Spark SQL CLI"></a>Running the Spark SQL CLI</h4><p>Spark SQL CLI是一个方便的工具用来在本地模式中运行Hive metastore服务并执行来自命令的查询输入。注意，Spark SQL CLI不能与Thrift JDBC server通信，<br>要启动Spark SQL  CLI，在Spark目录中运行如下脚本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-sql</div></pre></td></tr></table></figure></p>
+<p>通过替换conf/中hive-site.xml、core-site.mxl和hdfs-site.xml来完成Hive的配置。</p>
+
       
     </div>
 
@@ -666,7 +855,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-SQL-DataFrames-and-Dataset-Guide"><span class="nav-number">1.</span> <span class="nav-text">Spark SQL, DataFrames and Dataset Guide</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">1.1.</span> <span class="nav-text">Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL"><span class="nav-number">1.1.1.</span> <span class="nav-text">SQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Datasets-and-DataFrames"><span class="nav-number">1.1.2.</span> <span class="nav-text">Datasets and DataFrames</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Getting-Started"><span class="nav-number">1.2.</span> <span class="nav-text">Getting Started</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Starting-Point-SparkSession"><span class="nav-number">1.2.1.</span> <span class="nav-text">Starting Point: SparkSession</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-DataFrames"><span class="nav-number">1.2.2.</span> <span class="nav-text">Creating DataFrames</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Untyped-Dataset-Operations-aka-DataFrame-Operations"><span class="nav-number">1.2.3.</span> <span class="nav-text">Untyped Dataset Operations(aka DataFrame Operations)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-SQL-Queries-Programmatically"><span class="nav-number">1.2.4.</span> <span class="nav-text">Running SQL Queries Programmatically</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Global-Temporary-View"><span class="nav-number">1.2.5.</span> <span class="nav-text">Global Temporary View</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-Datasets"><span class="nav-number">1.2.6.</span> <span class="nav-text">Creating Datasets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Interoperating-with-RDDs"><span class="nav-number">1.2.7.</span> <span class="nav-text">Interoperating with RDDs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Inferring-the-Schema-Using-Reflection"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">Inferring the Schema Using Reflection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Programmatically-Specifying-the-Schema"><span class="nav-number">1.2.7.2.</span> <span class="nav-text">Programmatically Specifying the Schema</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Aggregations"><span class="nav-number">1.2.8.</span> <span class="nav-text">Aggregations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Untyped-User-Defined-Aggregate-Functions"><span class="nav-number">1.2.8.1.</span> <span class="nav-text">Untyped User-Defined Aggregate Functions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-Safe-User-Defined-Aggregate-Functions"><span class="nav-number">1.2.8.2.</span> <span class="nav-text">Type-Safe User-Defined Aggregate Functions</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-Sources"><span class="nav-number">1.3.</span> <span class="nav-text">Data Sources</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Generic-Load-Save-Functions"><span class="nav-number">1.3.1.</span> <span class="nav-text">Generic Load/Save Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Manually-Specifying-Options"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Manually Specifying Options</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Run-SQL-on-files-directly"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Run SQL on files directly</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Save-Modes"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">Save Modes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Saving-to-Persistent-Tables"><span class="nav-number">1.3.1.4.</span> <span class="nav-text">Saving to Persistent Tables</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Bucketing-Sorting-and-Partitioning"><span class="nav-number">1.3.1.5.</span> <span class="nav-text">Bucketing, Sorting and Partitioning</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parquet-Files"><span class="nav-number">1.3.2.</span> <span class="nav-text">Parquet Files</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Loading-Data-Programmatically"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Loading Data Programmatically</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Partition-Discovery"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Partition Discovery</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Schema-Merging"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Schema Merging</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hive-metastore-Parquet-table-conversion"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Hive metastore Parquet table conversion</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Hive-Parquet-Schema-Reconciliation"><span class="nav-number">1.3.2.4.1.</span> <span class="nav-text">Hive/Parquet Schema Reconciliation</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Metadata-Refreshing"><span class="nav-number">1.3.2.4.2.</span> <span class="nav-text">Metadata Refreshing</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Configuration"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Configuration</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ORC-Files"><span class="nav-number">1.3.3.</span> <span class="nav-text">ORC Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JSON-Datasets"><span class="nav-number">1.3.4.</span> <span class="nav-text">JSON Datasets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hive-Tables"><span class="nav-number">1.3.5.</span> <span class="nav-text">Hive Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Specifying-storage-format-for-Hive-table"><span class="nav-number">1.3.5.1.</span> <span class="nav-text">Specifying storage format for Hive table</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Interacting-with-Different-Versions-of-Hive-Metastore"><span class="nav-number">1.3.5.2.</span> <span class="nav-text">Interacting with Different Versions of Hive Metastore</span></a></li></ol></li></ol></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark-SQL-DataFrames-and-Dataset-Guide"><span class="nav-number">1.</span> <span class="nav-text">Spark SQL, DataFrames and Dataset Guide</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Overview"><span class="nav-number">1.1.</span> <span class="nav-text">Overview</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SQL"><span class="nav-number">1.1.1.</span> <span class="nav-text">SQL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Datasets-and-DataFrames"><span class="nav-number">1.1.2.</span> <span class="nav-text">Datasets and DataFrames</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Getting-Started"><span class="nav-number">1.2.</span> <span class="nav-text">Getting Started</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Starting-Point-SparkSession"><span class="nav-number">1.2.1.</span> <span class="nav-text">Starting Point: SparkSession</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-DataFrames"><span class="nav-number">1.2.2.</span> <span class="nav-text">Creating DataFrames</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Untyped-Dataset-Operations-aka-DataFrame-Operations"><span class="nav-number">1.2.3.</span> <span class="nav-text">Untyped Dataset Operations(aka DataFrame Operations)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-SQL-Queries-Programmatically"><span class="nav-number">1.2.4.</span> <span class="nav-text">Running SQL Queries Programmatically</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Global-Temporary-View"><span class="nav-number">1.2.5.</span> <span class="nav-text">Global Temporary View</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Creating-Datasets"><span class="nav-number">1.2.6.</span> <span class="nav-text">Creating Datasets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Interoperating-with-RDDs"><span class="nav-number">1.2.7.</span> <span class="nav-text">Interoperating with RDDs</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Inferring-the-Schema-Using-Reflection"><span class="nav-number">1.2.7.1.</span> <span class="nav-text">Inferring the Schema Using Reflection</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Programmatically-Specifying-the-Schema"><span class="nav-number">1.2.7.2.</span> <span class="nav-text">Programmatically Specifying the Schema</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Aggregations"><span class="nav-number">1.2.8.</span> <span class="nav-text">Aggregations</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Untyped-User-Defined-Aggregate-Functions"><span class="nav-number">1.2.8.1.</span> <span class="nav-text">Untyped User-Defined Aggregate Functions</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Type-Safe-User-Defined-Aggregate-Functions"><span class="nav-number">1.2.8.2.</span> <span class="nav-text">Type-Safe User-Defined Aggregate Functions</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Data-Sources"><span class="nav-number">1.3.</span> <span class="nav-text">Data Sources</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Generic-Load-Save-Functions"><span class="nav-number">1.3.1.</span> <span class="nav-text">Generic Load/Save Functions</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Manually-Specifying-Options"><span class="nav-number">1.3.1.1.</span> <span class="nav-text">Manually Specifying Options</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Run-SQL-on-files-directly"><span class="nav-number">1.3.1.2.</span> <span class="nav-text">Run SQL on files directly</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Save-Modes"><span class="nav-number">1.3.1.3.</span> <span class="nav-text">Save Modes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Saving-to-Persistent-Tables"><span class="nav-number">1.3.1.4.</span> <span class="nav-text">Saving to Persistent Tables</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Bucketing-Sorting-and-Partitioning"><span class="nav-number">1.3.1.5.</span> <span class="nav-text">Bucketing, Sorting and Partitioning</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Parquet-Files"><span class="nav-number">1.3.2.</span> <span class="nav-text">Parquet Files</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Loading-Data-Programmatically"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Loading Data Programmatically</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Partition-Discovery"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">Partition Discovery</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Schema-Merging"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">Schema Merging</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Hive-metastore-Parquet-table-conversion"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">Hive metastore Parquet table conversion</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#Hive-Parquet-Schema-Reconciliation"><span class="nav-number">1.3.2.4.1.</span> <span class="nav-text">Hive/Parquet Schema Reconciliation</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#Metadata-Refreshing"><span class="nav-number">1.3.2.4.2.</span> <span class="nav-text">Metadata Refreshing</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Configuration"><span class="nav-number">1.3.2.5.</span> <span class="nav-text">Configuration</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ORC-Files"><span class="nav-number">1.3.3.</span> <span class="nav-text">ORC Files</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JSON-Datasets"><span class="nav-number">1.3.4.</span> <span class="nav-text">JSON Datasets</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Hive-Tables"><span class="nav-number">1.3.5.</span> <span class="nav-text">Hive Tables</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Specifying-storage-format-for-Hive-table"><span class="nav-number">1.3.5.1.</span> <span class="nav-text">Specifying storage format for Hive table</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Interacting-with-Different-Versions-of-Hive-Metastore"><span class="nav-number">1.3.5.2.</span> <span class="nav-text">Interacting with Different Versions of Hive Metastore</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#JDBC-To-Other-Databases"><span class="nav-number">1.3.6.</span> <span class="nav-text">JDBC To Other Databases</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Troubleshooting"><span class="nav-number">1.3.7.</span> <span class="nav-text">Troubleshooting</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Performance-Tuning"><span class="nav-number">1.4.</span> <span class="nav-text">Performance Tuning</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Caching-Data-In-Memory"><span class="nav-number">1.4.1.</span> <span class="nav-text">Caching Data In Memory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Other-Configuration-Options"><span class="nav-number">1.4.2.</span> <span class="nav-text">Other Configuration Options</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Broadcast-Hint-for-SQL-Queries"><span class="nav-number">1.4.3.</span> <span class="nav-text">Broadcast Hint for SQL Queries</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Distributed-SQL-Engine"><span class="nav-number">1.5.</span> <span class="nav-text">Distributed SQL Engine</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Running-the-Thrift-JDBC-ODBC-server"><span class="nav-number">1.5.1.</span> <span class="nav-text">Running the Thrift JDBC/ODBC server</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Running-the-Spark-SQL-CLI"><span class="nav-number">1.5.1.1.</span> <span class="nav-text">Running the Spark SQL CLI</span></a></li></ol></li></ol></li></ol></li></ol></div>
             
           </div>
         </section>
