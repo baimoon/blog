@@ -1,0 +1,609 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Ambari源码阅读," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="在使用Ambari的过程中遇到了好多问题，比如删除一个cluster（使用ambari-server reset命令）后，重启Ambari Server之后一直报错，提示找不到集群。尝试各种方法之后，无法找到满意的解决之道的情况下，只好硬着头皮读读源码，了解一下Ambari的启动机制。在此记下源码阅读的笔记和心得。
+首先分析一下Ambari Server的启动脚本(ambari-server.py">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Ambari Resource 01">
+<meta property="og:url" content="http://baimoon.github.io/2018/09/04/ambari-resource/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="在使用Ambari的过程中遇到了好多问题，比如删除一个cluster（使用ambari-server reset命令）后，重启Ambari Server之后一直报错，提示找不到集群。尝试各种方法之后，无法找到满意的解决之道的情况下，只好硬着头皮读读源码，了解一下Ambari的启动机制。在此记下源码阅读的笔记和心得。
+首先分析一下Ambari Server的启动脚本(ambari-server.py">
+<meta property="og:updated_time" content="2018-09-04T08:38:34.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Ambari Resource 01">
+<meta name="twitter:description" content="在使用Ambari的过程中遇到了好多问题，比如删除一个cluster（使用ambari-server reset命令）后，重启Ambari Server之后一直报错，提示找不到集群。尝试各种方法之后，无法找到满意的解决之道的情况下，只好硬着头皮读读源码，了解一下Ambari的启动机制。在此记下源码阅读的笔记和心得。
+首先分析一下Ambari Server的启动脚本(ambari-server.py">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/09/04/ambari-resource/"/>
+
+  <title> Ambari Resource 01 | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Ambari Resource 01
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-04T15:03:02+08:00" content="2018-09-04">
+              2018-09-04
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>在使用Ambari的过程中遇到了好多问题，比如删除一个cluster（使用ambari-server reset命令）后，重启Ambari Server之后一直报错，提示找不到集群。尝试各种方法之后，无法找到满意的解决之道的情况下，只好硬着头皮读读源码，了解一下Ambari的启动机制。在此记下源码阅读的笔记和心得。</p>
+<p>首先分析一下Ambari Server的启动脚本(ambari-server.py)，以便了解Ambari Server是如何启动的。</p>
+<p>首先看入口函数<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    mainBody()</div><div class="line">  <span class="keyword">except</span> (KeyboardInterrupt, EOFError):</div><div class="line">    print(<span class="string">"\nAborting ... Keyboard Interrupt."</span>)</div><div class="line">    sys.exit(<span class="number">1</span>)</div></pre></td></tr></table></figure></p>
+<p>没什么可说的，就是调用文件中的 mainBody() 方法。</p>
+<h3 id="mainBody方法"><a href="#mainBody方法" class="headerlink" title="mainBody方法"></a>mainBody方法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">mainBody</span><span class="params">()</span>:</span></div><div class="line">  parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">  action = sys.argv[<span class="number">1</span>]</div><div class="line"></div><div class="line">  init_action_parser(action, parser)</div><div class="line">  (options, args) = parser.parse_args()</div><div class="line"></div><div class="line">  <span class="comment"># check if only silent key set</span></div><div class="line">  default_options = parser.get_default_values()</div><div class="line">  silent_options = default_options</div><div class="line">  silent_options.silent = <span class="keyword">True</span></div><div class="line"></div><div class="line">  <span class="keyword">if</span> options == silent_options:</div><div class="line">    options.only_silent = <span class="keyword">True</span></div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    options.only_silent = <span class="keyword">False</span></div><div class="line"></div><div class="line">  <span class="comment"># set verbose</span></div><div class="line">  set_verbose(options.verbose)</div><div class="line">  <span class="keyword">if</span> options.verbose:</div><div class="line">    main(options, args, parser)</div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    <span class="keyword">try</span>:</div><div class="line">      main(options, args, parser)</div><div class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</div><div class="line">      print_error_msg(<span class="string">"Unexpected &#123;0&#125;: &#123;1&#125;"</span>.format((e).__class__.__name__, str(e)) +\</div><div class="line">      <span class="string">"\nFor more info run ambari-server with -v or --verbose option"</span>)</div><div class="line">      sys.exit(<span class="number">1</span>)</div></pre></td></tr></table></figure>
+<p>该方法前面部分就是在处理各种参数以及行为。最终还是落在main方法上。</p>
+<h3 id="main"><a href="#main" class="headerlink" title="main"></a>main</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(options, args, parser)</span>:</span></div><div class="line">  init_logging()</div><div class="line"></div><div class="line">  <span class="comment"># set silent</span></div><div class="line">  set_silent(options.silent)</div><div class="line"></div><div class="line">  <span class="comment"># debug mode</span></div><div class="line">  set_debug_mode_from_options(options)</div><div class="line">  init_debug(options)</div><div class="line"></div><div class="line">  <span class="comment">#perform checks</span></div><div class="line"></div><div class="line">  options.warnings = []</div><div class="line"></div><div class="line">  <span class="keyword">if</span> len(args) == <span class="number">0</span>:</div><div class="line">    <span class="keyword">print</span> parser.print_help()</div><div class="line">    parser.error(<span class="string">"No action entered"</span>)</div><div class="line"></div><div class="line">  action_map = create_user_action_map(args, options)</div><div class="line"></div><div class="line">  action = args[<span class="number">0</span>]</div><div class="line"></div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    action_obj = action_map[action]</div><div class="line">  <span class="keyword">except</span> KeyError:</div><div class="line">    parser.error(<span class="string">"Invalid action: "</span> + action)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> action == SETUP_ACTION:</div><div class="line">    <span class="keyword">if</span> are_cmd_line_db_args_blank(options):</div><div class="line">      options.must_set_database_options = <span class="keyword">True</span></div><div class="line">    <span class="keyword">elif</span> <span class="keyword">not</span> are_cmd_line_db_args_valid(options):</div><div class="line">      parser.error(<span class="string">'All database options should be set. Please see help for the options.'</span>)</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">      options.must_set_database_options = <span class="keyword">False</span></div><div class="line"></div><div class="line">    <span class="comment">#correct database</span></div><div class="line">    fix_database_options(options, parser)</div><div class="line"></div><div class="line">  matches = <span class="number">0</span></div><div class="line">  <span class="keyword">for</span> args_number_required <span class="keyword">in</span> action_obj.possible_args_numbers:</div><div class="line">    matches += int(len(args) == args_number_required)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> matches == <span class="number">0</span>:</div><div class="line">    <span class="keyword">print</span> parser.print_help()</div><div class="line">    possible_args = <span class="string">' or '</span>.join(str(x) <span class="keyword">for</span> x <span class="keyword">in</span> action_obj.possible_args_numbers)</div><div class="line">    parser.error(<span class="string">"Invalid number of arguments. Entered: "</span> + str(len(args)) + <span class="string">", required: "</span> + possible_args)</div><div class="line"></div><div class="line">  options.exit_message = <span class="string">"Ambari Server '%s' completed successfully."</span> % action</div><div class="line">  options.exit_code = <span class="keyword">None</span></div><div class="line"></div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    <span class="keyword">if</span> action <span class="keyword">in</span> _action_option_dependence_map:</div><div class="line">      required, optional = _action_option_dependence_map[action]</div><div class="line">      <span class="keyword">for</span> opt_str, opt_dest <span class="keyword">in</span> required:</div><div class="line">        <span class="keyword">if</span> hasattr(options, opt_dest) <span class="keyword">and</span> getattr(options, opt_dest) <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">          <span class="keyword">print</span> <span class="string">"Missing option &#123;0&#125; for action &#123;1&#125;"</span>.format(opt_str, action)</div><div class="line">          print_action_arguments_help(action)</div><div class="line">          <span class="keyword">print</span> <span class="string">"Run ambari-server.py --help to see detailed description of each option"</span></div><div class="line">          <span class="keyword">raise</span> FatalException(<span class="number">1</span>, <span class="string">"Missing option"</span>)</div><div class="line">    action_obj.execute()</div><div class="line"></div><div class="line">    <span class="keyword">if</span> action_obj.need_restart:</div><div class="line">      pstatus, pid = is_server_runing()</div><div class="line">      <span class="keyword">if</span> pstatus:</div><div class="line">        <span class="keyword">print</span> <span class="string">'NOTE: Restart Ambari Server to apply changes'</span> + \</div><div class="line">              <span class="string">' ("ambari-server restart|stop+start")'</span></div><div class="line"></div><div class="line">    <span class="keyword">if</span> options.warnings:</div><div class="line">      <span class="keyword">for</span> warning <span class="keyword">in</span> options.warnings:</div><div class="line">        print_warning_msg(warning)</div><div class="line">        <span class="keyword">pass</span></div><div class="line">      options.exit_message = <span class="string">"Ambari Server '%s' completed with warnings."</span> % action</div><div class="line">      <span class="keyword">pass</span></div><div class="line">  <span class="keyword">except</span> FatalException <span class="keyword">as</span> e:</div><div class="line">    <span class="keyword">if</span> e.reason <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">      print_error_msg(<span class="string">"Exiting with exit code &#123;0&#125;. \nREASON: &#123;1&#125;"</span>.format(e.code, e.reason))</div><div class="line">      logger.exception(str(e))</div><div class="line">    sys.exit(e.code)</div><div class="line">  <span class="keyword">except</span> NonFatalException <span class="keyword">as</span> e:</div><div class="line">    options.exit_message = <span class="string">"Ambari Server '%s' completed with warnings."</span> % action</div><div class="line">    <span class="keyword">if</span> e.reason <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">      print_warning_msg(e.reason)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> options.exit_message <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">    <span class="keyword">print</span> options.exit_message</div><div class="line"></div><div class="line">  <span class="keyword">if</span> options.exit_code <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:  <span class="comment"># not all actions may return a system exit code</span></div><div class="line">    sys.exit(options.exit_code)</div></pre></td></tr></table></figure>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/Ambari源码阅读/" rel="tag">#Ambari源码阅读</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/08/20/ambari-doc/" rel="next" title="ambari_doc">
+                <i class="fa fa-chevron-left"></i> ambari_doc
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2018/09/05/optparse-python/" rel="prev" title="Python学习之optparse">
+                Python学习之optparse <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#mainBody方法"><span class="nav-number">1.</span> <span class="nav-text">mainBody方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#main"><span class="nav-number">2.</span> <span class="nav-text">main</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

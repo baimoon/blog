@@ -1,0 +1,644 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Python optparse," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="optparse在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。
+简单的使用首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。
+1234567from optparse import OptionParserparser = OptionParser(us">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Python学习之optparse">
+<meta property="og:url" content="http://baimoon.github.io/2018/09/05/optparse-python/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="optparse在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。
+简单的使用首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。
+1234567from optparse import OptionParserparser = OptionParser(us">
+<meta property="og:updated_time" content="2018-09-05T08:17:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python学习之optparse">
+<meta name="twitter:description" content="optparse在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。
+简单的使用首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。
+1234567from optparse import OptionParserparser = OptionParser(us">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/09/05/optparse-python/"/>
+
+  <title> Python学习之optparse | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Python学习之optparse
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-05T11:30:34+08:00" content="2018-09-05">
+              2018-09-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="optparse"><a href="#optparse" class="headerlink" title="optparse"></a>optparse</h1><p>在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。</p>
+<h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><p>首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> optparse <span class="keyword">import</span> OptionParser</div><div class="line">parser = OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line"></div><div class="line">或</div><div class="line"></div><div class="line"><span class="keyword">import</span> optparse</div><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div></pre></td></tr></table></figure>
+<p>可以不写参数，参数用来指定帮助的显示信息，如果没有指定，则默认显示“usage: %prog [options]”。</p>
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">def __init__(self,</div><div class="line">             usage=None,</div><div class="line">             option_list=None,</div><div class="line">             option_class=Option,</div><div class="line">             version=None,</div><div class="line">             conflict_handler=&quot;error&quot;,</div><div class="line">             description=None,</div><div class="line">             formatter=None,</div><div class="line">             add_help_option=True,</div><div class="line">             prog=None,</div><div class="line">             epilog=None):</div><div class="line"></div><div class="line">作者：fuyoufang</div><div class="line">链接：https://www.jianshu.com/p/bec089061742</div><div class="line">來源：简书</div><div class="line">简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</div></pre></td></tr></table></figure>
+<h3 id="add-option函数"><a href="#add-option函数" class="headerlink" title="add_option函数"></a>add_option函数</h3><p>创建OptionParser对象之后，就可以使用add_option来定义命令行参数了<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parsser.add_option(...)</div></pre></td></tr></table></figure></p>
+<h4 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h4><p>add_option的前两参数分别为短参数名和长参数名。其中长参数名可以省略。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, dest=<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="dest"><a href="#dest" class="headerlink" title="dest"></a>dest</h4><p>定义程序内参数值的名字，之后通过这个名字来取参数的值。如果为空，则使用不加“-”的短参数名。</p>
+<h4 id="action"><a href="#action" class="headerlink" title="action"></a>action</h4><p>action是add_option的一个参数，用来指定解析到参数后的操作。默认值为“store”，表示将参数值保存到options对象中。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, action=<span class="string">"store"</span>, dest=<span class="string">"filename"</span>)</div><div class="line">(options, args) = parser.parse_args([<span class="string">"-f"</span>, <span class="string">"myfile.log"</span>])</div><div class="line"><span class="keyword">print</span> options.filename</div></pre></td></tr></table></figure></p>
+<p>其中action值的store还可以有其他两种类型：store_ture和store_false，用来处理不带参数值的参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-g"</span>, action=<span class="string">"store_true"</span>, dest=<span class="string">"isGoodUser"</span>)</div><div class="line">parser.add_option(<span class="string">"-s"</span>, action=<span class="string">"store_false"</span>, dest=<span class="string">"isGoodUser"</span>)</div></pre></td></tr></table></figure></p>
+<p>action可以使用的值出了store_true和store_false之外，还可以使用store、store_const、append、count、callback等。</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>type是add_option方法的一个参数，用来指定参数值的类型，默认为String。还可以指定为“int”、“float”等<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-n"</span>, type=<span class="string">"int"</span>, dest=<span class="string">"num"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="default"><a href="#default" class="headerlink" title="default"></a>default</h4><p>通过add_option方法的default参数可以对命令行参数设置默认值。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, default=<span class="string">"test.log"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="help"><a href="#help" class="headerlink" title="help"></a>help</h4><p>用于指定参数在帮助程序中显示的信息，详细请见下方的“生成帮助”章节。</p>
+<h4 id="metavar"><a href="#metavar" class="headerlink" title="metavar"></a>metavar</h4><p>metavar配合help参数，用于帮助提醒用户该命令行所期待的参数，详细请见下方的“生成帮助”章节。</p>
+<h4 id="choices"><a href="#choices" class="headerlink" title="choices"></a>choices</h4><p>当type为choices时，需要设置此值。</p>
+<h4 id="const"><a href="#const" class="headerlink" title="const"></a>const</h4><p>指定一个常数，配合action为store_const和append_const时一起使用。</p>
+<h3 id="parse-args函数"><a href="#parse-args函数" class="headerlink" title="parse_args函数"></a>parse_args函数</h3><p>一旦定义好了所有的命令行参数，就可以调用parse_args()来解析命令行。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">(options, args) = parser.parse_args()</div></pre></td></tr></table></figure></p>
+<h4 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h4><p>你可以传递一个命令行参数列表给parse_args方法，否则默认使用sys.argv[:1]。<br>parse_args方法有两个返回值：</p>
+<blockquote>
+<p>options optpars.Values对象，保存了所有命令行的值。只要知道命令行参数名，就可以得到。<br>args 一个由 positional arguments组成的列表。</p>
+</blockquote>
+<h3 id="set-defaults函数"><a href="#set-defaults函数" class="headerlink" title="set_defaults函数"></a>set_defaults函数</h3><p>除了在add_option方法中使用default参数设置默认值，还可以使用set_default函数，来统一设置默认值。该方法应该在所有add_option函数之前调用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.set_default(filename=<span class="string">"test.log"</span>, isGoodUser=<span class="keyword">False</span>)</div></pre></td></tr></table></figure></p>
+<p>set_defaults函数，可以用来设置多个默认值。</p>
+<h3 id="has-option方法"><a href="#has-option方法" class="headerlink" title="has_option方法"></a>has_option方法</h3><p>用来检查是否有相应的选项<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.has_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h3 id="remove-option"><a href="#remove-option" class="headerlink" title="remove_option()"></a>remove_option()</h3><p>用来删除相应的选项。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.remove_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h2 id="生成帮助"><a href="#生成帮助" class="headerlink" title="生成帮助"></a>生成帮助</h2><p>optparse的另一个方便的功能便是自动生成帮助，而你需要做的事情就是在调用add_option方法时指定help参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">parser.add_option(<span class="string">"-v"</span>, action=<span class="string">"store_true"</span>, metavar=<span class="string">"参数的期望值"</span>, help=<span class="string">"这是-v的参数的意义"</span>)</div></pre></td></tr></table></figure></p>
+<p>当optparse解析到-h或者–help时，就会调用parser.print_help()方法来打印帮助信息。</p>
+<h2 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h2><h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><p>在出现用户输入无效的、不完整的命令行参数而发生异常时，optparse可以自动检测并处理，比如参数值类型错误等。<br>用户也可以使用parser.error函数来手动抛出异常。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.parse_args()</div><div class="line"><span class="keyword">if</span> parser.isGooodUser:</div><div class="line">    parse.error(<span class="string">"this is an exception"</span>)</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/Python-optparse/" rel="tag">#Python optparse</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/09/04/ambari-resource/" rel="next" title="Ambari Resource 01">
+                <i class="fa fa-chevron-left"></i> Ambari Resource 01
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#optparse"><span class="nav-number">1.</span> <span class="nav-text">optparse</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#简单的使用"><span class="nav-number">1.1.</span> <span class="nav-text">简单的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#构造方法"><span class="nav-number">1.1.1.</span> <span class="nav-text">构造方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#add-option函数"><span class="nav-number">1.1.2.</span> <span class="nav-text">add_option函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数"><span class="nav-number">1.1.2.1.</span> <span class="nav-text">参数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dest"><span class="nav-number">1.1.2.2.</span> <span class="nav-text">dest</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#action"><span class="nav-number">1.1.2.3.</span> <span class="nav-text">action</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#type"><span class="nav-number">1.1.2.4.</span> <span class="nav-text">type</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#default"><span class="nav-number">1.1.2.5.</span> <span class="nav-text">default</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#help"><span class="nav-number">1.1.2.6.</span> <span class="nav-text">help</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metavar"><span class="nav-number">1.1.2.7.</span> <span class="nav-text">metavar</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#choices"><span class="nav-number">1.1.2.8.</span> <span class="nav-text">choices</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#const"><span class="nav-number">1.1.2.9.</span> <span class="nav-text">const</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#parse-args函数"><span class="nav-number">1.1.3.</span> <span class="nav-text">parse_args函数</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#参数-1"><span class="nav-number">1.1.3.1.</span> <span class="nav-text">参数</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set-defaults函数"><span class="nav-number">1.1.4.</span> <span class="nav-text">set_defaults函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#has-option方法"><span class="nav-number">1.1.5.</span> <span class="nav-text">has_option方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#remove-option"><span class="nav-number">1.1.6.</span> <span class="nav-text">remove_option()</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成帮助"><span class="nav-number">1.2.</span> <span class="nav-text">生成帮助</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分组"><span class="nav-number">1.3.</span> <span class="nav-text">分组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#异常处理"><span class="nav-number">1.4.</span> <span class="nav-text">异常处理</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
