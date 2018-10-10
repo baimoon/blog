@@ -248,6 +248,361 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/10/10/spark-2-11-YarnAllocator/" itemprop="url">
+                  spark-2.11-YarnAllocator
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-10T15:51:42+08:00" content="2018-10-10">
+              2018-10-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。</p>
+<h1 id="总体概述"><a href="#总体概述" class="headerlink" title="总体概述"></a>总体概述</h1><p>YarnAllocator的作用是为了分配资源启动Executor。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在YarnAllocator类中，最主要的方法有：allocateResources()、updateResourceRequests()、handleAllocatedContainers()、runAllocatedContainers()和processCompletedContainers()。而整个这些方法的调用，是通过allocateResources()来调用的。基本的流程如下图：</p>
+<h1 id="逐个方法的分析"><a href="#逐个方法的分析" class="headerlink" title="逐个方法的分析"></a>逐个方法的分析</h1><h2 id="allocateResources"><a href="#allocateResources" class="headerlink" title="allocateResources"></a>allocateResources</h2><p>资源分配的入口，首先看方法的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">allocateResources</span></span>(): <span class="type">Unit</span> = synchronized &#123;</div><div class="line">    updateResourceRequests()</div><div class="line"></div><div class="line">    <span class="comment">// 处理指示器</span></div><div class="line">    <span class="keyword">val</span> progressIndicator = <span class="number">0.1</span>f</div><div class="line">    <span class="comment">// Poll the ResourceManager. This doubles as a heartbeat if there are no pending container</span></div><div class="line">    <span class="comment">// requests.</span></div><div class="line">    <span class="comment">// 调用 AMRMClient 分配资源</span></div><div class="line">    <span class="keyword">val</span> allocateResponse = amClient.allocate(progressIndicator)</div><div class="line"></div><div class="line">    <span class="comment">// 得到已经分配的 container</span></div><div class="line">    <span class="keyword">val</span> allocatedContainers = allocateResponse.getAllocatedContainers()</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (allocatedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">// 输出日志信息，包括 分配的container数量，正在运行的以及启动的executor数量，以及可用的资源信息</span></div><div class="line">      logDebug((<span class="string">"Allocated containers: %d. Current executor count: %d. "</span> +</div><div class="line">        <span class="string">"Launching executor count: %d. Cluster resources: %s."</span>)</div><div class="line">        .format(</div><div class="line">          allocatedContainers.size,</div><div class="line">          numExecutorsRunning.get,</div><div class="line">          numExecutorsStarting.get,</div><div class="line">          allocateResponse.getAvailableResources))</div><div class="line"></div><div class="line">      <span class="comment">// 处理已经分配的container</span></div><div class="line">      handleAllocatedContainers(allocatedContainers.asScala)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 获取已经执行完成的 container</span></div><div class="line">    <span class="keyword">val</span> completedContainers = allocateResponse.getCompletedContainersStatuses()</div><div class="line">    <span class="keyword">if</span> (completedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      logDebug(<span class="string">"Completed %d containers"</span>.format(completedContainers.size))</div><div class="line">      <span class="comment">//处理已经完成的container</span></div><div class="line">      processCompletedContainers(completedContainers.asScala)</div><div class="line">      logDebug(<span class="string">"Finished processing %d completed containers. Current running executor count: %d."</span></div><div class="line">        .format(completedContainers.size, numExecutorsRunning.get))</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>这个方法首先就是要更新资源的申请（调用updateResourceRequests()方法，我们稍后再看），然后就是调用AMRMClient（amClient）来分配资源，分配资源的返回值（allocateResponse）会包含三部分信息：已经分配的Container（allocatedContainers）、可用的资源和完成的Container（completedContainers）。对于已经分配的和完成的Container，会有对应的方法去处理；对于可用的资源，只是输出到日志。</p>
+<h2 id="updateResourceRequests"><a href="#updateResourceRequests" class="headerlink" title="updateResourceRequests"></a>updateResourceRequests</h2><p>更新资源的请求信息，首先看方法的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">updateResourceRequests</span></span>(): <span class="type">Unit</span> = &#123;</div><div class="line">    <span class="comment">// 得到正在添加的container 并 得到正在添加 container的数量</span></div><div class="line">    <span class="keyword">val</span> pendingAllocate = getPendingAllocate</div><div class="line">    <span class="keyword">val</span> numPendingAllocate = pendingAllocate.size</div><div class="line"></div><div class="line">    <span class="comment">// 计划要启动的executor数量 - 正在请求启动的executor - 已经启动的executor - 已经运行任务的executor = 缺少多少executor</span></div><div class="line">    <span class="comment">// 所以这里是在计算 比预计要启动的executor，还缺少多少个</span></div><div class="line">    <span class="keyword">val</span> missing = targetNumExecutors - numPendingAllocate -</div><div class="line">      numExecutorsStarting.get - numExecutorsRunning.get</div><div class="line">    logDebug(<span class="string">s"Updating resource requests, target: <span class="subst">$targetNumExecutors</span>, "</span> +</div><div class="line">      <span class="string">s"pending: <span class="subst">$numPendingAllocate</span>, running: <span class="subst">$&#123;numExecutorsRunning.get&#125;</span>, "</span> +</div><div class="line">      <span class="string">s"executorsStarting: <span class="subst">$&#123;numExecutorsStarting.get&#125;</span>"</span>)</div><div class="line"></div><div class="line">    <span class="comment">// &lt;1&gt;</span></div><div class="line">    <span class="comment">// missing 可以为正数 也可能为负数，负数则说明 动态分配分配多了，但是没有超过最大个数，这个数是通过计划启动个数算出来的</span></div><div class="line">    <span class="keyword">if</span> (missing &gt; <span class="number">0</span>) &#123;</div><div class="line">      logInfo(<span class="string">s"Will request <span class="subst">$missing</span> executor container(s), each with "</span> +</div><div class="line">        <span class="string">s"<span class="subst">$&#123;resource.getVirtualCores&#125;</span> core(s) and "</span> +</div><div class="line">        <span class="string">s"<span class="subst">$&#123;resource.getMemory&#125;</span> MB memory (including <span class="subst">$memoryOverhead</span> MB of overhead)"</span>)</div><div class="line"></div><div class="line">      <span class="comment">// 将要添加的container请求拆分到三个组：位置匹配列表、位置不匹配列表 和 无位置列表。</span></div><div class="line">      <span class="comment">// 对于位置匹配的 container 请求，将他们放到可用的地方，等待分配</span></div><div class="line">      <span class="comment">// 对于位置不匹配的和无位置的container请求，取消这些container的请求，因为 位置优先权已经变了，</span></div><div class="line">      <span class="keyword">val</span> (localRequests, staleRequests, anyHostRequests) = splitPendingAllocationsByLocality(</div><div class="line">        hostToLocalTaskCounts, pendingAllocate)</div><div class="line"></div><div class="line">      <span class="comment">// &lt;2&gt;</span></div><div class="line">      <span class="comment">// cancel "stale" requests for locations that are no longer needed</span></div><div class="line">      <span class="comment">// 对于位置不匹配的container，进行移除操作，并记录日志， 移除了N个container</span></div><div class="line">      staleRequests.foreach &#123; stale =&gt;</div><div class="line">        amClient.removeContainerRequest(stale)</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">val</span> cancelledContainers = staleRequests.size</div><div class="line">      <span class="keyword">if</span> (cancelledContainers &gt; <span class="number">0</span>) &#123;</div><div class="line">        logInfo(<span class="string">s"Canceled <span class="subst">$cancelledContainers</span> container request(s) (locality no longer needed)"</span>)</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 计算还可以分配的container的数量，就是 缺少的 + 取消的</span></div><div class="line">      <span class="comment">// 因为cancelledContainers的个数实际上就是从pendingAllocate 中取消的</span></div><div class="line">      <span class="keyword">val</span> availableContainers = missing + cancelledContainers</div><div class="line"></div><div class="line">      <span class="comment">// 计算潜在的container就是 可以分配的container + 上面那些 不限制位置的的contianer的数量</span></div><div class="line">      <span class="keyword">val</span> potentialContainers = availableContainers + anyHostRequests.size</div><div class="line"></div><div class="line">      <span class="comment">// &lt;3&gt;</span></div><div class="line">      <span class="comment">// TODO 这是在弄啥 ？？？ 应该是根据 潜在container的数量，生成对应个的contaner的位置引用</span></div><div class="line">      <span class="keyword">val</span> containerLocalityPreferences = <span class="keyword">if</span> (labelExpression.isEmpty) &#123;</div><div class="line">        containerPlacementStrategy.localityOfRequestedContainers(</div><div class="line">          potentialContainers, numLocalityAwareTasks, hostToLocalTaskCounts,</div><div class="line">          allocatedHostToContainersMap, localRequests)</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="type">Array</span>.empty[<span class="type">ContainerLocalityPreferences</span>]</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 根据上面的containerLocalityPreferences 创建container添加请求（注意是请求）</span></div><div class="line">      <span class="comment">// newLocalityRequest 用来记录要添加的container的请求</span></div><div class="line">      <span class="keyword">val</span> newLocalityRequests = <span class="keyword">new</span> mutable.<span class="type">ArrayBuffer</span>[<span class="type">ContainerRequest</span>]</div><div class="line">      containerLocalityPreferences.foreach &#123;</div><div class="line">        <span class="comment">// createContainerRequest 用来生成container的创建请求</span></div><div class="line">        <span class="keyword">case</span> <span class="type">ContainerLocalityPreferences</span>(nodes, racks) <span class="keyword">if</span> nodes != <span class="literal">null</span> =&gt;</div><div class="line">          newLocalityRequests += createContainerRequest(resource, nodes, racks)</div><div class="line">        <span class="keyword">case</span> _ =&gt;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 需要再次判断 总的container的数量，如果availableContainers &gt; newLocalityRequests 表示，还不够</span></div><div class="line">      <span class="comment">// 为啥 availableContainers 会大于 newLocalityRequests ？ 因为 labelExpression.isEmpty 为空时，会生成一个空的Array</span></div><div class="line">      <span class="keyword">if</span> (availableContainers &gt;= newLocalityRequests.size) &#123;</div><div class="line">        <span class="comment">// more containers are available than needed for locality, fill in requests for any host</span></div><div class="line">        <span class="keyword">for</span> (i &lt;- <span class="number">0</span> until (availableContainers - newLocalityRequests.size)) &#123;</div><div class="line">          <span class="comment">// createContainerRequest 用来生成container的创建请求</span></div><div class="line">          newLocalityRequests += createContainerRequest(resource, <span class="literal">null</span>, <span class="literal">null</span>)</div><div class="line">        &#125;</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line"></div><div class="line">        <span class="comment">// 这里的 newLocalityRequests 实际上对应的个是 potentialContainers = availableContainers + anyHostRequests.size</span></div><div class="line">        <span class="comment">// 因此，如果 newLocalityRequests &gt; availableContainers 则表示生成多了，且 anyHostRequests 的多了</span></div><div class="line"></div><div class="line">        <span class="keyword">val</span> numToCancel = newLocalityRequests.size - availableContainers</div><div class="line">        <span class="comment">// 因此释放到一些多余的 anyHostRequests</span></div><div class="line">        <span class="comment">// cancel some requests without locality preferences to schedule more local containers</span></div><div class="line">        anyHostRequests.slice(<span class="number">0</span>, numToCancel).foreach &#123; nonLocal =&gt;</div><div class="line">          amClient.removeContainerRequest(nonLocal)</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (numToCancel &gt; <span class="number">0</span>) &#123;</div><div class="line">          logInfo(<span class="string">s"Canceled <span class="subst">$numToCancel</span> unlocalized container requests to resubmit with locality"</span>)</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// AMRMClient 请求添加container</span></div><div class="line">      newLocalityRequests.foreach &#123; request =&gt;</div><div class="line">        amClient.addContainerRequest(request)</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (log.isInfoEnabled()) &#123;</div><div class="line">        <span class="keyword">val</span> (localized, anyHost) = newLocalityRequests.partition(_.getNodes() != <span class="literal">null</span>)</div><div class="line">        <span class="keyword">if</span> (anyHost.nonEmpty) &#123;</div><div class="line">          logInfo(<span class="string">s"Submitted <span class="subst">$&#123;anyHost.size&#125;</span> unlocalized container requests."</span>)</div><div class="line">        &#125;</div><div class="line">        localized.foreach &#123; request =&gt;</div><div class="line">          logInfo(<span class="string">s"Submitted container request for host <span class="subst">$&#123;hostStr(request)&#125;</span>."</span>)</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (numPendingAllocate &gt; <span class="number">0</span> &amp;&amp; missing &lt; <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">// 如果不缺少executor，并且还有正在添加的executor</span></div><div class="line"></div><div class="line">      <span class="comment">// 计算要取消的contaner的数量，为什么是最小值，个人这样理解：-missing，其实是多出来的，但是在计算missing的时候，</span></div><div class="line">      <span class="comment">// 已经减去 numPendingAllocate 了，也就是说 numPendingAllocate 认为是已经使用的数量</span></div><div class="line">      <span class="comment">// 因此，如果取最大值，那么当 numPendingAllocate &gt; -missing 时，删除的container就太多了</span></div><div class="line">      <span class="keyword">val</span> numToCancel = math.min(numPendingAllocate, -missing)</div><div class="line">      logInfo(<span class="string">s"Canceling requests for <span class="subst">$numToCancel</span> executor container(s) to have a new desired "</span> +</div><div class="line">        <span class="string">s"total <span class="subst">$targetNumExecutors</span> executors."</span>)</div><div class="line"></div><div class="line">      <span class="comment">// 获取匹配的请求，并且有匹配的数据，则移除这些container（而且我猜测，这里的寻找匹配的请求，是在pending的队列中找的）</span></div><div class="line">      <span class="keyword">val</span> matchingRequests = amClient.getMatchingRequests(<span class="type">RM_REQUEST_PRIORITY</span>, <span class="type">ANY_HOST</span>, resource)</div><div class="line">      <span class="keyword">if</span> (!matchingRequests.isEmpty) &#123;</div><div class="line">        matchingRequests.iterator().next().asScala</div><div class="line">          .take(numToCancel).foreach(amClient.removeContainerRequest)</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        logWarning(<span class="string">"Expected to find pending requests, but found none."</span>)</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p><1> 部分主要就是计算系统是否已经达到了目标个数的executor（container是executor的容易，目前一个container只包含了一个executor），并计算缺少的个数。计算的公式就是val missing = targetNumExecutors - numPendingAllocate - numExecutorsStarting.get - numExecutorsRunning.get。targetNumExecutors是配置中 spark.dynamicAllocation.minExecutors 、spark.dynamicAllocation.initialExecutors 以及 spark.executor.instances 三个配置中的最大值，并且要求 spark.dynamicAllocation.maxExecutors &gt;= spark.dynamicAllocation.initialExecutors &gt;= spark.dynamicAllocation.minExecutors。这里涉及了4个配置项。numPendingAllocate的值调用AMRMClient的getMatchingRequests方法，获取location为*的所有请求。</1></p>
+<p><2> 这一部分就是对添加中的请求（pendingAllocate）进行分类，分为位置自由的、位置匹配的和位置不匹配的。分类的依据是ContainerRequest.getNodes。如果nodes为空，则认为是位置自由的，如果nodes不空，则判断nodes是否hostToLocalTaskCounts的keyset有交集，如果有则认为是匹配的，否则不匹配。这里的匹配和不匹配，大概就是寻找本地的containerRequest（？？？？？？？？？？？？？？？？）。</2></p>
+<3>
+
+
+<h1 id="AMRMClient的一些方法"><a href="#AMRMClient的一些方法" class="headerlink" title="AMRMClient的一些方法"></a>AMRMClient的一些方法</h1><table>
+<thead>
+<tr>
+<th style="text-align:left">方法名</th>
+<th style="text-align:left">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">AllocateResponse allocate(float progressIndicator)</td>
+<td style="text-align:left">请求额外的container并接收新的container的分配。</td>
+</tr>
+<tr>
+<td style="text-align:left">List&lt;? extends Collection<t>&gt; getMatchingRequests(Priority priority, String resourceName, Resource capability)</t></td>
+<td style="text-align:left">获取与给定参数匹配的未完成的请求。</td>
+</tr>
+<tr>
+<td style="text-align:left">void removeContainerRequest(T req)</td>
+<td style="text-align:left">移除之前的container请求。</td>
+</tr>
+</tbody>
+</table>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><h2 id="YarnAllocator运行在哪里？"><a href="#YarnAllocator运行在哪里？" class="headerlink" title="YarnAllocator运行在哪里？"></a>YarnAllocator运行在哪里？</h2><p>## </p>
+</3>
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/09/17/spark-resource-study/" itemprop="url">
+                  Spark Resource Study
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-17T14:36:19+08:00" content="2018-09-17">
+              2018-09-17
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="Core"><a href="#Core" class="headerlink" title="Core"></a>Core</h1><h2 id="Partition-分区"><a href="#Partition-分区" class="headerlink" title="Partition 分区"></a>Partition 分区</h2><p>在Partition特征中，只定义了index，用来表示分区在父级RDD中索引。</p>
+<h2 id="Dependency-依赖"><a href="#Dependency-依赖" class="headerlink" title="Dependency 依赖"></a>Dependency 依赖</h2><p>依赖的定义在 org.apache.spark.Dependency类中，从代码中可以看出，Dependency有2个子类，分别代表了2中类型的依赖，分别为：NarrowDependency和ShuffleDependency。其中NarrowDependency有两个子类：OneToOneDependency和RangeDependency。</p>
+<h2 id="RDD"><a href="#RDD" class="headerlink" title="RDD"></a>RDD</h2><p>RDD是Resilient Distributed Dataset的简称，是Spark中的基本抽象。要实例化一个RDD，需要两个参数：SparkContext和Dependency列表。需要SparkContext是因为SparkContext提供了RDD的一些操作（如生成RDD的id，清理RDD的缓存、缓存RDD等），而Dependency则是因为它表示了RDD的继承关系。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">RDD</span>[<span class="type">T</span>: <span class="type">ClassTag</span>](<span class="params"></span></span></div><div class="line">    @transient private var _sc: <span class="type">SparkContext</span>,</div><div class="line">    @transient private var deps: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]]</div><div class="line">  ) <span class="keyword">extends</span> <span class="title">Serializable</span> <span class="keyword">with</span> <span class="title">Logging</span> &#123;</div></pre></td></tr></table></figure></p>
+<p>此处可以看到RDD的基本构造方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">this</span></span>(<span class="meta">@transient</span> oneParent: <span class="type">RDD</span>[_]) =</div><div class="line">    <span class="keyword">this</span>(oneParent.context, <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(oneParent)))</div></pre></td></tr></table></figure>
+<p>使用已有的RDD构造新的RDD。</p>
+<p>此外，RDD定义了一些抽象，需要子类进行实现：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] -- 计算给定的分区，返回一个迭代器</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getPartitions</span></span>: <span class="type">Array</span>[<span class="type">Partition</span>] -- 返回<span class="type">RDD</span>的所有分区</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = deps -- 返回<span class="type">RDD</span>的到父类<span class="type">RDD</span>的所有依赖</div></pre></td></tr></table></figure></p>
+<h2 id="SparkContext"><a href="#SparkContext" class="headerlink" title="SparkContext"></a>SparkContext</h2><h1 id="wordCount分析"><a href="#wordCount分析" class="headerlink" title="wordCount分析"></a>wordCount分析</h1><p>了解了一些代码之后，决定从wordCount的案例进行分析，以便了解Spark进行计算时的具体操作。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(<span class="string">"master"</span>, <span class="string">"testApplication"</span>);</div><div class="line">sc.hadoopFile(<span class="string">"path"</span>, <span class="number">5</span>).map(_ =&gt; <span class="number">1</span>).count()</div></pre></td></tr></table></figure></p>
+<p>因为在Spark中，transform是延迟执行的，也就是说，action之前的transform只有在遇到后面的action之后，才开始执行。因此上面的代码就要从count()开始。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">count</span></span>(): <span class="type">Long</span> = sc.runJob(<span class="keyword">this</span>, <span class="type">Utils</span>.getIteratorSize _).sum  </div><div class="line"><span class="comment">//Utils.getIteratorSize方法，在之后的代码块中展示，其实现就是根据参数的Iterator，计算一下这个迭代器中的数据个数（猜测迭代器最终是RDD分区的迭代器）</span></div><div class="line"><span class="comment">//这里的runJob的定义是</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">U</span>): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    runJob(rdd, func, <span class="number">0</span> until rdd.partitions.length)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//然后又指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>]): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    <span class="keyword">val</span> cleanedFunc = clean(func)</div><div class="line">    runJob(rdd, (ctx: <span class="type">TaskContext</span>, it: <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; cleanedFunc(it), partitions)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//然后继续指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>]): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    <span class="keyword">val</span> results = <span class="keyword">new</span> <span class="type">Array</span>[<span class="type">U</span>](partitions.size)</div><div class="line">    runJob[<span class="type">T</span>, <span class="type">U</span>](rdd, func, partitions, (index, res) =&gt; results(index) = res)</div><div class="line">    results</div><div class="line">  &#125;</div><div class="line"></div><div class="line"><span class="comment">//继续指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    ...</div><div class="line">    dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, resultHandler, localProperties.get)</div><div class="line">    progressBar.foreach(_.finishAll())</div><div class="line">    rdd.doCheckpoint()</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>最终执行Job落到了 dagScheduler 对象身上<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], callSite: <span class="type">CallSite</span>, resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>, properties: <span class="type">Properties</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    <span class="keyword">val</span> start = <span class="type">System</span>.nanoTime</div><div class="line">    <span class="keyword">val</span> waiter = submitJob(rdd, func, partitions, callSite, resultHandler, properties)</div><div class="line">    ...</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>dagScheduler 的runJob方法中调用submitJob来提交任务</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">submitJob</span></span>[<span class="type">T</span>, <span class="type">U</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], callSite: <span class="type">CallSite</span>, resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>, properties: <span class="type">Properties</span>):<span class="type">JobWaiter</span>[<span class="type">U</span>] = &#123;</div><div class="line">    ...</div><div class="line">    <span class="keyword">val</span> waiter = <span class="keyword">new</span> <span class="type">JobWaiter</span>(<span class="keyword">this</span>, jobId, partitions.size, resultHandler)</div><div class="line">    eventProcessLoop.post(<span class="type">JobSubmitted</span>(jobId, rdd, func2, partitions.toArray, callSite, waiter, <span class="type">SerializationUtils</span>.clone(properties)))</div><div class="line">    waiter</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>最终，通过eventProcessLoop的post将任务提交到了任务执行队列。 这里需要注意的一个问题，加入任务队列的是一个 JobSubmitted对象。为什么要如此处理呢？需要从eventProcessLoop对象入手。<br>eventProcessLoop是DAGSchedulerEventProcessLoop的实例<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="keyword">val</span> eventProcessLoop = <span class="keyword">new</span> <span class="type">DAGSchedulerEventProcessLoop</span>(<span class="keyword">this</span>)</div></pre></td></tr></table></figure></p>
+<p>查看 DAGSchedulerEventProcessLoop 的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="class"><span class="keyword">class</span> <span class="title">DAGSchedulerEventProcessLoop</span>(<span class="params">dagScheduler: <span class="type">DAGScheduler</span></span>) <span class="keyword">extends</span> <span class="title">EventLoop</span>[<span class="type">DAGSchedulerEvent</span>](<span class="params">"dag-scheduler-event-loop"</span>) <span class="keyword">with</span> <span class="title">Logging</span></span></div></pre></td></tr></table></figure></p>
+<p>DAGSchedulerEventProcessLoop继承于 EventLoop，EventLoop的内部有一个EventThread的线程，该线程从事件队列中循环获取数据<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (!stopped.get) &#123;</div><div class="line">  <span class="keyword">val</span> event = eventQueue.take()</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">    onReceive(event)</div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>DAGSchedulerEventProcessLoop的doOnReceive方法的定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">doOnReceive</span></span>(event: <span class="type">DAGSchedulerEvent</span>): <span class="type">Unit</span> = event <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">JobSubmitted</span>(jobId, rdd, func, partitions, callSite, listener, properties) =&gt;</div><div class="line">      dagScheduler.handleJobSubmitted(jobId, rdd, func, partitions, callSite, listener, properties)</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当从事件队列中获取到数据后，如果JobSubmitted对象，则调用dagScheduler的handleJobSubmitted方法。由此也知道了为什么eventProcessLoop.post()推的数据是 JobSubmitted 对象了。</p>
+<p>再看handleJobSubmitted方法的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="function"><span class="keyword">def</span> <span class="title">handleJobSubmitted</span></span>(jobId: <span class="type">Int</span>,</div><div class="line">  finalRDD: <span class="type">RDD</span>[_],</div><div class="line">  func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[_]) =&gt; _,</div><div class="line">  partitions: <span class="type">Array</span>[<span class="type">Int</span>],</div><div class="line">  callSite: <span class="type">CallSite</span>,</div><div class="line">  listener: <span class="type">JobListener</span>,</div><div class="line">  properties: <span class="type">Properties</span>) &#123;</div><div class="line">	<span class="keyword">var</span> finalStage: <span class="type">ResultStage</span> = <span class="literal">null</span></div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">	  <span class="comment">// New stage creation may throw an exception if, for example, jobs are run on a</span></div><div class="line">	  <span class="comment">// HadoopRDD whose underlying HDFS files have been deleted.</span></div><div class="line">	  finalStage = createResultStage(finalRDD, func, partitions, jobId, callSite)</div><div class="line">	&#125; <span class="keyword">catch</span> &#123;</div><div class="line">	  <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</div><div class="line">	    logWarning(<span class="string">"Creating new stage failed due to exception - job: "</span> + jobId, e)</div><div class="line">	    listener.jobFailed(e)</div><div class="line">	    <span class="keyword">return</span></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">val</span> job = <span class="keyword">new</span> <span class="type">ActiveJob</span>(jobId, finalStage, callSite, listener, properties)</div><div class="line">	</div><div class="line">	jobIdToActiveJob(jobId) = job</div><div class="line">	activeJobs += job</div><div class="line">	finalStage.setActiveJob(job)</div><div class="line">	<span class="keyword">val</span> stageIds = jobIdToStageIds(jobId).toArray</div><div class="line">	<span class="keyword">val</span> stageInfos = stageIds.flatMap(id =&gt; stageIdToStage.get(id).map(_.latestInfo))</div><div class="line">	listenerBus.post(</div><div class="line">	  <span class="type">SparkListenerJobStart</span>(job.jobId, jobSubmissionTime, stageInfos, properties))</div><div class="line">	submitStage(finalStage)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由此看到了创建步骤（createResultStage(finalRDD, func, partitions, jobId, callSite)）和提交步骤（submitStage(finalStage)）的代码。</p>
+<p>？？？上面的代码分析过程中，我们知道整个transform的触发点是从action（count()）开始的，而count是最后一个RDD（map生成的那个RDD）的方法。map对应的RDD是MapPartitionsRDD。在MapPartitionsRDD的compute方法中，而compute方法中使用的迭代器是从最开始的那个RDD开始的（ firstParent[T].iterator(split, context) ）。</p>
+<p>创建步骤 createResultStage(finalRDD, func, partitions, jobId, callSite)</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/09/07/scal-study/" itemprop="url">
+                  Scala Study
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-07T14:29:54+08:00" content="2018-09-07">
+              2018-09-07
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文只是用来记录scala的一些语法信息</p>
+<h1 id="Scala-Option"><a href="#Scala-Option" class="headerlink" title="Scala Option"></a>Scala Option</h1><p>/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java_home</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/09/05/optparse-python/" itemprop="url">
                   Python学习之optparse
                 </a>
@@ -435,8 +790,12 @@
 <p>首先分析一下Ambari Server的启动脚本(ambari-server.py)，以便了解Ambari Server是如何启动的。</p>
 <p>首先看入口函数<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    mainBody()</div><div class="line">  <span class="keyword">except</span> (KeyboardInterrupt, EOFError):</div><div class="line">    print(<span class="string">"\nAborting ... Keyboard Interrupt."</span>)</div><div class="line">    sys.exit(<span class="number">1</span>)</div></pre></td></tr></table></figure></p>
 <p>没什么可说的，就是调用文件中的 mainBody() 方法。</p>
-<h3 id="mainBody方法"><a href="#mainBody方法" class="headerlink" title="mainBody方法"></a>mainBody方法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">mainBody</span><span class="params">()</span>:</span></div><div class="line">  parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">  action = sys.argv[<span class="number">1</span>]</div><div class="line"></div><div class="line">  init_action_parser(action, parser)</div><div class="line">  (options, args) = parser.parse_args()</div><div class="line"></div><div class="line">  <span class="comment"># check if only silent key set</span></div><div class="line">  default_options = parser.get_default_values()</div><div class="line">  silent_options = default_options</div><div class="line">  silent_options.silent = <span class="keyword">True</span></div><div class="line"></div><div class="line">  <span class="keyword">if</span> options == silent_options:</div><div class="line">    options.only_silent = <span class="keyword">True</span></div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    options.only_silent = <span class="keyword">False</span></div><div class="line"></div><div class="line">  <span class="comment"># set verbose</span></div><div class="line">  set_verbose(options.verbose)</div><div class="line">  <span class="keyword">if</span> options.verbose:</div><div class="line">    main(options, args, parser)</div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    <span class="keyword">try</span>:</div><div class="line">      main(options, args, parser)</div><div class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</div><div class="line">      print_error_msg(<span class="string">"Unexpected &#123;0&#125;: &#123;1&#125;"</span>.format((e).__class__.__name__, str(e)) +\</div><div class="line">      <span class="string">"\nFor more info run ambari-server with -v or --verbose option"</span>)</div><div class="line">      sys.exit(<span class="number">1</span>)</div></pre></td></tr></table></figure>
-<p>该方法前面部分就是在处理各种参数以及行为。最终还是落在main方法上。</p>
+<h3 id="mainBody方法"><a href="#mainBody方法" class="headerlink" title="mainBody方法"></a>mainBody方法</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">mainBody</span><span class="params">()</span>:</span></div><div class="line">  <span class="comment">#初始化命令行参数解析器</span></div><div class="line">  parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">  action = sys.argv[<span class="number">1</span>]</div><div class="line"></div><div class="line">  <span class="comment">#init_action_parser方法，在脚本中会有两个方法，一个是针对windows的一个是针对linux的，所以看代码的时候需要注意（方法上使用@OsFamilyFuncImpl标示），我们这里看的是linux的</span></div><div class="line">  <span class="comment">#就是对命令行解析器进行初始化，并针对行为进行进一步的初始化</span></div><div class="line">  init_action_parser(action, parser)</div><div class="line"></div><div class="line">  <span class="comment">#使用命令行参数解析器，对命令行进行解析</span></div><div class="line">  (options, args) = parser.parse_args()</div><div class="line"></div><div class="line">  <span class="comment"># check if only silent key set</span></div><div class="line">  default_options = parser.get_default_values()</div><div class="line">  silent_options = default_options</div><div class="line">  silent_options.silent = <span class="keyword">True</span></div><div class="line"></div><div class="line">  <span class="keyword">if</span> options == silent_options:</div><div class="line">    options.only_silent = <span class="keyword">True</span></div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    options.only_silent = <span class="keyword">False</span></div><div class="line"></div><div class="line">  <span class="comment"># varbose是在init_action_parser方法中设置的，对应的-v参数。是否打印状态信息</span></div><div class="line">  <span class="comment"># set_varbose方法位于 ambari_commons.logging_utils中，其实就是设置全局变量_VERBOSE的值。</span></div><div class="line">  <span class="comment"># set verbose</span></div><div class="line">  set_verbose(options.verbose)</div><div class="line"></div><div class="line">  <span class="comment">#接下来就是调用main方法。这里目测是同一个main方法，最大的区别就是有异常处理，有待之后补充TODO--------------------？？？</span></div><div class="line">  <span class="keyword">if</span> options.verbose:</div><div class="line">    main(options, args, parser)</div><div class="line">  <span class="keyword">else</span>:</div><div class="line">    <span class="keyword">try</span>:</div><div class="line">      main(options, args, parser)</div><div class="line">    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:</div><div class="line">      print_error_msg(<span class="string">"Unexpected &#123;0&#125;: &#123;1&#125;"</span>.format((e).__class__.__name__, str(e)) +\</div><div class="line">      <span class="string">"\nFor more info run ambari-server with -v or --verbose option"</span>)</div><div class="line">      sys.exit(<span class="number">1</span>)</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_action_parser</span><span class="params">(action, parser)</span>:</span></div><div class="line">  <span class="comment">#定义了参数可用的行为，如ambari-server start，其中start就是行为。这里定义了行为以及对应行为处理操作。</span></div><div class="line">  <span class="comment">#这些行为的处理方法其实是进一步的初始化参数解析器，会根据对应的行为对参数解析器进行不同的初始化。</span></div><div class="line">  action_parser_map = &#123;</div><div class="line">    SETUP_ACTION: init_setup_parser_options,</div><div class="line">    SETUP_JCE_ACTION: init_empty_parser_options,</div><div class="line">    START_ACTION: init_start_parser_options,</div><div class="line">    STOP_ACTION: init_empty_parser_options,</div><div class="line">    RESTART_ACTION: init_start_parser_options,</div><div class="line">    RESET_ACTION: init_reset_parser_options,</div><div class="line">    STATUS_ACTION: init_empty_parser_options,</div><div class="line">    UPGRADE_ACTION: init_empty_parser_options,</div><div class="line">    LDAP_SETUP_ACTION: init_ldap_setup_parser_options,</div><div class="line">    LDAP_SYNC_ACTION: init_ldap_sync_parser_options,</div><div class="line">    SET_CURRENT_ACTION: init_set_current_parser_options,</div><div class="line">    SETUP_SECURITY_ACTION: init_setup_security_parser_options,</div><div class="line">    REFRESH_STACK_HASH_ACTION: init_empty_parser_options,</div><div class="line">    BACKUP_ACTION: init_empty_parser_options,</div><div class="line">    RESTORE_ACTION: init_empty_parser_options,</div><div class="line">    UPDATE_HOST_NAMES_ACTION: init_empty_parser_options,</div><div class="line">    CHECK_DATABASE_ACTION: init_empty_parser_options,</div><div class="line">    ENABLE_STACK_ACTION: init_enable_stack_parser_options,</div><div class="line">    SETUP_SSO_ACTION: init_setup_sso_options,</div><div class="line">    DB_PURGE_ACTION: init_db_purge_parser_options,</div><div class="line">    INSTALL_MPACK_ACTION: init_install_mpack_parser_options,</div><div class="line">    UNINSTALL_MPACK_ACTION: init_uninstall_mpack_parser_options,</div><div class="line">    UPGRADE_MPACK_ACTION: init_upgrade_mpack_parser_options,</div><div class="line">    PAM_SETUP_ACTION: init_pam_setup_parser_options,</div><div class="line">    KERBEROS_SETUP_ACTION: init_kerberos_setup_parser_options,</div><div class="line">  &#125;</div><div class="line">  parser.add_option(<span class="string">"-v"</span>, <span class="string">"--verbose"</span>,</div><div class="line">                    action=<span class="string">"store_true"</span>, dest=<span class="string">"verbose"</span>, default=<span class="keyword">False</span>,</div><div class="line">                    help=<span class="string">"Print verbose status messages"</span>)</div><div class="line">  parser.add_option(<span class="string">"-s"</span>, <span class="string">"--silent"</span>,</div><div class="line">                    action=<span class="string">"store_true"</span>, dest=<span class="string">"silent"</span>, default=<span class="keyword">False</span>,</div><div class="line">                    help=<span class="string">"Silently accepts default prompt values. For db-cleanup command, silent mode will stop ambari server."</span>)</div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    <span class="comment">#根据行为，做进一步的解析器初始化，我们以setup行为为例，那么setup行为的参数解析器对应的是init_setup_parser_options函数。</span></div><div class="line">    action_parser_map[action](parser)</div><div class="line">  <span class="keyword">except</span> KeyError:</div><div class="line">    parser.error(<span class="string">"Invalid action: "</span> + action)</div></pre></td></tr></table></figure>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div></pre></td><td class="code"><pre><div class="line"><span class="meta">@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">init_setup_parser_options</span><span class="params">(parser)</span>:</span></div><div class="line">  database_group = optparse.OptionGroup(parser, <span class="string">'Database options (command need to include all options)'</span>)</div><div class="line">  database_group.add_option(<span class="string">'--database'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Database to use embedded|oracle|mysql|mssql|postgres|sqlanywhere"</span>, dest=<span class="string">"dbms"</span>)</div><div class="line">  database_group.add_option(<span class="string">'--databasehost'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Hostname of database server"</span>, dest=<span class="string">"database_host"</span>)</div><div class="line">  database_group.add_option(<span class="string">'--databaseport'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Database port"</span>, dest=<span class="string">"database_port"</span>)</div><div class="line">  database_group.add_option(<span class="string">'--databasename'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Database/Service name or ServiceID"</span>,</div><div class="line">                            dest=<span class="string">"database_name"</span>)</div><div class="line">  database_group.add_option(<span class="string">'--databaseusername'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Database user login"</span>, dest=<span class="string">"database_username"</span>)</div><div class="line">  database_group.add_option(<span class="string">'--databasepassword'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Database user password"</span>, dest=<span class="string">"database_password"</span>)</div><div class="line">  parser.add_option_group(database_group)</div><div class="line"></div><div class="line">  jdbc_group = optparse.OptionGroup(parser, <span class="string">'JDBC options (command need to include all options)'</span>)</div><div class="line">  jdbc_group.add_option(<span class="string">'--jdbc-driver'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Specifies the path to the JDBC driver JAR file or archive "</span> \</div><div class="line">                                                            <span class="string">"with all required files(jdbc jar, libraries and etc), for the "</span> \</div><div class="line">                                                            <span class="string">"database type specified with the --jdbc-db option. "</span> \</div><div class="line">                                                            <span class="string">"Used only with --jdbc-db option. Archive is supported only for"</span> \</div><div class="line">                                                            <span class="string">" sqlanywhere database."</span> ,</div><div class="line">                        dest=<span class="string">"jdbc_driver"</span>)</div><div class="line">  jdbc_group.add_option(<span class="string">'--jdbc-db'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Specifies the database type [postgres|mysql|mssql|oracle|hsqldb|sqlanywhere] for the "</span> \</div><div class="line">                                                        <span class="string">"JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option."</span>,</div><div class="line">                        dest=<span class="string">"jdbc_db"</span>)</div><div class="line">  parser.add_option_group(jdbc_group)</div><div class="line"></div><div class="line">  other_group = optparse.OptionGroup(parser, <span class="string">'Other options'</span>)</div><div class="line"></div><div class="line">  other_group.add_option(<span class="string">'-j'</span>, <span class="string">'--java-home'</span>, default=<span class="keyword">None</span>,</div><div class="line">                         help=<span class="string">"Use specified java_home.  Must be valid on all hosts"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--stack-java-home'</span>, dest=<span class="string">"stack_java_home"</span>, default=<span class="keyword">None</span>,</div><div class="line">                    help=<span class="string">"Use specified java_home for stack services.  Must be valid on all hosts"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--skip-view-extraction'</span>, action=<span class="string">"store_true"</span>, default=<span class="keyword">False</span>, help=<span class="string">"Skip extraction of system views"</span>, dest=<span class="string">"skip_view_extraction"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--postgresschema'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Postgres database schema name"</span>,</div><div class="line">                         dest=<span class="string">"postgres_schema"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--sqla-server-name'</span>, default=<span class="keyword">None</span>, help=<span class="string">"SQL Anywhere server name"</span>, dest=<span class="string">"sqla_server_name"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--sidorsname'</span>, default=<span class="string">"sname"</span>, help=<span class="string">"Oracle database identifier type, Service ID/Service "</span></div><div class="line">                                                               <span class="string">"Name sid|sname"</span>, dest=<span class="string">"sid_or_sname"</span>)</div><div class="line">  other_group.add_option(<span class="string">'--enable-lzo-under-gpl-license'</span>, action=<span class="string">"store_true"</span>, default=<span class="keyword">False</span>, help=<span class="string">"Automatically accepts GPL license"</span>, dest=<span class="string">"accept_gpl"</span>)</div><div class="line"></div><div class="line">  <span class="comment"># the --master-key option is needed in the event passwords in the ambari.properties file are encrypted</span></div><div class="line">  other_group.add_option(<span class="string">'--master-key'</span>, default=<span class="keyword">None</span>, help=<span class="string">"Master key for encrypting passwords"</span>, dest=<span class="string">"master_key"</span>)</div><div class="line"></div><div class="line">  parser.add_option_group(other_group)</div></pre></td></tr></table></figure>
+<p>这个方法就是为setup的行为，做了进一步的解析器设置。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">_VERBOSE = <span class="keyword">False</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">set_verbose</span><span class="params">(newVal)</span>:</span></div><div class="line">  <span class="keyword">global</span> _VERBOSE</div><div class="line">  _VERBOSE = newVal</div></pre></td></tr></table></figure>
+<p>该方法就是设置全局变量_VERBOSE的值。</p>
 <h3 id="main"><a href="#main" class="headerlink" title="main"></a>main</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span><span class="params">(options, args, parser)</span>:</span></div><div class="line">  init_logging()</div><div class="line"></div><div class="line">  <span class="comment"># set silent</span></div><div class="line">  set_silent(options.silent)</div><div class="line"></div><div class="line">  <span class="comment"># debug mode</span></div><div class="line">  set_debug_mode_from_options(options)</div><div class="line">  init_debug(options)</div><div class="line"></div><div class="line">  <span class="comment">#perform checks</span></div><div class="line"></div><div class="line">  options.warnings = []</div><div class="line"></div><div class="line">  <span class="keyword">if</span> len(args) == <span class="number">0</span>:</div><div class="line">    <span class="keyword">print</span> parser.print_help()</div><div class="line">    parser.error(<span class="string">"No action entered"</span>)</div><div class="line"></div><div class="line">  action_map = create_user_action_map(args, options)</div><div class="line"></div><div class="line">  action = args[<span class="number">0</span>]</div><div class="line"></div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    action_obj = action_map[action]</div><div class="line">  <span class="keyword">except</span> KeyError:</div><div class="line">    parser.error(<span class="string">"Invalid action: "</span> + action)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> action == SETUP_ACTION:</div><div class="line">    <span class="keyword">if</span> are_cmd_line_db_args_blank(options):</div><div class="line">      options.must_set_database_options = <span class="keyword">True</span></div><div class="line">    <span class="keyword">elif</span> <span class="keyword">not</span> are_cmd_line_db_args_valid(options):</div><div class="line">      parser.error(<span class="string">'All database options should be set. Please see help for the options.'</span>)</div><div class="line">    <span class="keyword">else</span>:</div><div class="line">      options.must_set_database_options = <span class="keyword">False</span></div><div class="line"></div><div class="line">    <span class="comment">#correct database</span></div><div class="line">    fix_database_options(options, parser)</div><div class="line"></div><div class="line">  matches = <span class="number">0</span></div><div class="line">  <span class="keyword">for</span> args_number_required <span class="keyword">in</span> action_obj.possible_args_numbers:</div><div class="line">    matches += int(len(args) == args_number_required)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> matches == <span class="number">0</span>:</div><div class="line">    <span class="keyword">print</span> parser.print_help()</div><div class="line">    possible_args = <span class="string">' or '</span>.join(str(x) <span class="keyword">for</span> x <span class="keyword">in</span> action_obj.possible_args_numbers)</div><div class="line">    parser.error(<span class="string">"Invalid number of arguments. Entered: "</span> + str(len(args)) + <span class="string">", required: "</span> + possible_args)</div><div class="line"></div><div class="line">  options.exit_message = <span class="string">"Ambari Server '%s' completed successfully."</span> % action</div><div class="line">  options.exit_code = <span class="keyword">None</span></div><div class="line"></div><div class="line">  <span class="keyword">try</span>:</div><div class="line">    <span class="keyword">if</span> action <span class="keyword">in</span> _action_option_dependence_map:</div><div class="line">      required, optional = _action_option_dependence_map[action]</div><div class="line">      <span class="keyword">for</span> opt_str, opt_dest <span class="keyword">in</span> required:</div><div class="line">        <span class="keyword">if</span> hasattr(options, opt_dest) <span class="keyword">and</span> getattr(options, opt_dest) <span class="keyword">is</span> <span class="keyword">None</span>:</div><div class="line">          <span class="keyword">print</span> <span class="string">"Missing option &#123;0&#125; for action &#123;1&#125;"</span>.format(opt_str, action)</div><div class="line">          print_action_arguments_help(action)</div><div class="line">          <span class="keyword">print</span> <span class="string">"Run ambari-server.py --help to see detailed description of each option"</span></div><div class="line">          <span class="keyword">raise</span> FatalException(<span class="number">1</span>, <span class="string">"Missing option"</span>)</div><div class="line">    action_obj.execute()</div><div class="line"></div><div class="line">    <span class="keyword">if</span> action_obj.need_restart:</div><div class="line">      pstatus, pid = is_server_runing()</div><div class="line">      <span class="keyword">if</span> pstatus:</div><div class="line">        <span class="keyword">print</span> <span class="string">'NOTE: Restart Ambari Server to apply changes'</span> + \</div><div class="line">              <span class="string">' ("ambari-server restart|stop+start")'</span></div><div class="line"></div><div class="line">    <span class="keyword">if</span> options.warnings:</div><div class="line">      <span class="keyword">for</span> warning <span class="keyword">in</span> options.warnings:</div><div class="line">        print_warning_msg(warning)</div><div class="line">        <span class="keyword">pass</span></div><div class="line">      options.exit_message = <span class="string">"Ambari Server '%s' completed with warnings."</span> % action</div><div class="line">      <span class="keyword">pass</span></div><div class="line">  <span class="keyword">except</span> FatalException <span class="keyword">as</span> e:</div><div class="line">    <span class="keyword">if</span> e.reason <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">      print_error_msg(<span class="string">"Exiting with exit code &#123;0&#125;. \nREASON: &#123;1&#125;"</span>.format(e.code, e.reason))</div><div class="line">      logger.exception(str(e))</div><div class="line">    sys.exit(e.code)</div><div class="line">  <span class="keyword">except</span> NonFatalException <span class="keyword">as</span> e:</div><div class="line">    options.exit_message = <span class="string">"Ambari Server '%s' completed with warnings."</span> % action</div><div class="line">    <span class="keyword">if</span> e.reason <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">      print_warning_msg(e.reason)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> options.exit_message <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:</div><div class="line">    <span class="keyword">print</span> options.exit_message</div><div class="line"></div><div class="line">  <span class="keyword">if</span> options.exit_code <span class="keyword">is</span> <span class="keyword">not</span> <span class="keyword">None</span>:  <span class="comment"># not all actions may return a system exit code</span></div><div class="line">    sys.exit(options.exit_code)</div></pre></td></tr></table></figure>
           
         
@@ -3298,354 +3657,11 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-subprocess/" itemprop="url">
-                  Python Subprocess
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>在平时python的使用过程中，难免会遇到调用服务器命令的时候。直接调用普通的命令基本上都没有什么问题，令人比较麻烦的是带有控制台的命令，例如python、beeline、spark-shell。虽然向python、spark都有相关的脚本文件或者jar来避免直接使用控制台命令的调用，然后有些时候还是不免会用到控制台的方式，那么对于带有控制台的命令行应该如何实现呢？本文将使用subprocess，并以beeline为背景来实现使用python执行带有控制台的命令行命令。<br>首先看看参考代码，代码是以执行Hive的beeline命令行为例：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">beeline</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 1 建立连接"</span></div><div class="line">        self.p = subprocess.Popen([<span class="string">'apache-hive-0.14.0-bin/bin/beeline'</span>], stdin=subprocess.PIPE,</div><div class="line">                             stdout=subprocess.PIPE)</div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">'!connect jdbc:hive2://hdfs001:2181,hdfs002:2181,hdfs003:2181,hdfs004:2181,hdfs005:2181/;serviceDiscoveryMode=zookeeper userName password\n'</span></div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">submit</span><span class="params">(self, hql)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 2 输入命令"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, hql</div><div class="line">        self.p.stdin.flush()</div><div class="line"></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 3 等待关闭"</span></div><div class="line">        <span class="keyword">print</span> &gt;&gt; self.p.stdin, <span class="string">"!q"</span></div><div class="line">        self.p.wait()</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">hadoop_get</span><span class="params">(self, from_, to_)</span>:</span></div><div class="line">        <span class="keyword">print</span> <span class="string">"# 4 下载数据"</span></div><div class="line">        (status, output) = commands.getstatusoutput(<span class="string">" "</span>.join((<span class="string">"hadoop-2.6.0/bin/hadoop fs -text"</span>, from_+<span class="string">'*'</span>, <span class="string">'&gt;'</span>, to_)))</div><div class="line">        <span class="keyword">print</span> status, output</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">queryDataByDate</span><span class="params">(start_date, end_date, local_path)</span>:</span></div><div class="line">    sql = <span class="string">"""</span></div><div class="line">    create table database.table_%s_%s</div><div class="line">       ROW FORMAT DELIMITED</div><div class="line">       FIELDS TERMINATED BY '-@-'</div><div class="line">       NULL DEFINED AS '...'</div><div class="line">    STORED AS TEXTFILE</div><div class="line">    AS</div><div class="line">    SELECT * FROM DB.TABLE_NAME;</div><div class="line">"""</div><div class="line">    b = beeline()</div><div class="line">    s = sql % (start_date, end_date, start_date, end_date)</div><div class="line">    b.submit((sql % (start_date, end_date, start_date, end_date)))</div><div class="line"></div><div class="line">    fileName = <span class="string">'feed_%s_%s'</span> % (start_date, end_date)</div><div class="line">    b.hadoop_get((<span class="string">"HDFS_PATH/%s/"</span> % (fileName)), (<span class="string">"LOCAL_PATH/%s"</span> % fileName))</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    <span class="keyword">if</span> len(sys.argv) &lt; <span class="number">2</span>:</div><div class="line">        <span class="keyword">print</span> <span class="string">"请输入要获取feed的开始日期和结束日志，如：20160105"</span></div><div class="line">        exit(<span class="number">0</span>)</div><div class="line"></div><div class="line">    <span class="keyword">print</span> <span class="string">"正在执行%s文件，来查询%s-%s之间的数据:"</span> % (sys.argv[<span class="number">0</span>], sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>])</div><div class="line">    queryDataByDate(sys.argv[<span class="number">1</span>], sys.argv[<span class="number">2</span>], <span class="string">"/data/"</span>)</div></pre></td></tr></table></figure></p>
-<p>该代码块的主要流程是，在初始化beeline对象时调用beeline命令，并进行连接（<strong>init</strong>方法中实现了全部的操作）;然后是提交需要beeline执行的sql（submit方法中实现）;最后是将sql执行的结果从HDFS中取到本地（hadoop_get方法中实现）。queryDataByData方法就是对beeline类中各个方法的一个集成调用。</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/04/python-datetime/" itemprop="url">
-                  Python Datetime
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-04T18:38:47+08:00" content="2017-02-04">
-              2017-02-04
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在使用python写调度任务的时候，离不开的必然有日期和时间的处理；最常见的有根据字符串生成时间、将时间生成指定格式的字符串、日期时间的计算（加减）等等。在python中对日期时间进行操作的包为datetime。下面就对该包的一些常用操作和对应的参数进行介绍。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2017/02/04/python-datetime/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/01/13/doubleArray-trie/" itemprop="url">
-                  Double-Array trie
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-01-13T16:01:54+08:00" content="2017-01-13">
-              2017-01-13
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/数据结构/" itemprop="url" rel="index">
-                    <span itemprop="name">数据结构</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文主要用来学习Double-Array trie的相关知识。</p>
-<p><a href="https://github.com/digitalstain/DoubleArrayTrie" title="Double-Array trie" target="_blank" rel="external">源码的github地址</a></p>
-<p>Double-Array trie是Trie结构的压缩形式，仅用两个数组来表示Trie，这个结构有效的结合数字搜索树(Digital Search Tree)检索时间高效的特点和链式表示的Trie空间结构紧凑的特点。双数组Trie的本质是一个确定有限状态自动机(DFA)，每个节点代表自动机的一个状态，根据不同的变量，进行状态转移，当到达结束状态或无法转移时，完成一次查询操作。在双数组所有键中，包含的字符之间的联系都是通过简单的数学加法运算表示的，不仅提高了检索速度，而且省去了链式结构中使用的大量指针，节省了存储空间。</p>
-<p>在了解Double-Array trie之前，我们先了解一下“确定有限状态自动机”。在数学理论中，确定有限状态自动机或确定有限自动机（deterministic finite automation, DFA）是一个能实现状态转移的自动机。对于一个给定的属于该自动机的状态和一个属于该自动机字母表的字符，它能够根据实现给定的函数转移到下一个状态。简单的说，就是当前状态根据一个公式和状态的确定值，能够到达另外一个状态，而且要到达的状态是确定的。如图：<br><a href="&quot;确定有限自动机&quot;">确定有限自动状态机</a><br>图中的每个字代表一个状态，并且每个状态都有一个固定的变量。</p>
-<p>在了解了确定优先状态自动机之后，我们来了解一下Double-Array trie。Double-Array trie的核心是使用两个整型数组base和check来分别存储状态以及前驱状态。说的简单一些，base用来存储状态，check用来验证。在状态的转移过程中，有如下公式：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">check[t]=s</div><div class="line">base[s]+c=t <span class="comment">//其中t和s是数组下标</span></div></pre></td></tr></table></figure></p>
-<p>上面的公式表示 base[s]的值 + 状态的变量 = t下标，check[t]的值 = s下标。</p>
-<p>举例来说明：</p>
-<p>在学习Douoble-Array trie和看DoubleArrayTrie源码的时候，参考了以下文章，在此表示感谢：<br><a href="http://www.hankcs.com/program/java/%E5%8F%8C%E6%95%B0%E7%BB%84trie%E6%A0%91doublearraytriejava%E5%AE%9E%E7%8E%B0.html" title="双数组Trie树(DoubleArrayTrie)Java实现" target="_blank" rel="external">双数组Trie树(DoubleArrayTrie)Java实现</a><br><a href="http://www.cnblogs.com/zhangchaoyang/articles/4508266.html" title="Double Array Trie" target="_blank" rel="external">Double Array Trie</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/blog/page/2/">2</a><a class="extend next" rel="next" href="/blog/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/blog/page/2/">2</a><a class="page-number" href="/blog/page/3/">3</a><a class="extend next" rel="next" href="/blog/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -3686,7 +3702,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">40</span>
+              <span class="site-state-item-count">43</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -3694,7 +3710,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">18</span>
+                <span class="site-state-item-count">19</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>

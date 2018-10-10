@@ -1,0 +1,625 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="CorePartition 分区在Partition特征中，只定义了index，用来表示分区在父级RDD中索引。
+Dependency 依赖依赖的定义在 org.apache.spark.Dependency类中，从代码中可以看出，Dependency有2个子类，分别代表了2中类型的依赖，分别为：NarrowDependency和ShuffleDependency。其中NarrowDependen">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark Resource Study">
+<meta property="og:url" content="http://baimoon.github.io/2018/09/17/spark-resource-study/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="CorePartition 分区在Partition特征中，只定义了index，用来表示分区在父级RDD中索引。
+Dependency 依赖依赖的定义在 org.apache.spark.Dependency类中，从代码中可以看出，Dependency有2个子类，分别代表了2中类型的依赖，分别为：NarrowDependency和ShuffleDependency。其中NarrowDependen">
+<meta property="og:updated_time" content="2018-09-20T07:46:59.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark Resource Study">
+<meta name="twitter:description" content="CorePartition 分区在Partition特征中，只定义了index，用来表示分区在父级RDD中索引。
+Dependency 依赖依赖的定义在 org.apache.spark.Dependency类中，从代码中可以看出，Dependency有2个子类，分别代表了2中类型的依赖，分别为：NarrowDependency和ShuffleDependency。其中NarrowDependen">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/09/17/spark-resource-study/"/>
+
+  <title> Spark Resource Study | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark Resource Study
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-17T14:36:19+08:00" content="2018-09-17">
+              2018-09-17
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="Core"><a href="#Core" class="headerlink" title="Core"></a>Core</h1><h2 id="Partition-分区"><a href="#Partition-分区" class="headerlink" title="Partition 分区"></a>Partition 分区</h2><p>在Partition特征中，只定义了index，用来表示分区在父级RDD中索引。</p>
+<h2 id="Dependency-依赖"><a href="#Dependency-依赖" class="headerlink" title="Dependency 依赖"></a>Dependency 依赖</h2><p>依赖的定义在 org.apache.spark.Dependency类中，从代码中可以看出，Dependency有2个子类，分别代表了2中类型的依赖，分别为：NarrowDependency和ShuffleDependency。其中NarrowDependency有两个子类：OneToOneDependency和RangeDependency。</p>
+<h2 id="RDD"><a href="#RDD" class="headerlink" title="RDD"></a>RDD</h2><p>RDD是Resilient Distributed Dataset的简称，是Spark中的基本抽象。要实例化一个RDD，需要两个参数：SparkContext和Dependency列表。需要SparkContext是因为SparkContext提供了RDD的一些操作（如生成RDD的id，清理RDD的缓存、缓存RDD等），而Dependency则是因为它表示了RDD的继承关系。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">abstract</span> <span class="class"><span class="keyword">class</span> <span class="title">RDD</span>[<span class="type">T</span>: <span class="type">ClassTag</span>](<span class="params"></span></span></div><div class="line">    @transient private var _sc: <span class="type">SparkContext</span>,</div><div class="line">    @transient private var deps: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]]</div><div class="line">  ) <span class="keyword">extends</span> <span class="title">Serializable</span> <span class="keyword">with</span> <span class="title">Logging</span> &#123;</div></pre></td></tr></table></figure></p>
+<p>此处可以看到RDD的基本构造方法。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">this</span></span>(<span class="meta">@transient</span> oneParent: <span class="type">RDD</span>[_]) =</div><div class="line">    <span class="keyword">this</span>(oneParent.context, <span class="type">List</span>(<span class="keyword">new</span> <span class="type">OneToOneDependency</span>(oneParent)))</div></pre></td></tr></table></figure>
+<p>使用已有的RDD构造新的RDD。</p>
+<p>此外，RDD定义了一些抽象，需要子类进行实现：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">compute</span></span>(split: <span class="type">Partition</span>, context: <span class="type">TaskContext</span>): <span class="type">Iterator</span>[<span class="type">T</span>] -- 计算给定的分区，返回一个迭代器</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getPartitions</span></span>: <span class="type">Array</span>[<span class="type">Partition</span>] -- 返回<span class="type">RDD</span>的所有分区</div><div class="line"></div><div class="line"><span class="keyword">protected</span> <span class="function"><span class="keyword">def</span> <span class="title">getDependencies</span></span>: <span class="type">Seq</span>[<span class="type">Dependency</span>[_]] = deps -- 返回<span class="type">RDD</span>的到父类<span class="type">RDD</span>的所有依赖</div></pre></td></tr></table></figure></p>
+<h2 id="SparkContext"><a href="#SparkContext" class="headerlink" title="SparkContext"></a>SparkContext</h2><h1 id="wordCount分析"><a href="#wordCount分析" class="headerlink" title="wordCount分析"></a>wordCount分析</h1><p>了解了一些代码之后，决定从wordCount的案例进行分析，以便了解Spark进行计算时的具体操作。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> sc = <span class="keyword">new</span> <span class="type">SparkContext</span>(<span class="string">"master"</span>, <span class="string">"testApplication"</span>);</div><div class="line">sc.hadoopFile(<span class="string">"path"</span>, <span class="number">5</span>).map(_ =&gt; <span class="number">1</span>).count()</div></pre></td></tr></table></figure></p>
+<p>因为在Spark中，transform是延迟执行的，也就是说，action之前的transform只有在遇到后面的action之后，才开始执行。因此上面的代码就要从count()开始。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">count</span></span>(): <span class="type">Long</span> = sc.runJob(<span class="keyword">this</span>, <span class="type">Utils</span>.getIteratorSize _).sum  </div><div class="line"><span class="comment">//Utils.getIteratorSize方法，在之后的代码块中展示，其实现就是根据参数的Iterator，计算一下这个迭代器中的数据个数（猜测迭代器最终是RDD分区的迭代器）</span></div><div class="line"><span class="comment">//这里的runJob的定义是</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">U</span>): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    runJob(rdd, func, <span class="number">0</span> until rdd.partitions.length)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//然后又指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>]): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    <span class="keyword">val</span> cleanedFunc = clean(func)</div><div class="line">    runJob(rdd, (ctx: <span class="type">TaskContext</span>, it: <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; cleanedFunc(it), partitions)</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">//然后继续指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>]): <span class="type">Array</span>[<span class="type">U</span>] = &#123;</div><div class="line">    <span class="keyword">val</span> results = <span class="keyword">new</span> <span class="type">Array</span>[<span class="type">U</span>](partitions.size)</div><div class="line">    runJob[<span class="type">T</span>, <span class="type">U</span>](rdd, func, partitions, (index, res) =&gt; results(index) = res)</div><div class="line">    results</div><div class="line">  &#125;</div><div class="line"></div><div class="line"><span class="comment">//继续指向</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>: <span class="type">ClassTag</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    ...</div><div class="line">    dagScheduler.runJob(rdd, cleanedFunc, partitions, callSite, resultHandler, localProperties.get)</div><div class="line">    progressBar.foreach(_.finishAll())</div><div class="line">    rdd.doCheckpoint()</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>最终执行Job落到了 dagScheduler 对象身上<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">runJob</span></span>[<span class="type">T</span>, <span class="type">U</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], callSite: <span class="type">CallSite</span>, resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>, properties: <span class="type">Properties</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    <span class="keyword">val</span> start = <span class="type">System</span>.nanoTime</div><div class="line">    <span class="keyword">val</span> waiter = submitJob(rdd, func, partitions, callSite, resultHandler, properties)</div><div class="line">    ...</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>dagScheduler 的runJob方法中调用submitJob来提交任务</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">submitJob</span></span>[<span class="type">T</span>, <span class="type">U</span>](rdd: <span class="type">RDD</span>[<span class="type">T</span>], func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">U</span>, partitions: <span class="type">Seq</span>[<span class="type">Int</span>], callSite: <span class="type">CallSite</span>, resultHandler: (<span class="type">Int</span>, <span class="type">U</span>) =&gt; <span class="type">Unit</span>, properties: <span class="type">Properties</span>):<span class="type">JobWaiter</span>[<span class="type">U</span>] = &#123;</div><div class="line">    ...</div><div class="line">    <span class="keyword">val</span> waiter = <span class="keyword">new</span> <span class="type">JobWaiter</span>(<span class="keyword">this</span>, jobId, partitions.size, resultHandler)</div><div class="line">    eventProcessLoop.post(<span class="type">JobSubmitted</span>(jobId, rdd, func2, partitions.toArray, callSite, waiter, <span class="type">SerializationUtils</span>.clone(properties)))</div><div class="line">    waiter</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>最终，通过eventProcessLoop的post将任务提交到了任务执行队列。 这里需要注意的一个问题，加入任务队列的是一个 JobSubmitted对象。为什么要如此处理呢？需要从eventProcessLoop对象入手。<br>eventProcessLoop是DAGSchedulerEventProcessLoop的实例<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="keyword">val</span> eventProcessLoop = <span class="keyword">new</span> <span class="type">DAGSchedulerEventProcessLoop</span>(<span class="keyword">this</span>)</div></pre></td></tr></table></figure></p>
+<p>查看 DAGSchedulerEventProcessLoop 的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="class"><span class="keyword">class</span> <span class="title">DAGSchedulerEventProcessLoop</span>(<span class="params">dagScheduler: <span class="type">DAGScheduler</span></span>) <span class="keyword">extends</span> <span class="title">EventLoop</span>[<span class="type">DAGSchedulerEvent</span>](<span class="params">"dag-scheduler-event-loop"</span>) <span class="keyword">with</span> <span class="title">Logging</span></span></div></pre></td></tr></table></figure></p>
+<p>DAGSchedulerEventProcessLoop继承于 EventLoop，EventLoop的内部有一个EventThread的线程，该线程从事件队列中循环获取数据<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">while</span> (!stopped.get) &#123;</div><div class="line">  <span class="keyword">val</span> event = eventQueue.take()</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">    onReceive(event)</div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>DAGSchedulerEventProcessLoop的doOnReceive方法的定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">doOnReceive</span></span>(event: <span class="type">DAGSchedulerEvent</span>): <span class="type">Unit</span> = event <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">JobSubmitted</span>(jobId, rdd, func, partitions, callSite, listener, properties) =&gt;</div><div class="line">      dagScheduler.handleJobSubmitted(jobId, rdd, func, partitions, callSite, listener, properties)</div><div class="line">    ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当从事件队列中获取到数据后，如果JobSubmitted对象，则调用dagScheduler的handleJobSubmitted方法。由此也知道了为什么eventProcessLoop.post()推的数据是 JobSubmitted 对象了。</p>
+<p>再看handleJobSubmitted方法的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="function"><span class="keyword">def</span> <span class="title">handleJobSubmitted</span></span>(jobId: <span class="type">Int</span>,</div><div class="line">  finalRDD: <span class="type">RDD</span>[_],</div><div class="line">  func: (<span class="type">TaskContext</span>, <span class="type">Iterator</span>[_]) =&gt; _,</div><div class="line">  partitions: <span class="type">Array</span>[<span class="type">Int</span>],</div><div class="line">  callSite: <span class="type">CallSite</span>,</div><div class="line">  listener: <span class="type">JobListener</span>,</div><div class="line">  properties: <span class="type">Properties</span>) &#123;</div><div class="line">	<span class="keyword">var</span> finalStage: <span class="type">ResultStage</span> = <span class="literal">null</span></div><div class="line">	<span class="keyword">try</span> &#123;</div><div class="line">	  <span class="comment">// New stage creation may throw an exception if, for example, jobs are run on a</span></div><div class="line">	  <span class="comment">// HadoopRDD whose underlying HDFS files have been deleted.</span></div><div class="line">	  finalStage = createResultStage(finalRDD, func, partitions, jobId, callSite)</div><div class="line">	&#125; <span class="keyword">catch</span> &#123;</div><div class="line">	  <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</div><div class="line">	    logWarning(<span class="string">"Creating new stage failed due to exception - job: "</span> + jobId, e)</div><div class="line">	    listener.jobFailed(e)</div><div class="line">	    <span class="keyword">return</span></div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">val</span> job = <span class="keyword">new</span> <span class="type">ActiveJob</span>(jobId, finalStage, callSite, listener, properties)</div><div class="line">	</div><div class="line">	jobIdToActiveJob(jobId) = job</div><div class="line">	activeJobs += job</div><div class="line">	finalStage.setActiveJob(job)</div><div class="line">	<span class="keyword">val</span> stageIds = jobIdToStageIds(jobId).toArray</div><div class="line">	<span class="keyword">val</span> stageInfos = stageIds.flatMap(id =&gt; stageIdToStage.get(id).map(_.latestInfo))</div><div class="line">	listenerBus.post(</div><div class="line">	  <span class="type">SparkListenerJobStart</span>(job.jobId, jobSubmissionTime, stageInfos, properties))</div><div class="line">	submitStage(finalStage)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>由此看到了创建步骤（createResultStage(finalRDD, func, partitions, jobId, callSite)）和提交步骤（submitStage(finalStage)）的代码。</p>
+<p>？？？上面的代码分析过程中，我们知道整个transform的触发点是从action（count()）开始的，而count是最后一个RDD（map生成的那个RDD）的方法。map对应的RDD是MapPartitionsRDD。在MapPartitionsRDD的compute方法中，而compute方法中使用的迭代器是从最开始的那个RDD开始的（ firstParent[T].iterator(split, context) ）。</p>
+<p>创建步骤 createResultStage(finalRDD, func, partitions, jobId, callSite)</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/09/07/scal-study/" rel="next" title="Scala Study">
+                <i class="fa fa-chevron-left"></i> Scala Study
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2018/10/10/spark-2-11-YarnAllocator/" rel="prev" title="spark-2.11-YarnAllocator">
+                spark-2.11-YarnAllocator <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">43</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Core"><span class="nav-number">1.</span> <span class="nav-text">Core</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Partition-分区"><span class="nav-number">1.1.</span> <span class="nav-text">Partition 分区</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Dependency-依赖"><span class="nav-number">1.2.</span> <span class="nav-text">Dependency 依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#RDD"><span class="nav-number">1.3.</span> <span class="nav-text">RDD</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SparkContext"><span class="nav-number">1.4.</span> <span class="nav-text">SparkContext</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#wordCount分析"><span class="nav-number">2.</span> <span class="nav-text">wordCount分析</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
