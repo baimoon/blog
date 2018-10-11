@@ -248,6 +248,127 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/10/11/spark-2-11-YarnRMClient/" itemprop="url">
+                  spark 2.11 YarnRMClient
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-11T16:23:43+08:00" content="2018-10-11">
+              2018-10-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文是对 org.apache.spark.deploy.yarn.YarnRMClient 源码进行学习的分析，spark的版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>YarnRMClient主要用来处理application master向Yarn resourceManager的注册和注销。</p>
+<h1 id="主要方法分析"><a href="#主要方法分析" class="headerlink" title="主要方法分析"></a>主要方法分析</h1><h2 id="register"><a href="#register" class="headerlink" title="register"></a>register</h2><p>该方法很简单，就是向YARN ResourceManager注册application master，该方法会在 ApplicationMaster的registerAM方法中调用。具体方法实现<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span></span>(</div><div class="line">      driverUrl: <span class="type">String</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      conf: <span class="type">YarnConfiguration</span>,</div><div class="line">      sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      uiHistoryAddress: <span class="type">String</span>,</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">      localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]</div><div class="line">    ): <span class="type">YarnAllocator</span> = &#123;</div><div class="line"></div><div class="line">    <span class="comment">// 调用AMRMClient自身的方法来生成AMRMClient，再使用 Yarn 配置进行初始化，启动AMRMClient</span></div><div class="line">    amClient = <span class="type">AMRMClient</span>.createAMRMClient()</div><div class="line">    amClient.init(conf)</div><div class="line">    amClient.start()</div><div class="line">    <span class="keyword">this</span>.uiHistoryAddress = uiHistoryAddress</div><div class="line"></div><div class="line">    <span class="keyword">val</span> trackingUrl = uiAddress.getOrElse &#123;</div><div class="line">      <span class="keyword">if</span> (sparkConf.get(<span class="type">ALLOW_HISTORY_SERVER_TRACKING_URL</span>)) uiHistoryAddress <span class="keyword">else</span> <span class="string">""</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    logInfo(<span class="string">"Registering the ApplicationMaster"</span>)</div><div class="line">    <span class="comment">// 向 ResourceManager 注册 application master，从代码看出 application master就是本机，TODO 这个本机是啥呢？？？</span></div><div class="line">    synchronized &#123;</div><div class="line">      amClient.registerApplicationMaster(<span class="type">Utils</span>.localHostName(), <span class="number">0</span>, trackingUrl)</div><div class="line">      registered = <span class="literal">true</span></div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 生成 YarnAllocator</span></div><div class="line">    <span class="comment">// driverUrl和driverRef需要说一下，</span></div><div class="line">    <span class="comment">// driverUrl，是driver运行的地址，会传递给Executor，应该是用于Execurot与driver进行交互</span></div><div class="line">    <span class="comment">// driverRef 在YarnAllocator中使用，用于同步executor的id，以及 发送删除executor的信息</span></div><div class="line">    <span class="keyword">new</span> <span class="type">YarnAllocator</span>(driverUrl, driverRef, conf, sparkConf, amClient, getAttemptId(), securityMgr,</div><div class="line">      localResources, <span class="keyword">new</span> <span class="type">SparkRackResolver</span>())</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>此方法逻辑很简单，一眼就看明白。生成AMRMClient（用于访问ResourceManager），向ResourceManager注册applicationMaster，生成YarnAllocator。但是需要注意生成YarnAllocator的参数。</p>
+<h2 id="unregister"><a href="#unregister" class="headerlink" title="unregister"></a>unregister</h2><p>作用与register方法相反，从YARN ResourceManager中注销 application master。具体方法实现<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">unregister</span></span>(status: <span class="type">FinalApplicationStatus</span>, diagnostics: <span class="type">String</span> = <span class="string">""</span>): <span class="type">Unit</span> = synchronized &#123;</div><div class="line">	<span class="keyword">if</span> (registered) &#123;</div><div class="line">	  amClient.unregisterApplicationMaster(status, diagnostics, uiHistoryAddress)</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="getMaxRegAttempts"><a href="#getMaxRegAttempts" class="headerlink" title="getMaxRegAttempts"></a>getMaxRegAttempts</h2><p>此方法就是用来定义注册application master的最大尝试次数。具体方法定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** 获取注册AM的最大尝试次数 分别从spark配置和yarn配置中读取 如果spark配置中设置了，则使用spark和yarn配置中最小那个值 */</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getMaxRegAttempts</span></span>(sparkConf: <span class="type">SparkConf</span>, yarnConf: <span class="type">YarnConfiguration</span>): <span class="type">Int</span> = &#123;</div><div class="line">  <span class="keyword">val</span> sparkMaxAttempts = sparkConf.get(<span class="type">MAX_APP_ATTEMPTS</span>).map(_.toInt)</div><div class="line">  <span class="keyword">val</span> yarnMaxAttempts = yarnConf.getInt(</div><div class="line">    <span class="type">YarnConfiguration</span>.<span class="type">RM_AM_MAX_ATTEMPTS</span>, <span class="type">YarnConfiguration</span>.<span class="type">DEFAULT_RM_AM_MAX_ATTEMPTS</span>)</div><div class="line">  sparkMaxAttempts <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; <span class="keyword">if</span> (x &lt;= yarnMaxAttempts) x <span class="keyword">else</span> yarnMaxAttempts</div><div class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; yarnMaxAttempts</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>此方法也很简单，分别从spark配置和yarn配置中读取 如果spark配置中设置了，则使用spark和yarn配置中最小那个值。没有在spark中配置，则使用yarn配置中的。</p>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><h2 id="哪里生成YarnRMClient对象"><a href="#哪里生成YarnRMClient对象" class="headerlink" title="哪里生成YarnRMClient对象"></a>哪里生成YarnRMClient对象</h2><p>答案就是在ApplicationMaster的main方法中，代码：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  </div><div class="line">  ...</div><div class="line">  </div><div class="line">  <span class="type">SparkHadoopUtil</span>.get.runAsSparkUser &#123; () =&gt;</div><div class="line">    master = <span class="keyword">new</span> <span class="type">ApplicationMaster</span>(amArgs, <span class="keyword">new</span> <span class="type">YarnRMClient</span>)</div><div class="line">    <span class="type">System</span>.exit(master.run())</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="哪里调用-YarnRMClient的register方法"><a href="#哪里调用-YarnRMClient的register方法" class="headerlink" title="哪里调用 YarnRMClient的register方法"></a>哪里调用 YarnRMClient的register方法</h2><p>在register方法中看到了YarnAllocator的生成，那么在哪里调用register方法呢？答案就是 org.apache.spark.deploy.yarn.ApplicationMaster中。而且ApplicationMaster含有main方法，是程序的入口。代码：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">registerAM</span></span>(</div><div class="line">      _sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      _rpcEnv: <span class="type">RpcEnv</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>) = &#123;</div><div class="line">    </div><div class="line">    ...</div><div class="line"></div><div class="line">    allocator = client.register(driverUrl,</div><div class="line">      driverRef,</div><div class="line">      yarnConf,</div><div class="line">      _sparkConf,</div><div class="line">      uiAddress,</div><div class="line">      historyAddress,</div><div class="line">      securityMgr,</div><div class="line">      localResources)</div><div class="line"></div><div class="line">    allocator.allocateResources()</div><div class="line">    reporterThread = launchReporterThread()</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/10/10/spark-2-11-YarnAllocator/" itemprop="url">
                   spark-2.11-YarnAllocator
                 </a>
@@ -311,7 +432,7 @@
       
         
           
-            <p>本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。</p>
+            <p>本文是对 org.apache.spark.deploy.yarn.YarnAllocator 类源码进行学习的分析，spark的版本为2.11。</p>
 <h1 id="总体概述"><a href="#总体概述" class="headerlink" title="总体概述"></a>总体概述</h1><p>YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在YarnAllocator类中，最主要的方法有：allocateResources()、updateResourceRequests()、handleAllocatedContainers()、runAllocatedContainers()和processCompletedContainers()。而整个这些方法的调用，是通过allocateResources()来调用的。基本的流程如下图：</p>
 <h1 id="主要方法的分析"><a href="#主要方法的分析" class="headerlink" title="主要方法的分析"></a>主要方法的分析</h1><h2 id="allocateResources"><a href="#allocateResources" class="headerlink" title="allocateResources"></a>allocateResources</h2><p>资源分配的入口，首先看方法的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">allocateResources</span></span>(): <span class="type">Unit</span> = synchronized &#123;</div><div class="line">    updateResourceRequests()</div><div class="line"></div><div class="line">    <span class="comment">// 处理指示器</span></div><div class="line">    <span class="keyword">val</span> progressIndicator = <span class="number">0.1</span>f</div><div class="line">    <span class="comment">// Poll the ResourceManager. This doubles as a heartbeat if there are no pending container</span></div><div class="line">    <span class="comment">// requests.</span></div><div class="line">    <span class="comment">// 调用 AMRMClient 分配资源</span></div><div class="line">    <span class="keyword">val</span> allocateResponse = amClient.allocate(progressIndicator)</div><div class="line"></div><div class="line">    <span class="comment">// 得到已经分配的 container</span></div><div class="line">    <span class="keyword">val</span> allocatedContainers = allocateResponse.getAllocatedContainers()</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (allocatedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">// 输出日志信息，包括 分配的container数量，正在运行的以及启动的executor数量，以及可用的资源信息</span></div><div class="line">      logDebug((<span class="string">"Allocated containers: %d. Current executor count: %d. "</span> +</div><div class="line">        <span class="string">"Launching executor count: %d. Cluster resources: %s."</span>)</div><div class="line">        .format(</div><div class="line">          allocatedContainers.size,</div><div class="line">          numExecutorsRunning.get,</div><div class="line">          numExecutorsStarting.get,</div><div class="line">          allocateResponse.getAvailableResources))</div><div class="line"></div><div class="line">      <span class="comment">// 处理已经分配的container</span></div><div class="line">      handleAllocatedContainers(allocatedContainers.asScala)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 获取已经执行完成的 container</span></div><div class="line">    <span class="keyword">val</span> completedContainers = allocateResponse.getCompletedContainersStatuses()</div><div class="line">    <span class="keyword">if</span> (completedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      logDebug(<span class="string">"Completed %d containers"</span>.format(completedContainers.size))</div><div class="line">      <span class="comment">//处理已经完成的container</span></div><div class="line">      processCompletedContainers(completedContainers.asScala)</div><div class="line">      logDebug(<span class="string">"Finished processing %d completed containers. Current running executor count: %d."</span></div><div class="line">        .format(completedContainers.size, numExecutorsRunning.get))</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
 <p>这个方法首先就是要更新资源的申请（调用updateResourceRequests()方法，我们稍后再看），然后就是调用AMRMClient（amClient）来分配资源，分配资源的返回值（allocateResponse）会包含三部分信息：已经分配的Container（allocatedContainers）、可用的资源和完成的Container（completedContainers）。对于已经分配的和完成的Container，会有对应的方法去处理；对于可用的资源，只是输出到日志。</p>
@@ -363,8 +484,13 @@
 <td style="text-align:left">void releaseAssignedContainer(ContainerId containerId)</td>
 <td style="text-align:left">释放由Resource Manager分配的container。</td>
 </tr>
+<tr>
+<td style="text-align:left">RegisterApplicationMasterResponse registerApplicationMaster(String appHostName, int appHostPort, String appTrackingUrl)</td>
+<td style="text-align:left">注册application Master</td>
+</tr>
 </tbody>
 </table>
+<h1 id="一些问题"><a href="#一些问题" class="headerlink" title="一些问题"></a>一些问题</h1><h2 id="YarnAllocator是什么时候生成的"><a href="#YarnAllocator是什么时候生成的" class="headerlink" title="YarnAllocator是什么时候生成的"></a>YarnAllocator是什么时候生成的</h2><p>是在YarnRMClient的register方法中，向AMRMClient注册ApplicationMaster（调用AMRMClient.registerApplicationMaster方法）完成之后生成的。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span></span>(</div><div class="line">      driverUrl: <span class="type">String</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      conf: <span class="type">YarnConfiguration</span>,</div><div class="line">      sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      uiHistoryAddress: <span class="type">String</span>,</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">      localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]</div><div class="line">    ): <span class="type">YarnAllocator</span> = &#123;</div><div class="line">    amClient = <span class="type">AMRMClient</span>.createAMRMClient()</div><div class="line">    amClient.init(conf)</div><div class="line">    amClient.start()</div><div class="line">    <span class="keyword">this</span>.uiHistoryAddress = uiHistoryAddress</div><div class="line"></div><div class="line">    <span class="keyword">val</span> trackingUrl = uiAddress.getOrElse &#123;</div><div class="line">      <span class="keyword">if</span> (sparkConf.get(<span class="type">ALLOW_HISTORY_SERVER_TRACKING_URL</span>)) uiHistoryAddress <span class="keyword">else</span> <span class="string">""</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    logInfo(<span class="string">"Registering the ApplicationMaster"</span>)</div><div class="line">    synchronized &#123;</div><div class="line">      amClient.registerApplicationMaster(<span class="type">Utils</span>.localHostName(), <span class="number">0</span>, trackingUrl)</div><div class="line">      registered = <span class="literal">true</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">new</span> <span class="type">YarnAllocator</span>(driverUrl, driverRef, conf, sparkConf, amClient, getAttemptId(), securityMgr,</div><div class="line">      localResources, <span class="keyword">new</span> <span class="type">SparkRackResolver</span>())</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
 
           
         
@@ -3563,121 +3689,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/02/08/java-execute-command/" itemprop="url">
-                  Java execute command
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-02-08T11:27:12+08:00" content="2017-02-08">
-              2017-02-08
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/Java/" itemprop="url" rel="index">
-                    <span itemprop="name">Java</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>在Java的使用过程中，难免需要去执行linux命令（执行shell也是linux命令），那么应该如何做呢？本文将进行一些演示。</p>
-<h1 id="所依赖的相关类"><a href="#所依赖的相关类" class="headerlink" title="所依赖的相关类"></a>所依赖的相关类</h1><p>要在Java中执行linux命令有两种方式，依赖于三个类。我们先介绍这三个类，然后在使用这三个类，组合两种方案来进行说明。</p>
-<h2 id="java-lang-Process"><a href="#java-lang-Process" class="headerlink" title="java.lang.Process"></a>java.lang.Process</h2><h3 id="概括"><a href="#概括" class="headerlink" title="概括"></a>概括</h3><p>ProcessBuilder.start()和Runtime.exec方法创建一个本地进程，并返回一个Process子类的实例，该实例用来控制进程并获得相关信息。Process类提供了执行<br>当Process对象没有更多的引用时，不是删除子进程，而是继续异步执行子进程。</p>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2017/02/08/java-execute-command/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -3723,7 +3734,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">43</span>
+              <span class="site-state-item-count">44</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

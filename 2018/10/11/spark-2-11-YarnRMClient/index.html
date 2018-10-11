@@ -1,0 +1,630 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是对 org.apache.spark.deploy.yarn.YarnRMClient 源码进行学习的分析，spark的版本为2.11。
+概述YarnRMClient主要用来处理application master向Yarn resourceManager的注册和注销。
+主要方法分析register该方法很简单，就是向YARN ResourceManager注册application mas">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark 2.11 YarnRMClient">
+<meta property="og:url" content="http://baimoon.github.io/2018/10/11/spark-2-11-YarnRMClient/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是对 org.apache.spark.deploy.yarn.YarnRMClient 源码进行学习的分析，spark的版本为2.11。
+概述YarnRMClient主要用来处理application master向Yarn resourceManager的注册和注销。
+主要方法分析register该方法很简单，就是向YARN ResourceManager注册application mas">
+<meta property="og:updated_time" content="2018-10-11T10:01:16.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark 2.11 YarnRMClient">
+<meta name="twitter:description" content="本文是对 org.apache.spark.deploy.yarn.YarnRMClient 源码进行学习的分析，spark的版本为2.11。
+概述YarnRMClient主要用来处理application master向Yarn resourceManager的注册和注销。
+主要方法分析register该方法很简单，就是向YARN ResourceManager注册application mas">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/10/11/spark-2-11-YarnRMClient/"/>
+
+  <title> spark 2.11 YarnRMClient | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                spark 2.11 YarnRMClient
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-11T16:23:43+08:00" content="2018-10-11">
+              2018-10-11
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是对 org.apache.spark.deploy.yarn.YarnRMClient 源码进行学习的分析，spark的版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>YarnRMClient主要用来处理application master向Yarn resourceManager的注册和注销。</p>
+<h1 id="主要方法分析"><a href="#主要方法分析" class="headerlink" title="主要方法分析"></a>主要方法分析</h1><h2 id="register"><a href="#register" class="headerlink" title="register"></a>register</h2><p>该方法很简单，就是向YARN ResourceManager注册application master，该方法会在 ApplicationMaster的registerAM方法中调用。具体方法实现<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span></span>(</div><div class="line">      driverUrl: <span class="type">String</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      conf: <span class="type">YarnConfiguration</span>,</div><div class="line">      sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      uiHistoryAddress: <span class="type">String</span>,</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">      localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]</div><div class="line">    ): <span class="type">YarnAllocator</span> = &#123;</div><div class="line"></div><div class="line">    <span class="comment">// 调用AMRMClient自身的方法来生成AMRMClient，再使用 Yarn 配置进行初始化，启动AMRMClient</span></div><div class="line">    amClient = <span class="type">AMRMClient</span>.createAMRMClient()</div><div class="line">    amClient.init(conf)</div><div class="line">    amClient.start()</div><div class="line">    <span class="keyword">this</span>.uiHistoryAddress = uiHistoryAddress</div><div class="line"></div><div class="line">    <span class="keyword">val</span> trackingUrl = uiAddress.getOrElse &#123;</div><div class="line">      <span class="keyword">if</span> (sparkConf.get(<span class="type">ALLOW_HISTORY_SERVER_TRACKING_URL</span>)) uiHistoryAddress <span class="keyword">else</span> <span class="string">""</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    logInfo(<span class="string">"Registering the ApplicationMaster"</span>)</div><div class="line">    <span class="comment">// 向 ResourceManager 注册 application master，从代码看出 application master就是本机，TODO 这个本机是啥呢？？？</span></div><div class="line">    synchronized &#123;</div><div class="line">      amClient.registerApplicationMaster(<span class="type">Utils</span>.localHostName(), <span class="number">0</span>, trackingUrl)</div><div class="line">      registered = <span class="literal">true</span></div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 生成 YarnAllocator</span></div><div class="line">    <span class="comment">// driverUrl和driverRef需要说一下，</span></div><div class="line">    <span class="comment">// driverUrl，是driver运行的地址，会传递给Executor，应该是用于Execurot与driver进行交互</span></div><div class="line">    <span class="comment">// driverRef 在YarnAllocator中使用，用于同步executor的id，以及 发送删除executor的信息</span></div><div class="line">    <span class="keyword">new</span> <span class="type">YarnAllocator</span>(driverUrl, driverRef, conf, sparkConf, amClient, getAttemptId(), securityMgr,</div><div class="line">      localResources, <span class="keyword">new</span> <span class="type">SparkRackResolver</span>())</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>此方法逻辑很简单，一眼就看明白。生成AMRMClient（用于访问ResourceManager），向ResourceManager注册applicationMaster，生成YarnAllocator。但是需要注意生成YarnAllocator的参数。</p>
+<h2 id="unregister"><a href="#unregister" class="headerlink" title="unregister"></a>unregister</h2><p>作用与register方法相反，从YARN ResourceManager中注销 application master。具体方法实现<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">unregister</span></span>(status: <span class="type">FinalApplicationStatus</span>, diagnostics: <span class="type">String</span> = <span class="string">""</span>): <span class="type">Unit</span> = synchronized &#123;</div><div class="line">	<span class="keyword">if</span> (registered) &#123;</div><div class="line">	  amClient.unregisterApplicationMaster(status, diagnostics, uiHistoryAddress)</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="getMaxRegAttempts"><a href="#getMaxRegAttempts" class="headerlink" title="getMaxRegAttempts"></a>getMaxRegAttempts</h2><p>此方法就是用来定义注册application master的最大尝试次数。具体方法定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/** 获取注册AM的最大尝试次数 分别从spark配置和yarn配置中读取 如果spark配置中设置了，则使用spark和yarn配置中最小那个值 */</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getMaxRegAttempts</span></span>(sparkConf: <span class="type">SparkConf</span>, yarnConf: <span class="type">YarnConfiguration</span>): <span class="type">Int</span> = &#123;</div><div class="line">  <span class="keyword">val</span> sparkMaxAttempts = sparkConf.get(<span class="type">MAX_APP_ATTEMPTS</span>).map(_.toInt)</div><div class="line">  <span class="keyword">val</span> yarnMaxAttempts = yarnConf.getInt(</div><div class="line">    <span class="type">YarnConfiguration</span>.<span class="type">RM_AM_MAX_ATTEMPTS</span>, <span class="type">YarnConfiguration</span>.<span class="type">DEFAULT_RM_AM_MAX_ATTEMPTS</span>)</div><div class="line">  sparkMaxAttempts <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">Some</span>(x) =&gt; <span class="keyword">if</span> (x &lt;= yarnMaxAttempts) x <span class="keyword">else</span> yarnMaxAttempts</div><div class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; yarnMaxAttempts</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>此方法也很简单，分别从spark配置和yarn配置中读取 如果spark配置中设置了，则使用spark和yarn配置中最小那个值。没有在spark中配置，则使用yarn配置中的。</p>
+<h1 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h1><h2 id="哪里生成YarnRMClient对象"><a href="#哪里生成YarnRMClient对象" class="headerlink" title="哪里生成YarnRMClient对象"></a>哪里生成YarnRMClient对象</h2><p>答案就是在ApplicationMaster的main方法中，代码：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  </div><div class="line">  ...</div><div class="line">  </div><div class="line">  <span class="type">SparkHadoopUtil</span>.get.runAsSparkUser &#123; () =&gt;</div><div class="line">    master = <span class="keyword">new</span> <span class="type">ApplicationMaster</span>(amArgs, <span class="keyword">new</span> <span class="type">YarnRMClient</span>)</div><div class="line">    <span class="type">System</span>.exit(master.run())</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="哪里调用-YarnRMClient的register方法"><a href="#哪里调用-YarnRMClient的register方法" class="headerlink" title="哪里调用 YarnRMClient的register方法"></a>哪里调用 YarnRMClient的register方法</h2><p>在register方法中看到了YarnAllocator的生成，那么在哪里调用register方法呢？答案就是 org.apache.spark.deploy.yarn.ApplicationMaster中。而且ApplicationMaster含有main方法，是程序的入口。代码：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">registerAM</span></span>(</div><div class="line">      _sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      _rpcEnv: <span class="type">RpcEnv</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>) = &#123;</div><div class="line">    </div><div class="line">    ...</div><div class="line"></div><div class="line">    allocator = client.register(driverUrl,</div><div class="line">      driverRef,</div><div class="line">      yarnConf,</div><div class="line">      _sparkConf,</div><div class="line">      uiAddress,</div><div class="line">      historyAddress,</div><div class="line">      securityMgr,</div><div class="line">      localResources)</div><div class="line"></div><div class="line">    allocator.allocateResources()</div><div class="line">    reporterThread = launchReporterThread()</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/10/10/spark-2-11-YarnAllocator/" rel="next" title="spark-2.11-YarnAllocator">
+                <i class="fa fa-chevron-left"></i> spark-2.11-YarnAllocator
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">44</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主要方法分析"><span class="nav-number">2.</span> <span class="nav-text">主要方法分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#register"><span class="nav-number">2.1.</span> <span class="nav-text">register</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#unregister"><span class="nav-number">2.2.</span> <span class="nav-text">unregister</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#getMaxRegAttempts"><span class="nav-number">2.3.</span> <span class="nav-text">getMaxRegAttempts</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题"><span class="nav-number">3.</span> <span class="nav-text">问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#哪里生成YarnRMClient对象"><span class="nav-number">3.1.</span> <span class="nav-text">哪里生成YarnRMClient对象</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#哪里调用-YarnRMClient的register方法"><span class="nav-number">3.2.</span> <span class="nav-text">哪里调用 YarnRMClient的register方法</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

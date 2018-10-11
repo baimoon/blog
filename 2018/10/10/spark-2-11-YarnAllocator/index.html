@@ -84,19 +84,19 @@
 
 
 
-<meta name="description" content="本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。
-总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Yar">
+<meta name="description" content="本文是对 org.apache.spark.deploy.yarn.YarnAllocator 类源码进行学习的分析，spark的版本为2.11。
+总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Ya">
 <meta property="og:type" content="article">
 <meta property="og:title" content="spark-2.11-YarnAllocator">
 <meta property="og:url" content="http://baimoon.github.io/2018/10/10/spark-2-11-YarnAllocator/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。
-总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Yar">
-<meta property="og:updated_time" content="2018-10-11T07:11:54.000Z">
+<meta property="og:description" content="本文是对 org.apache.spark.deploy.yarn.YarnAllocator 类源码进行学习的分析，spark的版本为2.11。
+总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Ya">
+<meta property="og:updated_time" content="2018-10-11T08:28:09.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark-2.11-YarnAllocator">
-<meta name="twitter:description" content="本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。
-总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Yar">
+<meta name="twitter:description" content="本文是对 org.apache.spark.deploy.yarn.YarnAllocator 类源码进行学习的分析，spark的版本为2.11。
+总体概述YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在Ya">
 
 
 
@@ -308,7 +308,7 @@
       
 
       
-        <p>本文是对 org.apache.spark.deploy.yan.YarnAllocator 类源码进行学习的总结，spark的版本为2.11。</p>
+        <p>本文是对 org.apache.spark.deploy.yarn.YarnAllocator 类源码进行学习的分析，spark的版本为2.11。</p>
 <h1 id="总体概述"><a href="#总体概述" class="headerlink" title="总体概述"></a>总体概述</h1><p>YarnAllocator可以理解成一个Container的筛选器。当调用了YarnAllocator.allocateResources()方法后，程序就会进行各种处理，最终调用ExecutorRunnable类来启动Executor。在YarnAllocator类中，最主要的方法有：allocateResources()、updateResourceRequests()、handleAllocatedContainers()、runAllocatedContainers()和processCompletedContainers()。而整个这些方法的调用，是通过allocateResources()来调用的。基本的流程如下图：</p>
 <h1 id="主要方法的分析"><a href="#主要方法的分析" class="headerlink" title="主要方法的分析"></a>主要方法的分析</h1><h2 id="allocateResources"><a href="#allocateResources" class="headerlink" title="allocateResources"></a>allocateResources</h2><p>资源分配的入口，首先看方法的定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">allocateResources</span></span>(): <span class="type">Unit</span> = synchronized &#123;</div><div class="line">    updateResourceRequests()</div><div class="line"></div><div class="line">    <span class="comment">// 处理指示器</span></div><div class="line">    <span class="keyword">val</span> progressIndicator = <span class="number">0.1</span>f</div><div class="line">    <span class="comment">// Poll the ResourceManager. This doubles as a heartbeat if there are no pending container</span></div><div class="line">    <span class="comment">// requests.</span></div><div class="line">    <span class="comment">// 调用 AMRMClient 分配资源</span></div><div class="line">    <span class="keyword">val</span> allocateResponse = amClient.allocate(progressIndicator)</div><div class="line"></div><div class="line">    <span class="comment">// 得到已经分配的 container</span></div><div class="line">    <span class="keyword">val</span> allocatedContainers = allocateResponse.getAllocatedContainers()</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (allocatedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      <span class="comment">// 输出日志信息，包括 分配的container数量，正在运行的以及启动的executor数量，以及可用的资源信息</span></div><div class="line">      logDebug((<span class="string">"Allocated containers: %d. Current executor count: %d. "</span> +</div><div class="line">        <span class="string">"Launching executor count: %d. Cluster resources: %s."</span>)</div><div class="line">        .format(</div><div class="line">          allocatedContainers.size,</div><div class="line">          numExecutorsRunning.get,</div><div class="line">          numExecutorsStarting.get,</div><div class="line">          allocateResponse.getAvailableResources))</div><div class="line"></div><div class="line">      <span class="comment">// 处理已经分配的container</span></div><div class="line">      handleAllocatedContainers(allocatedContainers.asScala)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 获取已经执行完成的 container</span></div><div class="line">    <span class="keyword">val</span> completedContainers = allocateResponse.getCompletedContainersStatuses()</div><div class="line">    <span class="keyword">if</span> (completedContainers.size &gt; <span class="number">0</span>) &#123;</div><div class="line">      logDebug(<span class="string">"Completed %d containers"</span>.format(completedContainers.size))</div><div class="line">      <span class="comment">//处理已经完成的container</span></div><div class="line">      processCompletedContainers(completedContainers.asScala)</div><div class="line">      logDebug(<span class="string">"Finished processing %d completed containers. Current running executor count: %d."</span></div><div class="line">        .format(completedContainers.size, numExecutorsRunning.get))</div><div class="line">    &#125;</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
 <p>这个方法首先就是要更新资源的申请（调用updateResourceRequests()方法，我们稍后再看），然后就是调用AMRMClient（amClient）来分配资源，分配资源的返回值（allocateResponse）会包含三部分信息：已经分配的Container（allocatedContainers）、可用的资源和完成的Container（completedContainers）。对于已经分配的和完成的Container，会有对应的方法去处理；对于可用的资源，只是输出到日志。</p>
@@ -360,8 +360,13 @@
 <td style="text-align:left">void releaseAssignedContainer(ContainerId containerId)</td>
 <td style="text-align:left">释放由Resource Manager分配的container。</td>
 </tr>
+<tr>
+<td style="text-align:left">RegisterApplicationMasterResponse registerApplicationMaster(String appHostName, int appHostPort, String appTrackingUrl)</td>
+<td style="text-align:left">注册application Master</td>
+</tr>
 </tbody>
 </table>
+<h1 id="一些问题"><a href="#一些问题" class="headerlink" title="一些问题"></a>一些问题</h1><h2 id="YarnAllocator是什么时候生成的"><a href="#YarnAllocator是什么时候生成的" class="headerlink" title="YarnAllocator是什么时候生成的"></a>YarnAllocator是什么时候生成的</h2><p>是在YarnRMClient的register方法中，向AMRMClient注册ApplicationMaster（调用AMRMClient.registerApplicationMaster方法）完成之后生成的。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span></span>(</div><div class="line">      driverUrl: <span class="type">String</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      conf: <span class="type">YarnConfiguration</span>,</div><div class="line">      sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      uiHistoryAddress: <span class="type">String</span>,</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">      localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]</div><div class="line">    ): <span class="type">YarnAllocator</span> = &#123;</div><div class="line">    amClient = <span class="type">AMRMClient</span>.createAMRMClient()</div><div class="line">    amClient.init(conf)</div><div class="line">    amClient.start()</div><div class="line">    <span class="keyword">this</span>.uiHistoryAddress = uiHistoryAddress</div><div class="line"></div><div class="line">    <span class="keyword">val</span> trackingUrl = uiAddress.getOrElse &#123;</div><div class="line">      <span class="keyword">if</span> (sparkConf.get(<span class="type">ALLOW_HISTORY_SERVER_TRACKING_URL</span>)) uiHistoryAddress <span class="keyword">else</span> <span class="string">""</span></div><div class="line">    &#125;</div><div class="line"></div><div class="line">    logInfo(<span class="string">"Registering the ApplicationMaster"</span>)</div><div class="line">    synchronized &#123;</div><div class="line">      amClient.registerApplicationMaster(<span class="type">Utils</span>.localHostName(), <span class="number">0</span>, trackingUrl)</div><div class="line">      registered = <span class="literal">true</span></div><div class="line">    &#125;</div><div class="line">    <span class="keyword">new</span> <span class="type">YarnAllocator</span>(driverUrl, driverRef, conf, sparkConf, amClient, getAttemptId(), securityMgr,</div><div class="line">      localResources, <span class="keyword">new</span> <span class="type">SparkRackResolver</span>())</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
 
       
     </div>
@@ -400,6 +405,10 @@
           </div>
 
           <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2018/10/11/spark-2-11-YarnRMClient/" rel="prev" title="spark 2.11 YarnRMClient">
+                spark 2.11 YarnRMClient <i class="fa fa-chevron-right"></i>
+              </a>
             
           </div>
         </div>
@@ -467,7 +476,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">43</span>
+              <span class="site-state-item-count">44</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -538,7 +547,7 @@
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总体概述"><span class="nav-number">1.</span> <span class="nav-text">总体概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主要方法的分析"><span class="nav-number">2.</span> <span class="nav-text">主要方法的分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#allocateResources"><span class="nav-number">2.1.</span> <span class="nav-text">allocateResources</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#updateResourceRequests"><span class="nav-number">2.2.</span> <span class="nav-text">updateResourceRequests</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#handleAllocatedContainers"><span class="nav-number">2.3.</span> <span class="nav-text">handleAllocatedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runAllocatedContainers"><span class="nav-number">2.4.</span> <span class="nav-text">runAllocatedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#processCompletedContainers"><span class="nav-number">2.5.</span> <span class="nav-text">processCompletedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.6.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AMRMClient的一些方法"><span class="nav-number">3.</span> <span class="nav-text">AMRMClient的一些方法</span></a></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总体概述"><span class="nav-number">1.</span> <span class="nav-text">总体概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主要方法的分析"><span class="nav-number">2.</span> <span class="nav-text">主要方法的分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#allocateResources"><span class="nav-number">2.1.</span> <span class="nav-text">allocateResources</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#updateResourceRequests"><span class="nav-number">2.2.</span> <span class="nav-text">updateResourceRequests</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#handleAllocatedContainers"><span class="nav-number">2.3.</span> <span class="nav-text">handleAllocatedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#runAllocatedContainers"><span class="nav-number">2.4.</span> <span class="nav-text">runAllocatedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#processCompletedContainers"><span class="nav-number">2.5.</span> <span class="nav-text">processCompletedContainers</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#总结"><span class="nav-number">2.6.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#AMRMClient的一些方法"><span class="nav-number">3.</span> <span class="nav-text">AMRMClient的一些方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#一些问题"><span class="nav-number">4.</span> <span class="nav-text">一些问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#YarnAllocator是什么时候生成的"><span class="nav-number">4.1.</span> <span class="nav-text">YarnAllocator是什么时候生成的</span></a></li></ol></li></ol></div>
             
           </div>
         </section>

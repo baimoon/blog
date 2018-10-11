@@ -248,6 +248,121 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/07/25/spark-submittingApplications/" itemprop="url">
+                  Submitting Applications
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-25T14:22:23+08:00" content="2016-07-25">
+              2016-07-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对spark文档之Submitting Applications章节的翻译，原文档<a href="http://spark.apache.org/docs/latest/submitting-applications.html," title="Submitting Application">连接</a><br>在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。</p>
+<h2 id="Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖"><a href="#Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖" class="headerlink" title="Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)"></a>Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)</h2><p>如果你的代码依赖其他项目，你需要将它们打包到你的应用程序中，以便将它分发到集群。为了这样做，需要创建一个assembly jar（或）来包含你的代码和代码的依赖。sbt和Maven都有assembly插件。当创建assembly jar的时候，作为被提供的依赖列出Spark和Hadoop；这些不需要被捆绑，因为他们在运行时，cluster管理器会提供。一旦你有了一个assembly的jar包，你能够调用bin/spark-submit脚本在传递你的jar时进行解析。<br>对于Python，你可以使用spark-submit的–py-files参数来添加.py，.zip或.egg的文件，来发布你的application。如果你依赖多个Python文件，我们推荐将它们打包到.zip或.egg中。</p>
+<h2 id="Launching-Applications-with-spark-submit"><a href="#Launching-Applications-with-spark-submit" class="headerlink" title="Launching Applications with spark-submit"></a>Launching Applications with spark-submit</h2><p>一旦一个用户application被捆绑，那么这个application可以使用bin/spark-submit脚本来发布。这个脚本需要使用Spark和它的依赖来设置classpath，并支持不同的cluster manager和Spark支持的部署模式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt;  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... <span class="comment">#other options  </span></div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/25/spark-submittingApplications/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/07/25/spark-programmingGuide/" itemprop="url">
                   Programming Guide
                 </a>
@@ -618,7 +733,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">43</span>
+              <span class="site-state-item-count">44</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
