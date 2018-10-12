@@ -248,6 +248,122 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/07/26/spark-clusterModeOverview/" itemprop="url">
+                  Cluster Mode Overview
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-26T15:06:27+08:00" content="2016-07-26">
+              2016-07-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="Cluster Mode Overview">Cluster Mode Overview</a>的翻译，请多提宝贵意见。</p>
+<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications">application submission guide</a>来学习如何在一个集群上发布application。</p>
+<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程序）中的SparkContext进行协调。<br>特别的，要在一个cluster运行，SparkContext能够连接到几个类型的cluster managers（Spark自己的standalone cluster manager、Mesos或YARN），通过application来分配资源。一旦连接到，Spark要求集群中node上的executors进程来为你的application计算并存储数据。接下来，它发送你的应用程序代码（通过JAR或Python文件传递给SparkContext）给executors。最终，SparkContext发送tasks给executors来执行。</p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png" alt="架构" title="架构"></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/26/spark-clusterModeOverview/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/07/25/spark-submittingApplications/" itemprop="url">
                   Submitting Applications
                 </a>
@@ -733,7 +849,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">44</span>
+              <span class="site-state-item-count">45</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
