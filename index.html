@@ -248,8 +248,8 @@
             
               
                 
-                <a class="post-title-link" href="/blog/2018/10/11/spark-2-11-ApplicationMaster/" itemprop="url">
-                  spark 2.11 ApplicationMaster
+                <a class="post-title-link" href="/blog/2018/10/19/spark-2-11-ExecutorRunnable/" itemprop="url">
+                  spark-2.11-ExecutorRunnable
                 </a>
               
             
@@ -262,8 +262,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-10-11T19:51:13+08:00" content="2018-10-11">
-              2018-10-11
+            <time itemprop="dateCreated" datetime="2018-10-19T11:45:12+08:00" content="2018-10-19">
+              2018-10-19
             </time>
           </span>
 
@@ -311,7 +311,259 @@
       
         
           
+            <p>本文是对 org.apache.spark.deploy.yarn.ExecutorRunnable 源码进行学习的分析，spark版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>这个方法就是用来启动container的。准备环境、生成命令，发送给NMClient。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
             
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/10/17/spark-2-11-ApplicationMaster/" itemprop="url">
+                  spark 2.11 ApplicationMaster
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-17T19:51:13+08:00" content="2018-10-17">
+              2018-10-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文是对 org.apache.spark.deploy.yarn.ApplicationMaster 源码进行学习的分析，spark的版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>ApplicationMaster 可以说是运行用户程序的入口类。该类的一些行为有解析用户参数、启动dirver、建立与driver的通信、启动reporter线程、启动用户类等。</p>
+<h1 id="主要方法分析"><a href="#主要方法分析" class="headerlink" title="主要方法分析"></a>主要方法分析</h1><h2 id="ApplicationMaster伴生类的main方法"><a href="#ApplicationMaster伴生类的main方法" class="headerlink" title="ApplicationMaster伴生类的main方法"></a>ApplicationMaster伴生类的main方法</h2><p>该方法是ApplicationMaster的启动入口方法，方法定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="comment">// 注册日志</span></div><div class="line">  <span class="type">SignalUtils</span>.registerLogger(log)</div><div class="line"></div><div class="line">  <span class="comment">// 实例化 ApplicationMasterArguments对应，用来解析传入的参数</span></div><div class="line">  <span class="keyword">val</span> amArgs = <span class="keyword">new</span> <span class="type">ApplicationMasterArguments</span>(args)</div><div class="line"></div><div class="line">  <span class="comment">// 是否设置了 --properties-file 参数，如果设置，则将properties文件中的配置加载到系统参数中</span></div><div class="line">  <span class="keyword">if</span> (amArgs.propertiesFile != <span class="literal">null</span>) &#123;</div><div class="line">    <span class="type">Utils</span>.getPropertiesFromFile(amArgs.propertiesFile).foreach &#123; <span class="keyword">case</span> (k, v) =&gt;</div><div class="line">      sys.props(k) = v</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// 以指定的用户运行 ApplicationMaster</span></div><div class="line">  <span class="type">SparkHadoopUtil</span>.get.runAsSparkUser &#123; () =&gt;</div><div class="line">    master = <span class="keyword">new</span> <span class="type">ApplicationMaster</span>(amArgs, <span class="keyword">new</span> <span class="type">YarnRMClient</span>)</div><div class="line">    <span class="comment">// 运行 application master</span></div><div class="line">    <span class="type">System</span>.exit(master.run())</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从代码可以看出，该方法就是类的启动方法，注册日志、解析传入参数（如果参数传递了properties文件，则将properties中的配置加载到系统中），最后以特殊的用户身份启动ApplicationMaster（调用run方法）。</p>
+<h2 id="run"><a href="#run" class="headerlink" title="run"></a>run</h2><p>该方法用来启动applicationMaster，方法定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(): <span class="type">Int</span> = &#123;</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">    <span class="comment">// 获取application的id</span></div><div class="line">    <span class="keyword">val</span> appAttemptId = client.getAttemptId()</div><div class="line"></div><div class="line">    <span class="keyword">var</span> attemptID: <span class="type">Option</span>[<span class="type">String</span>] = <span class="type">None</span></div><div class="line"></div><div class="line">    <span class="comment">// 是否是集群模式，则设置集群模式需要的一些属性</span></div><div class="line">    <span class="keyword">if</span> (isClusterMode) &#123;</div><div class="line">      <span class="comment">// Set the web ui port to be ephemeral for yarn so we don't conflict with</span></div><div class="line">      <span class="comment">// other spark processes running on the same box</span></div><div class="line">      <span class="type">System</span>.setProperty(<span class="string">"spark.ui.port"</span>, <span class="string">"0"</span>)</div><div class="line"></div><div class="line">      <span class="comment">// Set the master and deploy mode property to match the requested mode.</span></div><div class="line">      <span class="type">System</span>.setProperty(<span class="string">"spark.master"</span>, <span class="string">"yarn"</span>)</div><div class="line">      <span class="type">System</span>.setProperty(<span class="string">"spark.submit.deployMode"</span>, <span class="string">"cluster"</span>)</div><div class="line"></div><div class="line">      <span class="comment">// Set this internal configuration if it is running on cluster mode, this</span></div><div class="line">      <span class="comment">// configuration will be checked in SparkContext to avoid misuse of yarn cluster mode.</span></div><div class="line">      <span class="type">System</span>.setProperty(<span class="string">"spark.yarn.app.id"</span>, appAttemptId.getApplicationId().toString())</div><div class="line"></div><div class="line">      attemptID = <span class="type">Option</span>(appAttemptId.getAttemptId.toString)</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// &lt;1&gt;</span></div><div class="line"></div><div class="line">    <span class="comment">// 设置调用上下文，从spark.log.callerContext配置中读取</span></div><div class="line">    <span class="keyword">new</span> <span class="type">CallerContext</span>(</div><div class="line">      <span class="string">"APPMASTER"</span>, sparkConf.get(<span class="type">APP_CALLER_CONTEXT</span>),</div><div class="line">      <span class="type">Option</span>(appAttemptId.getApplicationId.toString), attemptID).setCurrentContext()</div><div class="line"></div><div class="line">    logInfo(<span class="string">"ApplicationAttemptId: "</span> + appAttemptId)</div><div class="line"></div><div class="line">    <span class="comment">// This shutdown hook should run *after* the SparkContext is shut down.</span></div><div class="line">    <span class="comment">// 设置钩子函数，以便在 SparkContext 之后调用，进行操作</span></div><div class="line">    <span class="keyword">val</span> priority = <span class="type">ShutdownHookManager</span>.<span class="type">SPARK_CONTEXT_SHUTDOWN_PRIORITY</span> - <span class="number">1</span></div><div class="line">    <span class="comment">//</span></div><div class="line">    <span class="type">ShutdownHookManager</span>.addShutdownHook(priority) &#123; () =&gt;</div><div class="line">      <span class="keyword">val</span> maxAppAttempts = client.getMaxRegAttempts(sparkConf, yarnConf)</div><div class="line">      <span class="keyword">val</span> isLastAttempt = client.getAttemptId().getAttemptId() &gt;= maxAppAttempts</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (!finished) &#123;</div><div class="line">        <span class="comment">// The default state of ApplicationMaster is failed if it is invoked by shut down hook.</span></div><div class="line">        <span class="comment">// This behavior is different compared to 1.x version.</span></div><div class="line">        <span class="comment">// If user application is exited ahead of time by calling System.exit(N), here mark</span></div><div class="line">        <span class="comment">// this application as failed with EXIT_EARLY. For a good shutdown, user shouldn't call</span></div><div class="line">        <span class="comment">// System.exit(0) to terminate the application.</span></div><div class="line">        finish(finalStatus,</div><div class="line">          <span class="type">ApplicationMaster</span>.<span class="type">EXIT_EARLY</span>,</div><div class="line">          <span class="string">"Shutdown hook called before final status was reported."</span>)</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="keyword">if</span> (!unregistered) &#123;</div><div class="line">        <span class="comment">// we only want to unregister if we don't want the RM to retry</span></div><div class="line">        <span class="keyword">if</span> (finalStatus == <span class="type">FinalApplicationStatus</span>.<span class="type">SUCCEEDED</span> || isLastAttempt) &#123;</div><div class="line">          unregister(finalStatus, finalMsg)</div><div class="line">          cleanupStagingDir()</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// &lt;2&gt;</span></div><div class="line"></div><div class="line">    <span class="comment">// Call this to force generation of secret so it gets populated into the</span></div><div class="line">    <span class="comment">// Hadoop UGI. This has to happen before the startUserApplication which does a</span></div><div class="line">    <span class="comment">// doAs in order for the credentials to be passed on to the executor containers.</span></div><div class="line">    <span class="comment">// 根据spark配置生成安全管理器</span></div><div class="line">    <span class="keyword">val</span> securityMgr = <span class="keyword">new</span> <span class="type">SecurityManager</span>(sparkConf)</div><div class="line"></div><div class="line">    <span class="comment">// If the credentials file config is present, we must periodically renew tokens. So create</span></div><div class="line">    <span class="comment">// a new AMDelegationTokenRenewer</span></div><div class="line">    <span class="comment">// spark.yarn.credentials.file</span></div><div class="line">    <span class="keyword">if</span> (sparkConf.contains(<span class="type">CREDENTIALS_FILE_PATH</span>.key)) &#123;</div><div class="line">      <span class="comment">// If a principal and keytab have been set, use that to create new credentials for executors</span></div><div class="line">      <span class="comment">// periodically</span></div><div class="line">      credentialRenewer =</div><div class="line">        <span class="keyword">new</span> <span class="type">ConfigurableCredentialManager</span>(sparkConf, yarnConf).credentialRenewer()</div><div class="line">      credentialRenewer.scheduleLoginFromKeytab()</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// &lt;3&gt;</span></div><div class="line"></div><div class="line">    <span class="comment">// 根据不同的集群模式，调用不同的方法</span></div><div class="line">    <span class="keyword">if</span> (isClusterMode) &#123;</div><div class="line">      runDriver(securityMgr)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      runExecutorLauncher(securityMgr)</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// &lt;4&gt;</span></div><div class="line"></div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">    <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</div><div class="line">      <span class="comment">// catch everything else if not specifically handled</span></div><div class="line">      logError(<span class="string">"Uncaught exception: "</span>, e)</div><div class="line">      finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">        <span class="type">ApplicationMaster</span>.<span class="type">EXIT_UNCAUGHT_EXCEPTION</span>,</div><div class="line">        <span class="string">"Uncaught exception: "</span> + e)</div><div class="line">  &#125;</div><div class="line">  exitCode</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p><1> 这部分用来设置一些系统属性，以便后面使用。</1></p>
+<p><2> 设置CurrentContext以及钩子方法，以便在sparkContext销毁之后进行清理操作。钩子函数实际上是交给了 SparkShutdownHookManager 对象进行处理。</2></p>
+<p><3> 进行安全方面的一些设置，需要后续仔细看。</3></p>
+<p><4> 进行服务的启动，这里区分是集群模式（cluster）还是客户端模式（client）。其内部执行的总体步骤是一样的，只是每个步骤的做的方式不同。<br>接下来，先从集群模式来看，然后再看客户端模式。</4></p>
+<h2 id="runDriver"><a href="#runDriver" class="headerlink" title="runDriver"></a>runDriver</h2><p>运行deiver，只有集群模式，才会执行这个方法，方法定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">runDriver</span></span>(securityMgr: <span class="type">SecurityManager</span>): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="comment">// 添加IP过滤器</span></div><div class="line">  addAmIpFilter()</div><div class="line">  <span class="comment">// 启动用户Application，就是利用反射机制，运行用户指定的class中的main方法</span></div><div class="line">  userClassThread = startUserApplication()</div><div class="line"></div><div class="line">  <span class="comment">// This a bit hacky, but we need to wait until the spark.driver.port property has</span></div><div class="line">  <span class="comment">// been set by the Thread executing the user class.</span></div><div class="line">  logInfo(<span class="string">"Waiting for spark context initialization..."</span>)</div><div class="line">  <span class="comment">// spark.yarn.am.waitTime</span></div><div class="line">  <span class="keyword">val</span> totalWaitTime = sparkConf.get(<span class="type">AM_MAX_WAIT_TIME</span>)</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">    <span class="comment">// 等待 SparkContext的生成，最多等待 totalWaitTime 毫秒</span></div><div class="line">    <span class="keyword">val</span> sc = <span class="type">ThreadUtils</span>.awaitResult(sparkContextPromise.future,</div><div class="line">      <span class="type">Duration</span>(totalWaitTime, <span class="type">TimeUnit</span>.<span class="type">MILLISECONDS</span>))</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (sc != <span class="literal">null</span>) &#123;</div><div class="line">      rpcEnv = sc.env.rpcEnv</div><div class="line">      <span class="comment">// 启动 driver RPC</span></div><div class="line">      <span class="keyword">val</span> driverRef = runAMEndpoint(</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.host"</span>),</div><div class="line">        sc.getConf.get(<span class="string">"spark.driver.port"</span>),</div><div class="line">        isClusterMode = <span class="literal">true</span>)</div><div class="line"></div><div class="line">      <span class="comment">// 注册Application master</span></div><div class="line">      registerAM(sc.getConf, rpcEnv, driverRef, sc.ui.map(_.webUrl), securityMgr)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// Sanity check; should never happen in normal operation, since sc should only be null</span></div><div class="line">      <span class="comment">// if the user app did not create a SparkContext.</span></div><div class="line">      <span class="keyword">if</span> (!finished) &#123;</div><div class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="type">IllegalStateException</span>(<span class="string">"SparkContext is null but app is still running!"</span>)</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 等待 用户线程 的完成</span></div><div class="line">    userClassThread.join()</div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">    <span class="keyword">case</span> e: <span class="type">SparkException</span> <span class="keyword">if</span> e.getCause().isInstanceOf[<span class="type">TimeoutException</span>] =&gt;</div><div class="line">      logError(</div><div class="line">        <span class="string">s"SparkContext did not initialize after waiting for <span class="subst">$totalWaitTime</span> ms. "</span> +</div><div class="line">         <span class="string">"Please check earlier log output for errors. Failing the application."</span>)</div><div class="line">      finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">        <span class="type">ApplicationMaster</span>.<span class="type">EXIT_SC_NOT_INITED</span>,</div><div class="line">        <span class="string">"Timed out waiting for SparkContext."</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个方法比较重要，因此需要详细看看。addAmIpFilter方法，从代码来看是给Spark UI增加IP 过滤器的功能，方法中也会对不同的部署模式有不同的区分，对于集群模式，将过滤器信息（过滤器类和参数）设置到系统参数，而对于client模式，则通过RPC服务发送给了driver。由此可见对于集群模式，driver是运行在本地的，而客户端模式，driver是运行在别处的。运行在哪里呢？另外，addAmIpFilter实际上添加的是 org.apache.hadoop.yarn.server.webproxy.amfilter.AmIpFilter 这个Filter。<br>接下来，方法是在独立的线程中启动了用户类（通过–class参数传入的类），启动用户类，其大概的操作就是获取类加载器，利用反射，加载类并最终调用用户类的main方法。<br>接着，获取SparkContext，并通过runAMEndpoint方法得到 driverEndpint，driverEndpoint作为一个参数来向ResourceManager 注册 ApplicationMaster。<br>然后就是向 ResourceManager 注册 ApplcationMaster。<br>最后等待用户类的执行完成。</p>
+<h2 id="runExecutorLauncher"><a href="#runExecutorLauncher" class="headerlink" title="runExecutorLauncher"></a>runExecutorLauncher</h2><p>runExecutorLauncher方法与上面的rundirver的地位相同，只是针对client模式的启动方式。方法定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">runExecutorLauncher</span></span>(securityMgr: <span class="type">SecurityManager</span>): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="keyword">val</span> port = sparkConf.get(<span class="type">AM_PORT</span>)</div><div class="line">  rpcEnv = <span class="type">RpcEnv</span>.create(<span class="string">"sparkYarnAM"</span>, <span class="type">Utils</span>.localHostName, port, sparkConf, securityMgr,</div><div class="line">    clientMode = <span class="literal">true</span>)</div><div class="line">  <span class="keyword">val</span> driverRef = waitForSparkDriver()</div><div class="line">  addAmIpFilter()</div><div class="line">  registerAM(sparkConf, rpcEnv, driverRef, sparkConf.getOption(<span class="string">"spark.driver.appUIAddress"</span>),</div><div class="line">    securityMgr)</div><div class="line"></div><div class="line">  <span class="comment">// In client mode the actor will stop the reporter thread.</span></div><div class="line">  reporterThread.join()</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>此方法相对 rundriver来说就简单多了，首先创建了一个用于连接本机的RpcEnv，然后是等待SparkDriver的启动完成，添加IP Filter（通过amEndpoint发送给driver）。最后向ResourceManager 注册 ApplicationMaster。</p>
+<h2 id="registerAM"><a href="#registerAM" class="headerlink" title="registerAM"></a>registerAM</h2><p>此方法用来处理向 ResourceManager 注册 ApplicationMaster。通过这个方法，就将ApplicationMaster与YarnRMClient和YarnAllocator联系起来了。方法定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">registerAM</span></span>(</div><div class="line">    _sparkConf: <span class="type">SparkConf</span>,</div><div class="line">    _rpcEnv: <span class="type">RpcEnv</span>,</div><div class="line">    driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">    uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">    securityMgr: <span class="type">SecurityManager</span>) = &#123;</div><div class="line">  <span class="keyword">val</span> appId = client.getAttemptId().getApplicationId().toString()</div><div class="line">  <span class="keyword">val</span> attemptId = client.getAttemptId().getAttemptId().toString()</div><div class="line">  <span class="keyword">val</span> historyAddress =</div><div class="line">    _sparkConf.get(<span class="type">HISTORY_SERVER_ADDRESS</span>)</div><div class="line">      .map &#123; text =&gt; <span class="type">SparkHadoopUtil</span>.get.substituteHadoopVariables(text, yarnConf) &#125;</div><div class="line">      .map &#123; address =&gt; <span class="string">s"<span class="subst">$&#123;address&#125;</span><span class="subst">$&#123;HistoryServer.UI_PATH_PREFIX&#125;</span>/<span class="subst">$&#123;appId&#125;</span>/<span class="subst">$&#123;attemptId&#125;</span>"</span> &#125;</div><div class="line">      .getOrElse(<span class="string">""</span>)</div><div class="line"></div><div class="line">  <span class="keyword">val</span> driverUrl = <span class="type">RpcEndpointAddress</span>(</div><div class="line">    _sparkConf.get(<span class="string">"spark.driver.host"</span>),</div><div class="line">    _sparkConf.get(<span class="string">"spark.driver.port"</span>).toInt,</div><div class="line">    <span class="type">CoarseGrainedSchedulerBackend</span>.<span class="type">ENDPOINT_NAME</span>).toString</div><div class="line"></div><div class="line">  <span class="comment">// Before we initialize the allocator, let's log the information about how executors will</span></div><div class="line">  <span class="comment">// be run up front, to avoid printing this out for every single executor being launched.</span></div><div class="line">  <span class="comment">// Use placeholders for information that changes such as executor IDs.</span></div><div class="line">  logInfo &#123;</div><div class="line">    <span class="keyword">val</span> executorMemory = sparkConf.get(<span class="type">EXECUTOR_MEMORY</span>).toInt</div><div class="line">    <span class="keyword">val</span> executorCores = sparkConf.get(<span class="type">EXECUTOR_CORES</span>)</div><div class="line">    <span class="keyword">val</span> dummyRunner = <span class="keyword">new</span> <span class="type">ExecutorRunnable</span>(<span class="type">None</span>, yarnConf, sparkConf, driverUrl, <span class="string">"&lt;executorId&gt;"</span>,</div><div class="line">      <span class="string">"&lt;hostname&gt;"</span>, executorMemory, executorCores, appId, securityMgr, localResources)</div><div class="line">    dummyRunner.launchContextDebugInfo()</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  allocator = client.register(driverUrl,</div><div class="line">    driverRef,</div><div class="line">    yarnConf,</div><div class="line">    _sparkConf,</div><div class="line">    uiAddress,</div><div class="line">    historyAddress,</div><div class="line">    securityMgr,</div><div class="line">    localResources)</div><div class="line"></div><div class="line">  allocator.allocateResources()</div><div class="line">  <span class="comment">// 在 客户端 模式中 的 runExecutorLauncher 方法中join</span></div><div class="line">  reporterThread = launchReporterThread()</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>该方法主要就是获取各种参数，然后调用client（YarnRMClient）的register方法进行注册（说是向ResourceManager注册的application，但以我来看，是注册的driver），还有就是启动reporter线程。</p>
+<h2 id="launchReporterThread"><a href="#launchReporterThread" class="headerlink" title="launchReporterThread"></a>launchReporterThread</h2><p>用于生成并启动 reporter线程。方法定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">launchReporterThread</span></span>(): <span class="type">Thread</span> = &#123;</div><div class="line">  <span class="comment">// The number of failures in a row until Reporter thread give up</span></div><div class="line">  <span class="comment">// 获取配置的 reporter 线程最大失败次数</span></div><div class="line">  <span class="keyword">val</span> reporterMaxFailures = sparkConf.get(<span class="type">MAX_REPORTER_THREAD_FAILURES</span>)</div><div class="line"></div><div class="line">  <span class="keyword">val</span> t = <span class="keyword">new</span> <span class="type">Thread</span> &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>() &#123;</div><div class="line">      <span class="keyword">var</span> failureCount = <span class="number">0</span></div><div class="line">      <span class="keyword">while</span> (!finished) &#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          <span class="comment">// 如果 allocator 失败的 executor 个数已经超出了设置的最大值，则 终止 application 的运行（终止用户类的运行）</span></div><div class="line">          <span class="keyword">if</span> (allocator.getNumExecutorsFailed &gt;= maxNumExecutorFailures) &#123;</div><div class="line">            finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">              <span class="type">ApplicationMaster</span>.<span class="type">EXIT_MAX_EXECUTOR_FAILURES</span>,</div><div class="line">              <span class="string">s"Max number of executor failures (<span class="subst">$maxNumExecutorFailures</span>) reached"</span>)</div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="comment">// 向YarnAllocator 申请资源</span></div><div class="line">            logDebug(<span class="string">"Sending progress"</span>)</div><div class="line">            allocator.allocateResources()</div><div class="line">          &#125;</div><div class="line">          failureCount = <span class="number">0</span></div><div class="line">        &#125; <span class="keyword">catch</span> &#123;</div><div class="line">          <span class="comment">// 不同的异常不同的处理，中断异常，有可能是 finish 方法抛出来的</span></div><div class="line">          <span class="keyword">case</span> i: <span class="type">InterruptedException</span> =&gt; <span class="comment">// do nothing</span></div><div class="line">          <span class="keyword">case</span> e: <span class="type">ApplicationAttemptNotFoundException</span> =&gt;</div><div class="line">            failureCount += <span class="number">1</span></div><div class="line">            logError(<span class="string">"Exception from Reporter thread."</span>, e)</div><div class="line">            finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>, <span class="type">ApplicationMaster</span>.<span class="type">EXIT_REPORTER_FAILURE</span>,</div><div class="line">              e.getMessage)</div><div class="line">          <span class="comment">// 如果 reporter 线程的尝试次数超过配置的最大值，则终止 用户类的运行</span></div><div class="line">          <span class="keyword">case</span> e: <span class="type">Throwable</span> =&gt;</div><div class="line">            failureCount += <span class="number">1</span></div><div class="line">            <span class="keyword">if</span> (!<span class="type">NonFatal</span>(e) || failureCount &gt;= reporterMaxFailures) &#123;</div><div class="line">              finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">                <span class="type">ApplicationMaster</span>.<span class="type">EXIT_REPORTER_FAILURE</span>, <span class="string">"Exception was thrown "</span> +</div><div class="line">                  <span class="string">s"<span class="subst">$failureCount</span> time(s) from Reporter thread."</span>)</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">              logWarning(<span class="string">s"Reporter thread fails <span class="subst">$failureCount</span> time(s) in a row."</span>, e)</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">          <span class="keyword">val</span> numPendingAllocate = allocator.getPendingAllocate.size</div><div class="line">          <span class="keyword">var</span> sleepStart = <span class="number">0</span>L</div><div class="line">          <span class="keyword">var</span> sleepInterval = <span class="number">200</span>L <span class="comment">// ms</span></div><div class="line">          allocatorLock.synchronized &#123;</div><div class="line">            <span class="comment">// 计算 reporter 的休眠时长， 根据</span></div><div class="line">            sleepInterval =</div><div class="line">              <span class="keyword">if</span> (numPendingAllocate &gt; <span class="number">0</span> || allocator.getNumPendingLossReasonRequests &gt; <span class="number">0</span>) &#123;</div><div class="line">                <span class="comment">// 进入这里，表示有丢失的container， 也有正在添加的container</span></div><div class="line">                <span class="keyword">val</span> currentAllocationInterval =</div><div class="line">                  math.min(heartbeatInterval, nextAllocationInterval)</div><div class="line">                nextAllocationInterval = currentAllocationInterval * <span class="number">2</span> <span class="comment">// avoid overflow</span></div><div class="line">                currentAllocationInterval</div><div class="line">              &#125; <span class="keyword">else</span> &#123;</div><div class="line">                nextAllocationInterval = initialAllocationInterval</div><div class="line">                heartbeatInterval</div><div class="line">              &#125;</div><div class="line">            sleepStart = <span class="type">System</span>.currentTimeMillis()</div><div class="line">            allocatorLock.wait(sleepInterval)</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">val</span> sleepDuration = <span class="type">System</span>.currentTimeMillis() - sleepStart</div><div class="line"></div><div class="line">          <span class="comment">// 如果符合这个条件，说明上面的 allocatorLock.wait所等待的时间不够，改用Thread.sleep来休眠</span></div><div class="line">          <span class="keyword">if</span> (sleepDuration &lt; sleepInterval) &#123;</div><div class="line">            <span class="comment">// log when sleep is interrupted</span></div><div class="line">            logDebug(<span class="string">s"Number of pending allocations is <span class="subst">$numPendingAllocate</span>. "</span> +</div><div class="line">                <span class="string">s"Slept for <span class="subst">$sleepDuration</span>/<span class="subst">$sleepInterval</span> ms."</span>)</div><div class="line">            <span class="comment">// if sleep was less than the minimum interval, sleep for the rest of it</span></div><div class="line">            <span class="keyword">val</span> toSleep = math.max(<span class="number">0</span>, initialAllocationInterval - sleepDuration)</div><div class="line">            <span class="keyword">if</span> (toSleep &gt; <span class="number">0</span>) &#123;</div><div class="line">              logDebug(<span class="string">s"Going back to sleep for <span class="subst">$toSleep</span> ms"</span>)</div><div class="line">              <span class="comment">// use Thread.sleep instead of allocatorLock.wait. there is no need to be woken up</span></div><div class="line">              <span class="comment">// by the methods that signal allocatorLock because this is just finishing the min</span></div><div class="line">              <span class="comment">// sleep interval, which should happen even if this is signalled again.</span></div><div class="line">              <span class="type">Thread</span>.sleep(toSleep)</div><div class="line">            &#125;</div><div class="line">          &#125; <span class="keyword">else</span> &#123;</div><div class="line">            logDebug(<span class="string">s"Number of pending allocations is <span class="subst">$numPendingAllocate</span>. "</span> +</div><div class="line">                <span class="string">s"Slept for <span class="subst">$sleepDuration</span>/<span class="subst">$sleepInterval</span>."</span>)</div><div class="line">          &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> &#123;</div><div class="line">          <span class="keyword">case</span> e: <span class="type">InterruptedException</span> =&gt;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// setting to daemon status, though this is usually not a good idea.</span></div><div class="line">  t.setDaemon(<span class="literal">true</span>)</div><div class="line">  t.setName(<span class="string">"Reporter"</span>)</div><div class="line">  t.start()</div><div class="line">  logInfo(<span class="string">s"Started progress reporter thread with (heartbeat : <span class="subst">$heartbeatInterval</span>, "</span> +</div><div class="line">          <span class="string">s"initial allocation : <span class="subst">$initialAllocationInterval</span>) intervals"</span>)</div><div class="line">  t</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>该方法看起来很复杂，其实它主要要做的事情就是 向YarnAllocator申请资源（调用allocateResources方法）。其他代码就是判断是否还要申请资源，以及什么时候进行下一次申请。</p>
+<h2 id="startUserApplication"><a href="#startUserApplication" class="headerlink" title="startUserApplication"></a>startUserApplication</h2><p>启动用户应用程序，其实就是启动用户通过 –class参数传递过来的类。方法定义<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">startUserApplication</span></span>(): <span class="type">Thread</span> = &#123;</div><div class="line">  logInfo(<span class="string">"Starting the user application in a separate Thread"</span>)</div><div class="line"></div><div class="line">  <span class="comment">// 获取用户的类路经</span></div><div class="line">  <span class="keyword">val</span> classpath = <span class="type">Client</span>.getUserClasspath(sparkConf)</div><div class="line">  <span class="keyword">val</span> urls = classpath.map &#123; entry =&gt;</div><div class="line">    <span class="keyword">new</span> <span class="type">URL</span>(<span class="string">"file:"</span> + <span class="keyword">new</span> <span class="type">File</span>(entry.getPath()).getAbsolutePath())</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">val</span> userClassLoader =</div><div class="line">    <span class="keyword">if</span> (<span class="type">Client</span>.isUserClassPathFirst(sparkConf, isDriver = <span class="literal">true</span>)) &#123;</div><div class="line">      <span class="keyword">new</span> <span class="type">ChildFirstURLClassLoader</span>(urls, <span class="type">Utils</span>.getContextOrSparkClassLoader)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="keyword">new</span> <span class="type">MutableURLClassLoader</span>(urls, <span class="type">Utils</span>.getContextOrSparkClassLoader)</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  <span class="keyword">var</span> userArgs = args.userArgs</div><div class="line">  <span class="keyword">if</span> (args.primaryPyFile != <span class="literal">null</span> &amp;&amp; args.primaryPyFile.endsWith(<span class="string">".py"</span>)) &#123;</div><div class="line">    <span class="comment">// When running pyspark, the app is run using PythonRunner. The second argument is the list</span></div><div class="line">    <span class="comment">// of files to add to PYTHONPATH, which Client.scala already handles, so it's empty.</span></div><div class="line">    userArgs = <span class="type">Seq</span>(args.primaryPyFile, <span class="string">""</span>) ++ userArgs</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (args.primaryRFile != <span class="literal">null</span> &amp;&amp; args.primaryRFile.endsWith(<span class="string">".R"</span>)) &#123;</div><div class="line">    <span class="comment">// TODO(davies): add R dependencies here</span></div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// 用户类的main方法</span></div><div class="line">  <span class="keyword">val</span> mainMethod = userClassLoader.loadClass(args.userClass)</div><div class="line">    .getMethod(<span class="string">"main"</span>, classOf[<span class="type">Array</span>[<span class="type">String</span>]])</div><div class="line"></div><div class="line">  <span class="keyword">val</span> userThread = <span class="keyword">new</span> <span class="type">Thread</span> &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>() &#123;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        <span class="comment">// 在新的线程中运行 用户类的 main方法</span></div><div class="line">        mainMethod.invoke(<span class="literal">null</span>, userArgs.toArray)</div><div class="line"></div><div class="line">        <span class="comment">// 设置完成状态（用户类执行完成）</span></div><div class="line">        finish(<span class="type">FinalApplicationStatus</span>.<span class="type">SUCCEEDED</span>, <span class="type">ApplicationMaster</span>.<span class="type">EXIT_SUCCESS</span>)</div><div class="line"></div><div class="line">        <span class="comment">// 记录日志</span></div><div class="line">        logDebug(<span class="string">"Done running users class"</span>)</div><div class="line">      &#125; <span class="keyword">catch</span> &#123;</div><div class="line">        <span class="comment">// 根据异常的原因，设置用户类执行的完成状态（失败状态）</span></div><div class="line">        <span class="comment">// 异常的原因分为</span></div><div class="line">        <span class="comment">// 中断异常</span></div><div class="line">        <span class="comment">// app异常</span></div><div class="line">        <span class="comment">// 代码异常</span></div><div class="line">        <span class="keyword">case</span> e: <span class="type">InvocationTargetException</span> =&gt;</div><div class="line">          e.getCause <span class="keyword">match</span> &#123;</div><div class="line">            <span class="keyword">case</span> _: <span class="type">InterruptedException</span> =&gt;</div><div class="line">              <span class="comment">// Reporter thread can interrupt to stop user class</span></div><div class="line">            <span class="keyword">case</span> <span class="type">SparkUserAppException</span>(exitCode) =&gt;</div><div class="line">              <span class="keyword">val</span> msg = <span class="string">s"User application exited with status <span class="subst">$exitCode</span>"</span></div><div class="line">              logError(msg)</div><div class="line">              finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>, exitCode, msg)</div><div class="line">            <span class="keyword">case</span> cause: <span class="type">Throwable</span> =&gt;</div><div class="line">              logError(<span class="string">"User class threw exception: "</span> + cause, cause)</div><div class="line">              finish(<span class="type">FinalApplicationStatus</span>.<span class="type">FAILED</span>,</div><div class="line">                <span class="type">ApplicationMaster</span>.<span class="type">EXIT_EXCEPTION_USER_CLASS</span>,</div><div class="line">                <span class="string">"User class threw exception: "</span> + cause)</div><div class="line">          &#125;</div><div class="line">          sparkContextPromise.tryFailure(e.getCause())</div><div class="line">      &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        <span class="comment">// Notify the thread waiting for the SparkContext, in case the application did not</span></div><div class="line">        <span class="comment">// instantiate one. This will do nothing when the user code instantiates a SparkContext</span></div><div class="line">        <span class="comment">// (with the correct master), or when the user code throws an exception (due to the</span></div><div class="line">        <span class="comment">// tryFailure above).</span></div><div class="line">        sparkContextPromise.trySuccess(<span class="literal">null</span>)</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// 设置线程的 类加载器 、 线程名字， 启动线程</span></div><div class="line">  userThread.setContextClassLoader(userClassLoader)</div><div class="line">  userThread.setName(<span class="string">"Driver"</span>)</div><div class="line">  userThread.start()</div><div class="line">  userThread</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>首先，通过代码我们可以明确一个问题，那就是用户的程序，其实就是driver。对于这个方法实现的功能，简单来说，就是获取类路径、获取类加载器、实例话用户类、执行用户类的main方法。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/10/12/spark-2-11-ApplicationMasterarguments/" itemprop="url">
+                  spark 2.11 ApplicationMasterarguments
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-12T12:52:13+08:00" content="2018-10-12">
+              2018-10-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文是对 org.apache.spark.deploy.yarn.ApplicationMasterArguments 源码学习的分析，spark的版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>org.apache.spark.deploy.yarn.ApplicationMasterArguments类主要用来对ApplicationMaster参数进行解析。</p>
+<h1 id="主要方法分析"><a href="#主要方法分析" class="headerlink" title="主要方法分析"></a>主要方法分析</h1><h2 id="parseArgs"><a href="#parseArgs" class="headerlink" title="parseArgs"></a>parseArgs</h2><p>该方法就是用来解析参数的。方法的定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">parseArgs</span></span>(inputArgs: <span class="type">List</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="keyword">val</span> userArgsBuffer = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">String</span>]()</div><div class="line"></div><div class="line">  <span class="keyword">var</span> args = inputArgs</div><div class="line"></div><div class="line">  <span class="comment">// 从这个匹配可以看出，可以使用的参数列在下面，如果包含了其他参数，系统会异常退出</span></div><div class="line">  <span class="comment">// --jar jar包</span></div><div class="line">  <span class="comment">// --class 类</span></div><div class="line">  <span class="comment">// --primary-py-file  PYTHON语言编写的application</span></div><div class="line">  <span class="comment">// --primary-r-file   R语言编写的application</span></div><div class="line">  <span class="comment">// --arg  其他参数，多个参数需要使用多个 --arg 1 --arg "name"</span></div><div class="line">  <span class="comment">// --properties-file 配置文件</span></div><div class="line">  <span class="keyword">while</span> (!args.isEmpty) &#123;</div><div class="line">    <span class="comment">// --num-workers, --worker-memory, and --worker-cores are deprecated since 1.0,</span></div><div class="line">    <span class="comment">// the properties with executor in their names are preferred.</span></div><div class="line">    <span class="comment">// 开始解析 类参数  case ("--jar") :: value :: tail 就是提取参数和参数名 ，并把剩余的参数放到 tail中</span></div><div class="line">    args <span class="keyword">match</span> &#123;</div><div class="line">      <span class="keyword">case</span> (<span class="string">"--jar"</span>) :: value :: tail =&gt;</div><div class="line">        userJar = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--class"</span>) :: value :: tail =&gt;</div><div class="line">        userClass = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--primary-py-file"</span>) :: value :: tail =&gt;</div><div class="line">        primaryPyFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--primary-r-file"</span>) :: value :: tail =&gt;</div><div class="line">        primaryRFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--arg"</span>) :: value :: tail =&gt;</div><div class="line">        userArgsBuffer += value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--properties-file"</span>) :: value :: tail =&gt;</div><div class="line">        propertiesFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> _ =&gt;</div><div class="line">        printUsageAndExit(<span class="number">1</span>, args)</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (primaryPyFile != <span class="literal">null</span> &amp;&amp; primaryRFile != <span class="literal">null</span>) &#123;</div><div class="line">    <span class="comment">// scalastyle:off println</span></div><div class="line">    <span class="type">System</span>.err.println(<span class="string">"Cannot have primary-py-file and primary-r-file at the same time"</span>)</div><div class="line">    <span class="comment">// scalastyle:on println</span></div><div class="line">    <span class="type">System</span>.exit(<span class="number">-1</span>)</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  userArgs = userArgsBuffer.toList</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个方法对ApplicationMaster参数进行解析，通过方法中match…case判断代码，我们可以看出ApplicationMaster允许的参数只有 6 个，如果包含其他名称的参数则会异常退出，并且参数–primary-py-file 和 参数–primary-r-file 不允许同时出现。对于上面的match…case的分析，见章节结尾部分。</p>
+<h2 id="printUsageAndExit"><a href="#printUsageAndExit" class="headerlink" title="printUsageAndExit"></a>printUsageAndExit</h2><p>该方法用来将ApplicationMaster的使用参数信息进行打印。方法定义<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">def printUsageAndExit(exitCode: Int, unknownParam: Any = null) &#123;</div><div class="line">  // scalastyle:off println</div><div class="line">  if (unknownParam != null) &#123;</div><div class="line">    System.err.println("Unknown/unsupported param " + unknownParam)</div><div class="line">  &#125;</div><div class="line">  System.err.println("""</div><div class="line">    |Usage: org.apache.spark.deploy.yarn.ApplicationMaster [options]</div><div class="line">    |Options:</div><div class="line">    |  --jar JAR_PATH       Path to your application's JAR file</div><div class="line">    |  --class CLASS_NAME   Name of your application's main class</div><div class="line">    |  --primary-py-file    A main Python file</div><div class="line">    |  --primary-r-file     A main R file</div><div class="line">    |  --arg ARG            Argument to be passed to your application's main class.</div><div class="line">    |                       Multiple invocations are possible, each will be passed in order.</div><div class="line">    |  --properties-file FILE Path to a custom Spark properties file.</div><div class="line">    """.stripMargin)</div><div class="line">  // scalastyle:on println</div><div class="line">  System.exit(exitCode)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><h2 id="参数判断的match-…-case"><a href="#参数判断的match-…-case" class="headerlink" title="参数判断的match … case"></a>参数判断的match … case</h2><p>首先看代码<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">args <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> (<span class="string">"--jar"</span>) :: value :: tail =&gt;</div><div class="line">      userJar = value</div><div class="line">      args = tail</div><div class="line"></div><div class="line">    <span class="keyword">case</span> (<span class="string">"--class"</span>) :: value :: tail =&gt;</div><div class="line">      userClass = value</div><div class="line">      args = tail</div></pre></td></tr></table></figure></p>
+<p>case中的信息其实就是匹配模式，这里，如“(“–jar”) :: value :: tail”，其实就是在args开头匹配 “–jar” 参数，也就是如果args中的第一个值为”–jar“，那么将args的第二个值赋值给value，最后将剩余的值放到 tail中，但是需要注意的是，这个模式是从args的第一个元素开始的，如果第二元素是“–jar”，是不符合条件的。</p>
+
           
         
       
@@ -3496,197 +3748,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/05/24/kafka-script/" itemprop="url">
-                  kafka-script
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-05-24T17:53:42+08:00" content="2017-05-24">
-              2017-05-24
-            </time>
-          </span>
-
-          
-
-          
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文主要讨论kafka服务的相关启动和关闭脚本。</p>
-<h1 id="kafka-server-start-sh"><a href="#kafka-server-start-sh" class="headerlink" title="kafka-server-start.sh"></a>kafka-server-start.sh</h1><p>Kafka服务的启动脚本，正确的用法为 kafka-server-start.sh [-daemon] server.properties<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line"># 如果执行脚本时传入的参数小于1个，则退出执行并提示用户需要指定服务属性配置文件， 此处也说明了执行kafka-server-start.sh的正确用法</div><div class="line">if [ $# -lt 1 ];</div><div class="line">then</div><div class="line">	echo &quot;USAGE: $0 [-daemon] server.properties&quot;</div><div class="line">	exit 1</div><div class="line">fi</div><div class="line"></div><div class="line"># $0 表示的是当前shell的文件名，dirname用来获取当前shell文件的所在目录</div><div class="line">base_dir=$(dirname $0)</div><div class="line"></div><div class="line"># 读取环境变量中的KAFKA_LOG4J_OPTS的信息，如果没有配置该环境变量，则将kafka目录下conf中的log4j.properties作为配置添加到环境变量中，配置给KAFKA_LOG4J_OPTS</div><div class="line">if [ &quot;x$KAFKA_LOG4J_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_LOG4J_OPTS=&quot;-Dlog4j.configuration=file:$base_dir/../config/log4j.properties&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 读取环境变量中KAFKA_HEAP_OPTS的信息，如果没有配置该环境变量，则使用默认配置&quot;-Xmx1G -Xms1G&quot;来配置，并添加到环境变量&quot;KAFKA_HEAP_OPTS&quot;中</div><div class="line">if [ &quot;x$KAFKA_HEAP_OPTS&quot; = &quot;x&quot; ]; then</div><div class="line">    export KAFKA_HEAP_OPTS=&quot;-Xmx1G -Xms1G&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 定义一个额外的参数 name，为kafka服务指定了进程名</div><div class="line">EXTRA_ARGS=&quot;-name kafkaServer -loggc&quot;</div><div class="line"></div><div class="line"># 如果服务要作为后台进程运行，则需要添加-daemon参数，而且这个参数必须是第一个参数，如果第一个参数是-daemon，则为进程添加自定义的名称</div><div class="line">COMMAND=$1</div><div class="line">case $COMMAND in</div><div class="line">  -daemon)</div><div class="line">    EXTRA_ARGS=&quot;-daemon &quot;$EXTRA_ARGS</div><div class="line">    shift</div><div class="line">    ;;</div><div class="line">  *)</div><div class="line">    ;;</div><div class="line">esac</div><div class="line"></div><div class="line"># 启动kafka服务，由此处也可以看出来，可以使用kafka-run-class.sh来执行相关的类，其中$@表示的是命令行传入的所有参数，这里要启动的类名为kafka.Kafka</div><div class="line">exec $base_dir/kafka-run-class.sh $EXTRA_ARGS kafka.Kafka $@</div></pre></td></tr></table></figure></p>
-<h1 id="kafka-server-stop-sh"><a href="#kafka-server-stop-sh" class="headerlink" title="kafka-server-stop.sh"></a>kafka-server-stop.sh</h1><p>Kafka服务的停止脚本，其实就是查找KafkaServer对应的进程号，并kill。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"># 在进程中过滤包含&quot;kafka.Kafka&quot;且不包含&quot;grep&quot;的java进程，截取进程号kill掉</div><div class="line">ps ax | grep -i &apos;kafka\.Kafka&apos; | grep java | grep -v grep | awk &apos;&#123;print $1&#125;&apos; | xargs kill -SIGTERM</div></pre></td></tr></table></figure></p>
-<h1 id="kafka-run-class-sh"><a href="#kafka-run-class-sh" class="headerlink" title="kafka-run-class.sh"></a>kafka-run-class.sh</h1><p>kafka-run-class.sh是用来运行class的脚本。正确的用法为 kafka-run-class.sh [-daemon] [-name servicename] [-loggc] classname [opts]<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div><div class="line">145</div><div class="line">146</div><div class="line">147</div><div class="line">148</div><div class="line">149</div><div class="line">150</div><div class="line">151</div><div class="line">152</div><div class="line">153</div><div class="line">154</div><div class="line">155</div><div class="line">156</div><div class="line">157</div><div class="line">158</div><div class="line">159</div><div class="line">160</div><div class="line">161</div><div class="line">162</div><div class="line">163</div><div class="line">164</div><div class="line">165</div><div class="line">166</div><div class="line">167</div><div class="line">168</div><div class="line">169</div><div class="line">170</div></pre></td><td class="code"><pre><div class="line"># 验证kafka-run-class脚本的参数</div><div class="line">if [ $# -lt 1 ];</div><div class="line">then</div><div class="line">  echo &quot;USAGE: $0 [-daemon] [-name servicename] [-loggc] classname [opts]&quot;</div><div class="line">  exit 1</div><div class="line">fi</div><div class="line"></div><div class="line"># 获取Kafka的基目录，就是当前目录（bin）的上一层目录</div><div class="line">base_dir=$(dirname $0)/..</div><div class="line"></div><div class="line"># 创建Kafka的日志目录，首先从环境变量“LOG_DIR”中读取，如果没有配置LOG_DIR，则使用Kafka基目录下的logs目录作为日志目录</div><div class="line"># create logs directory</div><div class="line">if [ &quot;x$LOG_DIR&quot; = &quot;x&quot; ]; then</div><div class="line">    LOG_DIR=&quot;$base_dir/logs&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 如果日志目录目存在则创建日志目录</div><div class="line">if [ ! -d &quot;$LOG_DIR&quot; ]; then</div><div class="line">    mkdir -p &quot;$LOG_DIR&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 获取Scala的版本号，首先从环境变量 SCALA_VERSION 中读取，如果没有配置，则使用默认值 2.10.4</div><div class="line">if [ -z &quot;$SCALA_VERSION&quot; ]; then</div><div class="line">	SCALA_VERSION=2.10.4</div><div class="line">fi</div><div class="line"></div><div class="line"># 获取Scala库的版本号，首先从环境变量 SCALA_BINARY_VERSION 中读取，如果没有配置，则使用默认值 2.10</div><div class="line">if [ -z &quot;$SCALA_BINARY_VERSION&quot; ]; then</div><div class="line">	SCALA_BINARY_VERSION=2.10</div><div class="line">fi</div><div class="line"></div><div class="line"># 这里开始加载各种依赖的jar包，并将这些jar包添加到CLASSPATH环境变量中，由此也可以看出运行完整的Kafka服务（支持各种consumer／producer）需要依赖的jar包</div><div class="line"># run ./gradlew copyDependantLibs to get all dependant jars in a local dir</div><div class="line"></div><div class="line"># 将Kafka依赖Scala的jar包添加到CLASSPATH中</div><div class="line">for file in $base_dir/core/build/dependant-libs-$&#123;SCALA_VERSION&#125;*/*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将Kafka的示例jar添加到CLASSPATH中</div><div class="line">for file in $base_dir/examples/build/libs//kafka-examples*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将kafka的hadoop consumer相关jar包添加到CLASSPATH中</div><div class="line">for file in $base_dir/contrib/hadoop-consumer/build/libs//kafka-hadoop-consumer*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将Kafka的hadoop producer相关jar包添加到CLASSPATH中</div><div class="line">for file in $base_dir/contrib/hadoop-producer/build/libs//kafka-hadoop-producer*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将Kafka客户端相关的jar包添加到CLASSPATH中</div><div class="line">for file in $base_dir/clients/build/libs/kafka-clients*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将Kafka的libs下的jar包添加到CLASSPATH中</div><div class="line"># classpath addition for release</div><div class="line">for file in $base_dir/libs/*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 将Kafka依赖的Scala对应版本的库添加到CLASSPATH中</div><div class="line">for file in $base_dir/core/build/libs/kafka_$&#123;SCALA_BINARY_VERSION&#125;*.jar;</div><div class="line">do</div><div class="line">  CLASSPATH=$CLASSPATH:$file</div><div class="line">done</div><div class="line"></div><div class="line"># 以下是Java管理扩展的设置</div><div class="line"># 如果没有在环境变量中设置KAFKA_JMX_OPTS，则将Kafka的JMX配置关闭</div><div class="line"># JMX settings</div><div class="line">if [ -z &quot;$KAFKA_JMX_OPTS&quot; ]; then</div><div class="line">  KAFKA_JMX_OPTS=&quot;-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false  -Dcom.sun.management.jmxremote.ssl=false &quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 如果设置了KAFKA_JMX_OPTS环境变量，则利用这个值来设置变量KAFKA_JMX_OPTS的值，该值用于指定虚拟机的信息</div><div class="line"># JMX port to use</div><div class="line">if [  $JMX_PORT ]; then</div><div class="line">  KAFKA_JMX_OPTS=&quot;$KAFKA_JMX_OPTS -Dcom.sun.management.jmxremote.port=$JMX_PORT &quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># Log4j的配置</div><div class="line"># Log4j settings 如果环境变量中没有设置KAFKA_LOG4J_OPTS，则使用Kafka基目录下conf/tools-log4j.properties来设置KAFKA_LOG4J_OPTS变量</div><div class="line">if [ -z &quot;$KAFKA_LOG4J_OPTS&quot; ]; then</div><div class="line">  KAFKA_LOG4J_OPTS=&quot;-Dlog4j.configuration=file:$base_dir/config/tools-log4j.properties&quot;</div><div class="line">fi</div><div class="line"># 根据环境变量LOG_DIR和KAFKA_LOG4J_OPTS来生成变量KAFKA_LOG4J_OPTS的新的值</div><div class="line">KAFKA_LOG4J_OPTS=&quot;-Dkafka.logs.dir=$LOG_DIR $KAFKA_LOG4J_OPTS&quot;</div><div class="line"></div><div class="line"># 判断环境变量KAFKA_OPTS是否有相关设置</div><div class="line"># Generic jvm settings you want to add</div><div class="line">if [ -z &quot;$KAFKA_OPTS&quot; ]; then</div><div class="line">  KAFKA_OPTS=&quot;&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 判断环境变量JAVA_HOME中是否有值，如果不存在则使用默认的java，如果有，则使用该目录下指定的java</div><div class="line"># Which java to use</div><div class="line">if [ -z &quot;$JAVA_HOME&quot; ]; then</div><div class="line">  JAVA=&quot;java&quot;</div><div class="line">else</div><div class="line">  JAVA=&quot;$JAVA_HOME/bin/java&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># Kafka的内存配置，如果环境变量KAFKA_HEAP_OPTS的值为空，则设置值为默认值-Xmx256M</div><div class="line"># Memory options</div><div class="line">if [ -z &quot;$KAFKA_HEAP_OPTS&quot; ]; then</div><div class="line">  KAFKA_HEAP_OPTS=&quot;-Xmx256M&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 如果没有设置环境变量KAFKA_JVM-PERFORMANCE_OPTS，则使用默认值进行配置</div><div class="line"># JVM performance options</div><div class="line">if [ -z &quot;$KAFKA_JVM_PERFORMANCE_OPTS&quot; ]; then</div><div class="line">  KAFKA_JVM_PERFORMANCE_OPTS=&quot;-server -XX:+UseParNewGC -XX:+UseConcMarkSweepGC -XX:+CMSClassUnloadingEnabled -XX:+CMSScavengeBeforeRemark -XX:+DisableExplicitGC -Djava.awt.headless=true&quot;</div><div class="line">fi</div><div class="line"></div><div class="line"></div><div class="line"># 这里对脚本传入的参数进行解析，提取守护进程名／是否后台运行／GC日志这个三个信息</div><div class="line"># 第一个case，如果循环到了-name参数，则读取-name的下一参数，下一个参数必定是后台进程的名字，而且控制台的输出日志文件也是该名字</div><div class="line"># 第二个case，如果循环到了-loggc，则表示要记录GC日志，记录GC日志的另一个要求是配置KAFKA_GC_LOG_OPTS环境变量</div><div class="line"># 第三个case，如果循环到了-daemon，则表示服务以后台进程的方式运行</div><div class="line">while [ $# -gt 0 ]; do</div><div class="line">  COMMAND=$1</div><div class="line">  case $COMMAND in</div><div class="line">    -name)</div><div class="line">      DAEMON_NAME=$2</div><div class="line">      CONSOLE_OUTPUT_FILE=$LOG_DIR/$DAEMON_NAME.out</div><div class="line">      shift 2</div><div class="line">      ;;</div><div class="line">    -loggc)</div><div class="line">      if [ -z &quot;$KAFKA_GC_LOG_OPTS&quot;] ; then</div><div class="line">        GC_LOG_ENABLED=&quot;true&quot;</div><div class="line">      fi</div><div class="line">      shift</div><div class="line">      ;;</div><div class="line">    -daemon)</div><div class="line">      DAEMON_MODE=&quot;true&quot;</div><div class="line">      shift</div><div class="line">      ;;</div><div class="line">    *)</div><div class="line">      break</div><div class="line">      ;;</div><div class="line">  esac</div><div class="line">done</div><div class="line"></div><div class="line"></div><div class="line"># 如果启用了GC日志，GC日志的名字为后台进程的名字[-name指定]-gc.log。</div><div class="line"># GC options</div><div class="line">GC_FILE_SUFFIX=&apos;-gc.log&apos;</div><div class="line">GC_LOG_FILE_NAME=&apos;&apos;</div><div class="line">if [ &quot;x$GC_LOG_ENABLED&quot; = &quot;xtrue&quot; ]; then</div><div class="line">  GC_LOG_FILE_NAME=$DAEMON_NAME$GC_FILE_SUFFIX</div><div class="line">  KAFKA_GC_LOG_OPTS=&quot;-Xloggc:$LOG_DIR/$GC_LOG_FILE_NAME -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps &quot;</div><div class="line">fi</div><div class="line"></div><div class="line"># 启动Java进程，将上面的所有信息整合在一起，使用指定的Java，还有各种参数，这里区分了运行模式，其实就是将进程作为后台进程运行还是前台进程运行而已</div><div class="line"># Launch mode</div><div class="line">if [ &quot;x$DAEMON_MODE&quot; = &quot;xtrue&quot; ]; then</div><div class="line">  nohup $JAVA $KAFKA_HEAP_OPTS $KAFKA_JVM_PERFORMANCE_OPTS $KAFKA_GC_LOG_OPTS $KAFKA_JMX_OPTS $KAFKA_LOG4J_OPTS -cp $CLASSPATH $KAFKA_OPTS &quot;$@&quot; &gt; &quot;$CONSOLE_OUTPUT_FILE&quot; 2&gt;&amp;1 &lt; /dev/null &amp;</div><div class="line">else</div><div class="line">  exec $JAVA $KAFKA_HEAP_OPTS $KAFKA_JVM_PERFORMANCE_OPTS $KAFKA_GC_LOG_OPTS $KAFKA_JMX_OPTS $KAFKA_LOG4J_OPTS -cp $CLASSPATH $KAFKA_OPTS &quot;$@&quot;</div><div class="line">fi</div></pre></td></tr></table></figure></p>
-<h1 id="kafka-topics-sh"><a href="#kafka-topics-sh" class="headerlink" title="kafka-topics.sh"></a>kafka-topics.sh</h1><p>kafka-topics.sh是用来操作Kafka的Topic的脚本，其内部通过kafka-run-class.sh脚本来调用kafka.admin.TopicCommand来实现Topic的操作。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exec $(dirname $0)/kafka-run-class.sh kafka.admin.TopicCommand $@</div></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/03/08/redis-lua/" itemprop="url">
-                  redis_lua
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-03-08T10:32:34+08:00" content="2017-03-08">
-              2017-03-08
-            </time>
-          </span>
-
-          
-
-          
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -3732,7 +3793,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">45</span>
+              <span class="site-state-item-count">47</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

@@ -1,0 +1,632 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文是对 org.apache.spark.deploy.yarn.ApplicationMasterArguments 源码学习的分析，spark的版本为2.11。
+概述org.apache.spark.deploy.yarn.ApplicationMasterArguments类主要用来对ApplicationMaster参数进行解析。
+主要方法分析parseArgs该方法就是用来解析参数的。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark 2.11 ApplicationMasterarguments">
+<meta property="og:url" content="http://baimoon.github.io/2018/10/12/spark-2-11-ApplicationMasterarguments/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文是对 org.apache.spark.deploy.yarn.ApplicationMasterArguments 源码学习的分析，spark的版本为2.11。
+概述org.apache.spark.deploy.yarn.ApplicationMasterArguments类主要用来对ApplicationMaster参数进行解析。
+主要方法分析parseArgs该方法就是用来解析参数的。">
+<meta property="og:updated_time" content="2018-10-12T05:18:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark 2.11 ApplicationMasterarguments">
+<meta name="twitter:description" content="本文是对 org.apache.spark.deploy.yarn.ApplicationMasterArguments 源码学习的分析，spark的版本为2.11。
+概述org.apache.spark.deploy.yarn.ApplicationMasterArguments类主要用来对ApplicationMaster参数进行解析。
+主要方法分析parseArgs该方法就是用来解析参数的。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2018/10/12/spark-2-11-ApplicationMasterarguments/"/>
+
+  <title> spark 2.11 ApplicationMasterarguments | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                spark 2.11 ApplicationMasterarguments
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-10-12T12:52:13+08:00" content="2018-10-12">
+              2018-10-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文是对 org.apache.spark.deploy.yarn.ApplicationMasterArguments 源码学习的分析，spark的版本为2.11。</p>
+<h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>org.apache.spark.deploy.yarn.ApplicationMasterArguments类主要用来对ApplicationMaster参数进行解析。</p>
+<h1 id="主要方法分析"><a href="#主要方法分析" class="headerlink" title="主要方法分析"></a>主要方法分析</h1><h2 id="parseArgs"><a href="#parseArgs" class="headerlink" title="parseArgs"></a>parseArgs</h2><p>该方法就是用来解析参数的。方法的定义如下<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">parseArgs</span></span>(inputArgs: <span class="type">List</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="keyword">val</span> userArgsBuffer = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">String</span>]()</div><div class="line"></div><div class="line">  <span class="keyword">var</span> args = inputArgs</div><div class="line"></div><div class="line">  <span class="comment">// 从这个匹配可以看出，可以使用的参数列在下面，如果包含了其他参数，系统会异常退出</span></div><div class="line">  <span class="comment">// --jar jar包</span></div><div class="line">  <span class="comment">// --class 类</span></div><div class="line">  <span class="comment">// --primary-py-file  PYTHON语言编写的application</span></div><div class="line">  <span class="comment">// --primary-r-file   R语言编写的application</span></div><div class="line">  <span class="comment">// --arg  其他参数，多个参数需要使用多个 --arg 1 --arg "name"</span></div><div class="line">  <span class="comment">// --properties-file 配置文件</span></div><div class="line">  <span class="keyword">while</span> (!args.isEmpty) &#123;</div><div class="line">    <span class="comment">// --num-workers, --worker-memory, and --worker-cores are deprecated since 1.0,</span></div><div class="line">    <span class="comment">// the properties with executor in their names are preferred.</span></div><div class="line">    <span class="comment">// 开始解析 类参数  case ("--jar") :: value :: tail 就是提取参数和参数名 ，并把剩余的参数放到 tail中</span></div><div class="line">    args <span class="keyword">match</span> &#123;</div><div class="line">      <span class="keyword">case</span> (<span class="string">"--jar"</span>) :: value :: tail =&gt;</div><div class="line">        userJar = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--class"</span>) :: value :: tail =&gt;</div><div class="line">        userClass = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--primary-py-file"</span>) :: value :: tail =&gt;</div><div class="line">        primaryPyFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--primary-r-file"</span>) :: value :: tail =&gt;</div><div class="line">        primaryRFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--arg"</span>) :: value :: tail =&gt;</div><div class="line">        userArgsBuffer += value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> (<span class="string">"--properties-file"</span>) :: value :: tail =&gt;</div><div class="line">        propertiesFile = value</div><div class="line">        args = tail</div><div class="line"></div><div class="line">      <span class="keyword">case</span> _ =&gt;</div><div class="line">        printUsageAndExit(<span class="number">1</span>, args)</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (primaryPyFile != <span class="literal">null</span> &amp;&amp; primaryRFile != <span class="literal">null</span>) &#123;</div><div class="line">    <span class="comment">// scalastyle:off println</span></div><div class="line">    <span class="type">System</span>.err.println(<span class="string">"Cannot have primary-py-file and primary-r-file at the same time"</span>)</div><div class="line">    <span class="comment">// scalastyle:on println</span></div><div class="line">    <span class="type">System</span>.exit(<span class="number">-1</span>)</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  userArgs = userArgsBuffer.toList</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个方法对ApplicationMaster参数进行解析，通过方法中match…case判断代码，我们可以看出ApplicationMaster允许的参数只有 6 个，如果包含其他名称的参数则会异常退出，并且参数–primary-py-file 和 参数–primary-r-file 不允许同时出现。对于上面的match…case的分析，见章节结尾部分。</p>
+<h2 id="printUsageAndExit"><a href="#printUsageAndExit" class="headerlink" title="printUsageAndExit"></a>printUsageAndExit</h2><p>该方法用来将ApplicationMaster的使用参数信息进行打印。方法定义<br><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">def printUsageAndExit(exitCode: Int, unknownParam: Any = null) &#123;</div><div class="line">  // scalastyle:off println</div><div class="line">  if (unknownParam != null) &#123;</div><div class="line">    System.err.println("Unknown/unsupported param " + unknownParam)</div><div class="line">  &#125;</div><div class="line">  System.err.println("""</div><div class="line">    |Usage: org.apache.spark.deploy.yarn.ApplicationMaster [options]</div><div class="line">    |Options:</div><div class="line">    |  --jar JAR_PATH       Path to your application's JAR file</div><div class="line">    |  --class CLASS_NAME   Name of your application's main class</div><div class="line">    |  --primary-py-file    A main Python file</div><div class="line">    |  --primary-r-file     A main R file</div><div class="line">    |  --arg ARG            Argument to be passed to your application's main class.</div><div class="line">    |                       Multiple invocations are possible, each will be passed in order.</div><div class="line">    |  --properties-file FILE Path to a custom Spark properties file.</div><div class="line">    """.stripMargin)</div><div class="line">  // scalastyle:on println</div><div class="line">  System.exit(exitCode)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h1 id="问题分析"><a href="#问题分析" class="headerlink" title="问题分析"></a>问题分析</h1><h2 id="参数判断的match-…-case"><a href="#参数判断的match-…-case" class="headerlink" title="参数判断的match … case"></a>参数判断的match … case</h2><p>首先看代码<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">args <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> (<span class="string">"--jar"</span>) :: value :: tail =&gt;</div><div class="line">      userJar = value</div><div class="line">      args = tail</div><div class="line"></div><div class="line">    <span class="keyword">case</span> (<span class="string">"--class"</span>) :: value :: tail =&gt;</div><div class="line">      userClass = value</div><div class="line">      args = tail</div></pre></td></tr></table></figure></p>
+<p>case中的信息其实就是匹配模式，这里，如“(“–jar”) :: value :: tail”，其实就是在args开头匹配 “–jar” 参数，也就是如果args中的第一个值为”–jar“，那么将args的第二个值赋值给value，最后将剩余的值放到 tail中，但是需要注意的是，这个模式是从args的第一个元素开始的，如果第二元素是“–jar”，是不符合条件的。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2018/10/11/spark-2-11-YarnRMClient/" rel="next" title="spark 2.11 YarnRMClient">
+                <i class="fa fa-chevron-left"></i> spark 2.11 YarnRMClient
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2018/10/17/spark-2-11-ApplicationMaster/" rel="prev" title="spark 2.11 ApplicationMaster">
+                spark 2.11 ApplicationMaster <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">47</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#概述"><span class="nav-number">1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主要方法分析"><span class="nav-number">2.</span> <span class="nav-text">主要方法分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#parseArgs"><span class="nav-number">2.1.</span> <span class="nav-text">parseArgs</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#printUsageAndExit"><span class="nav-number">2.2.</span> <span class="nav-text">printUsageAndExit</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题分析"><span class="nav-number">3.</span> <span class="nav-text">问题分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参数判断的match-…-case"><span class="nav-number">3.1.</span> <span class="nav-text">参数判断的match … case</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
