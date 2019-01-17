@@ -248,6 +248,498 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2019/01/17/spark-2-11-shuffleDataReadAndWrite/" itemprop="url">
+                  Spark 2.11 shuffle data read and write
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-01-17T19:09:23+08:00" content="2019-01-17">
+              2019-01-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文记录对Spark Shuffle过程中对数据读写的梳理。本文将先从数据的读入作为切入点，也就是从ShuffleReader的源码作为切入，然后在逐步的展开。因此本文将从读取和写入两个角度来进行分析，最后在用流程图的方式将读取和写入整合起来。</p>
+<h1 id="数据读取"><a href="#数据读取" class="headerlink" title="数据读取"></a>数据读取</h1><h2 id="ShuffleReader的实现类"><a href="#ShuffleReader的实现类" class="headerlink" title="ShuffleReader的实现类"></a>ShuffleReader的实现类</h2><p>ShuffleRead是定义在org.apache.spark.shuffle包中的一个接口（理解为接口吧，其实是trait），它只定义了一个方法read()，并且这个方法返回一个Iterator（迭代器）。对于ShuffleReader的实现类，只有一个类 BlockStoreShuffleReader，与ShuffleReader定义在同一个包中。</p>
+<h3 id="ShuffleReader的read-方法的实现"><a href="#ShuffleReader的read-方法的实现" class="headerlink" title="ShuffleReader的read()方法的实现"></a>ShuffleReader的read()方法的实现</h3><p>read()基本的流程图参考如下如下<br><img src="/attach/5c3d9486c3305.png" alt="image.png"></p>
+<p>在read()方法中，首先生成一个ShuffleBlockFetcherIterator对象。该对象的详细介绍会在后面进行。<br>生成的ShuffleBlockFetcherIterator本身就是一个Iterator，但是需要注意这个Iterator中包含的数据都是进行了加密和压缩的，我们在之后分析ShuffleBlockFetcherIterator的时候会了解到。<br>接着，我们会得到序列化器的实例，将ShuffleBlockFectherIterator中的数据进行解析。<br>如果Shuffle的依赖中定义了聚合器，则需要进行一次聚合操作（将上面的迭代器中的数据再次处理）：如果是map端聚合，则使用聚合器的 combineCombinersByKey来处理，否则使用combineValuesByKey来处理。<br>最后，创建一个ExternalSorter并将上一步的数据全部插入到这个sorter中，并使用这个ExternalSorter创建一个CompletionIterator返回。<br>大家在这里会看到聚合器和ExternalSorter，这就实现了Shuffle的基本操作。</p>
+<h2 id="ShuffleBlockFetcherIterator的实现与流程"><a href="#ShuffleBlockFetcherIterator的实现与流程" class="headerlink" title="ShuffleBlockFetcherIterator的实现与流程"></a>ShuffleBlockFetcherIterator的实现与流程</h2><p>生成这个对象需要一系列参数：</p>
+<table>
+<thead>
+<tr>
+<th>参数名</th>
+<th>参数类型</th>
+<th>参数的意义和作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>context</td>
+<td>TaskContext</td>
+<td>Task的上下文</td>
+</tr>
+<tr>
+<td>shuffleClient</td>
+<td>ShuffleClient</td>
+<td>读取Shuffle数据的Client</td>
+</tr>
+<tr>
+<td>blockManager</td>
+<td>BlockManager</td>
+<td>Block的管理器，可以获取Block的相关信息</td>
+</tr>
+<tr>
+<td>blocksByAddress</td>
+<td>Seq</td>
+<td>根据BlockManagerId聚合的Block列表</td>
+</tr>
+<tr>
+<td>streamWrapper</td>
+<td>函数</td>
+<td>用于将BlockId和对应的InputStream进行包装的方法</td>
+</tr>
+<tr>
+<td>maxBytesInFlight</td>
+<td>Long</td>
+<td>——</td>
+</tr>
+<tr>
+<td>maxReqsInFlight</td>
+<td>Int</td>
+<td>同时进行请求发送的最大数</td>
+</tr>
+<tr>
+<td>maxBlocksInFlightPerAddress</td>
+<td>Int</td>
+<td>同时拉取某个远程地址的block的请求数</td>
+</tr>
+<tr>
+<td>maxReqSizeShuffleToMem</td>
+<td>Long</td>
+<td>单个请求拉取数据的可用缓存，如果超出这个缓存则使用临时文件来拉取数据</td>
+</tr>
+<tr>
+<td>detectCorrupt</td>
+<td>Boolean</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p>通过以上参数，生成了我们的ShuffleBlockFetcherIterator。ShuffleBlockFetcherIterator实现了Iterator（迭代器）接口，同时也实现了TempShuffleFileManager（临时Shuffle文件管理器）。实现Iterator就意味着它有迭代器的相关方法（next、hasNext）；实现TempShuffleFileManager，就意味这它能够创建临时Shuffle文件（createTempShuffleFile）、能够注册临时文件的清理（registerTempShuffleFileToClean）。接下来我们分别按照接口的实现来分析，首先看看比较简单的TempShuffleFileManager：</p>
+<h3 id="TempShuffleFileManager的实现"><a href="#TempShuffleFileManager的实现" class="headerlink" title="TempShuffleFileManager的实现"></a>TempShuffleFileManager的实现</h3><p>实现这个接口，我们需要实现两个方法 createTempShuffleFile 和 registerTempShuffleFileToClean。</p>
+<h4 id="createTempShuffleFile"><a href="#createTempShuffleFile" class="headerlink" title="createTempShuffleFile"></a>createTempShuffleFile</h4><p>这个方法的实现很简单，就是调用BlockManager的DiskBlockManager的createTempLocalBlock来创建一个临时本地Block并返回。</p>
+<h4 id="registerTempShuffleFileToCliean"><a href="#registerTempShuffleFileToCliean" class="headerlink" title="registerTempShuffleFileToCliean"></a>registerTempShuffleFileToCliean</h4><p>这个方法的实现也很简单，就是将文件添加到一个名为 shuffleFileSet 的集合中，等到ShuffleBlockFetcherIterator中cleanup方法被执行的时候，就会将 shuffleFileSet 集合中的文件统一删除。</p>
+<h3 id="Iterator的实现"><a href="#Iterator的实现" class="headerlink" title="Iterator的实现"></a>Iterator的实现</h3><p>我们知道，ShuffleBlockFetcherIterator 最重要的功能是获取数据，这个过程会涉及到从远程拉取数据。</p>
+<h4 id="hasNext"><a href="#hasNext" class="headerlink" title="hasNext"></a>hasNext</h4><p>方法实现很简单，就是判断已经处理的block数量是否达到需要拉取的block的数量（numBlocksProcessed &lt; numBlocksToFetch）。</p>
+<h4 id="next"><a href="#next" class="headerlink" title="next"></a>next</h4><p>next方法的实现就复杂了，而且涉及到很多方法之间的调用，我们首先看看流程图，总体说明一下流程，然后在具体分析细节。<br><img src="/attach/5c3f1cf6f0fa4.png" alt="image.png"><br>这个流程图说明了 ShuffleBlockFetcherIterator 内部获取数据时几个方法之间的调用关系，next是对用户的接口，用户通过这个方法获取数据。但是我们都应该想到，shuffle数据是很庞大的，所以肯定不可能一次性都将数据拉取过来缓存，只能根据blockId逐步拉取，fetchUpToMaxBytes就是实现逐步拉取数据的逻辑，内部实现了对数据拉取的控制。当需要拉取数据的时候fetchUpToMaxBytes就会调用send方法，send方法是对sendRequest的一层封装，除了调用sendRequest之外，就是要记录每个远程地址当前正在传输Block的数量。sendRequest就是使用ShuffleClient从远程地址拉取数据的具体实现了。<br>为了便于理解，我们根据上面流程图的倒序进行分析。</p>
+<h4 id="sendRequest"><a href="#sendRequest" class="headerlink" title="sendRequest"></a>sendRequest</h4><p>sendRequest是远程拉取数据的实现。从代码上来看，代码主要分成三个部分：记录状态信息（为fetchUpToMaxByte提供逻辑处理的数据）、生成BlockFetchingListender（调用fetchBlocks的时候需要这个监听器作为回调）以及使用shuffleClient拉取数据。<br>基本的流程图如下：<br><img src="/attach/5c3db21e60597.png" alt="image.png"><br>对于ShuffleClient的fetchBlocks方法的实现我们稍后会深入分析，但是这里需要意识到的是这个方法拉取的是多个block。</p>
+<h4 id="send"><a href="#send" class="headerlink" title="send"></a>send</h4><p>send方法就是对sendRequest的包装，除了调用sendRequest方法之外，会记录当前远程地址正在传输Block的个数，也画一个图吧：<br><img src="/attach/5c3db673d673f.png" alt="image.png"><br>就是调用sendRequest，然后设置缓存的值。</p>
+<h4 id="fetchUpToMaxBytes"><a href="#fetchUpToMaxBytes" class="headerlink" title="fetchUpToMaxBytes"></a>fetchUpToMaxBytes</h4><p>上面我们也简单的提了一下，这个方法就是读取最大限度的数据（但是要整读，不会读取半个block的数据，要么不读，要读取完成的block）。<br>这个方法的实现其实也比较简单，基本的思路就是在准备发送请求之前，先验证一下是否可以发送，如果可以则调用send方法，如果不可以，则将请求加入到延迟队列中。所以从上面的话中，大家可以了解到，这个数据会操作两个队列 fetchRequests 和 deferredFetchRequests，从代码来看，程序会先从deferredFetchRequest队列中拿请求处理，如果这个队列中没有请求或请求都不符合发送才会去fetchRequest队列中拿请求，实际处理刚开始的时候deferredFetchRequest必然是空的，只有当处理fetchRequest中的请求不符合发送条件的时候才会加入到deferredFetchRequest中，但是这两个队列的数据结构还是不一样的，fetchRequest存放的是FetchRequest(BlockManagerId, Seq[(BlockId, Long)])对象，也就是存储的是BlockManagerId-&gt;Block列表的映射关系，BlockManagerId可以简单的理解为存储Block的远程地址；而deferredFetchRequest，存放的是BlockManagerId -&gt; Queue[FetchRequest]的映射，也就是说在添加到deferredFetchRequest的时候根据BlockManagerId进行整合汇总了。<br>此方法的流程图如下：<br><img src="/attach/5c3e9749e5126.png" alt="image.png"><br>从图中，我们也看到了在这个方法对每个地址正在拉取block的数量(numBlocksInFlightPerAddress)、正在拉取数据的数据量(bytesInFlight)和正在拉取数据的请求个数(reqsInFlight)的使用。<br>在进入fetchUpToMaxBytes方法后，首先会遍历deferredFetchRequests集合中的数据，这里需要注意的是，这个数据根据BlockManagerId进行了汇总，key是BlockManagerId，value是一个FetchRequest的Queue。首先调用isRemoteBlockFetchable方法验证队列是否是可拉取的（主要判断当前最大同时数据拉取量和最大同时请求数）。然后使用isRemoteAddressMaxedOut方法验证要发送的请求是否达到了远程地址最大同时拉取数量。如果验证都符合条件，则将FetchRequest交给send方法来进行请求的发送。</p>
+<h4 id="next-1"><a href="#next-1" class="headerlink" title="next"></a>next</h4><p>next方法是Iterator接口的方法，也是用户用来获取数据的方法。<br>因为我们已经知道了sendRequest方法的BlockFetchingListener对象在收到数据拉取成功或失败后会向results（LinkedBlockingQueue）中写入一个SuccessFetchResult或FailedFetchResult，如果是SuccessFetchResult，则会在其中包含一个ManagerBuffer，也就是我们想要的数据。所以next方法获取数据就是从results中拉取数据，又因为results是阻塞队列，所以当results中没有数据的时候，就会被take方法所阻塞，直到拿到数据进行处理。<br>如果从results拿到的数据为FailedFetchResult，则会抛出异常信息，导致拉取失败。<br>如果从results拿到的数据为SuccessFetchResult，那么我们就可以进行处理了，首先，因为这个block已经拉取完毕了，所以相关计数器（如正在拉取数据的数据量bytesInFlight）的计数需要进行更新。<br>对相关计数器操作完成，就会从ManagerBuffer中获取输入流，然后调用serializerManager.wrapStream方法进行数据流的加密和压缩。接着会根据配置（数据流确实被加密或压缩了 、数据量较小）来决定是否要将输入流转换为ChunkedByteBufferInputStream。<br>最后，返回blockId以及使用BufferReleasingInputStream包装的输入流（包装后可以带调用ShuffleBlockFetcherIterator中的清理方法来进行清理工作）。<br><img src="/attach/5c3eb7bc0bfcf.png" alt="image.png"></p>
+<h4 id="initialize"><a href="#initialize" class="headerlink" title="initialize"></a>initialize</h4><p>上面的介绍的这些方法都是在从远程节点拉取数据。其实ShuffleBlockFetcherIterator也会读取本地的数据，但是在生成ShuffleBlockFetcherIterator的时候会对Block进行拆分。而这一切是从initialize方法开始的。<br><img src="/attach/5c3ee2f7ef0af.png" alt="image.png"><br>方法的逻辑很简单，显示注册一个Task完成事件，用来调用cleanup方法进行清理工作。然后调用splitLocalRemoteBlocks()方法，将远程Block和本地Block进行拆分，并将拆分后的远程Block打散放入fetchRequest队列中（供fetchUpToMaxBytes()使用）。接着分别调用fetchUpToMaxBytes()和fetchLocalBlocks()方法。</p>
+<h4 id="splitLocalRemoteBlocks"><a href="#splitLocalRemoteBlocks" class="headerlink" title="splitLocalRemoteBlocks"></a>splitLocalRemoteBlocks</h4><p>方法的逻辑也相对简单，遍历blocksByAddress（类型为Seq[(BlockManagerId, Seq[(BlockId, Long)]]，BlockManagerId代表了一个远程地址，这个地址上存折多个Block，这里以(BlockId，Block的size)来表示）（这里的blocksByAddress是通过mapOutputTracker（通过SparkEnv.get.mapOutputTracker得到）的getMapSizesByExecutorId方法得到的）中的数据。<br>遍历数据时，会拿到BlockManagerId和这个BlockManager上的Block列表。通过BlockManagerId，能够得到executorId，对这个executorId与本地SparkEnv中的BlockManager中的executor进行比较，就可以判断这个BlockManagerId是否是本地的了（BlockManager中的executorId就相当于BlockManager的唯一ID了）。如果是本地的，将Block列表加入到localBlocks集合中（对于size为0的Block直接丢掉，无需拉取），后面fetchLocalBlocks方法会对这个集合进行处理。对于远程，需要对远程BlockManager中的每个Block进行遍历，这样做的目的是为了拆分FetchRequest（可能会将一个BlockManager中的多个Block分不同的请求来拉取）。</p>
+<p><img src="/attach/5c3f1bed65ff7.png" alt="image.png"></p>
+<p>从代码中对于FetchRequest的拆分，我们可以了解到在配置spark.reducer.maxSizeInFlight参数的时候，这个参数的最小值应该为一个Block的大小，否则后面没法发送请求，因为任何一个数据的大小都会超过限制，而FetchRequest的拆分是以Block为单位的，一个FetchRequest最少含有一个Block。</p>
+<h4 id="fetchLocalBlocks"><a href="#fetchLocalBlocks" class="headerlink" title="fetchLocalBlocks"></a>fetchLocalBlocks</h4><p>fetchLocalBlocks的逻辑很简单，基本流程如下：<br><img src="/attach/5c3f1e5e644c7.png" alt="image.png"><br>此方法就是遍历localBlocks中的数据，并调用本地的BlockManger获取数据，然后将包装为一个FetchResult放到results中，供next方法使用。<br>如果在获取本地Block时发生异常，则推送results时推送的是FailureFetchResult，否则推送的是SuccessFetchResult。</p>
+<p>至此，ShuffleBlockFetcherIterator的处理逻辑就介绍完了。</p>
+<h3 id="shuffleWriter到shuffleReader的调用链"><a href="#shuffleWriter到shuffleReader的调用链" class="headerlink" title="shuffleWriter到shuffleReader的调用链"></a>shuffleWriter到shuffleReader的调用链</h3><p>我们已经知道了BlockStoreShuffleReader作为ShuffleReader进行数据读取，read方法返回Iterator对象。那么调用这个read方法的流程是什么样的呢？简单的流程图如下：<br><img src="/attach/5c3ff1431fbb5.png" alt="image.png"><br>基本流程就是在执行task的时候，会使用ShuffleWriter来写数据，写数据的时候就会调用RDD的iterator来读取数据。在使用iterator读取数据的时候会根据存储级别来确定调用getOrCompute()方法还是computeOrReadCheckpoint()方法，当RDD的存储级别不为NONE的时候就会调用getOrCompute()方法。但是这两个方法都会调用到computeOrReadCheckpoint()方法，然后调用ShuffleRDD的compute()方法，最终调用到了ShuffleReader的read()方法。所以接下来我们要看看ShuffleWriter的流程。</p>
+<h3 id="ShuffleWriter"><a href="#ShuffleWriter" class="headerlink" title="ShuffleWriter"></a>ShuffleWriter</h3><p>ShuffleWriter的获取，ShuffleWriter是调用ShuffleManager(SparkEnv.get.shuffleManager)的getWriter方法得到的。调用getWriter方法的时候会传递dep.shuffleHandle作为参数，因为方法中会根据shuffleHandle的类型，生成不同类型的ShuffleWriter。<br><img src="/attach/5c3ff9cfa7f77.png" alt="image.png"><br>接下来，我们具体分析一下ShuffleWriter的write方法（以简单的SortShuffleWriter为例）。</p>
+<h4 id="SortShuffleWriter-write"><a href="#SortShuffleWriter-write" class="headerlink" title="SortShuffleWriter.write"></a>SortShuffleWriter.write</h4><p>此方法的逻辑也比较简单。首先生成ExternalSorter，根据dependency.mapSideCombine来确定生成的ExternalSorter是否含有聚合器（如果为true则含有）。<br>然后调用sorter.insertAll将read返回的Iterator插入到上面生成的ExternalSorter中。<br>接着，使用IndexShuffleBlockResolver（其中包含BlockManager，因此可以管理Block），根据shuffleId和partitionId创建shuffle的数据文件，同时创建这个数据文件的临时文件（在数据文件后面加一个随机的后缀）。<br>然后调用sorter.writePartitionedFile方法，将sorter中的数据写到上面的临时文件中。接着根据临时文件写索引文件，并将临时文件调整为正式文件，通过调用shuffleBlockResolver.writeIndexFileAndCommit方法来实现（此方法中会对数据文件和索引文件进行验证）。<br>write方法比较简单，对于分类器ExternalSorter，我们在ShuffleReader和ShuffleWriter中都看到了，shuffle过程数据的混洗也是这样完成的吧。<br>write方法中使用shuffleBlockResolver做了两件事：获取数据文件（getDataFile）和写索引文件（writeIndexFileAndCommit）。接下来我们对这两个方法也一并分析一下。</p>
+<h4 id="IndexShuffleBlockResolver-getDataFile"><a href="#IndexShuffleBlockResolver-getDataFile" class="headerlink" title="IndexShuffleBlockResolver.getDataFile"></a>IndexShuffleBlockResolver.getDataFile</h4><p><img src="/attach/5c40545e9e2c3.png" alt="image.png"><br>方法的实现很简单吧。就是调用BlockManager中的DiskBlockManager去获取文件，如果没有，则生成一个文件并返回（关于DiskBlockManager操作文件的逻辑可以参考内存分析章节）。</p>
+<h4 id="shuffleBlockResolver-writeIndexFileAndCommit"><a href="#shuffleBlockResolver-writeIndexFileAndCommit" class="headerlink" title="shuffleBlockResolver.writeIndexFileAndCommit"></a>shuffleBlockResolver.writeIndexFileAndCommit</h4><p>这个方法逻辑稍微复杂一些，先是根据shuffleId和partitionId创建索引文件和索引临时文件。然后根据sorter.insertAll方法返回的文件每个分区的长度，写到索引临时文件中。索引文件指定了数据文件中每个partition的起止offset（sorter.insertAll方法，我们有机会在深入分析）。到这里需要注意，刚刚写的数据文件和索引文件，都是写入到临时文件中的，因为数据文件和索引文件可能已经存在了（因为一个task可能有多个尝试在同时执行），所以接下来就会对索引文件和数据文件（注意这里不是临时文件）进行验证（调用checkIndexAndDataFile方法）。验证成功，则表示有task的其他尝试已经完成了文件的写入，直接将索引临时文件和数据临时文件删除即可；如果验证失败，则将已有的数据文件和索引文件删除，将我们上面生成的索引临时文件和数据临时文件重命名为正式的索引文件和数据文件。<br>缺少一个流程图。。。。。。TODO</p>
+<p>至此，数据的写入逻辑也就介绍完了，另外两种Writer的write实现，有机会再补充。</p>
+<h3 id="ShuffleClient"><a href="#ShuffleClient" class="headerlink" title="ShuffleClient"></a>ShuffleClient</h3><p>在sendRequest方法中，我们调用了ShuffleClient对象来拉取Blocks。有个细节肯定没有忘记，就是会根据此次请求要拉取数据的大小来决定是否会传递TempShuffleFileManager，这个TempShuffleFileManager有什么用，我们会在分析的时候看到它的作用。另外，还有一个问题：ShuffleClient是如何得到的，具体的实现类是哪个？<br>从生成ShuffleBlockFetcherIterator是，我们知道ShuffleClient是调用BlockManager的shuffleClient方法得到的。<br><img src="/attach/5c3f269fe5441.png" alt="image.png"><br>代码逻辑很简单，根据配置“spark.shuffle.service.enabled”来确定使用ExternalShuffleClient作为ShuffleClient，还是使用BlockTransferService。因为我们开启了此参数，所以我们会针对ExternalShuffleClient进行分析。生成ExternalShuffleClient的时候会需要一个SparkTransportConf</p>
+<h3 id="整个过程中所使用的配置"><a href="#整个过程中所使用的配置" class="headerlink" title="整个过程中所使用的配置"></a>整个过程中所使用的配置</h3><table>
+<thead>
+<tr>
+<th>配置参数</th>
+<th>默认值</th>
+<th>参数作用</th>
+<th>使用位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spark.reducer.maxSizeInFlight</td>
+<td>48M</td>
+<td>控制该节点可以同时拉取多大量的数据（所有请求同时拉取数据的字节数）</td>
+<td>1、isRemoteBlockFetchable方法中验证正在拉取的数据的数据量。2、在splitLocalRemoteBlocks方法中，用于拆分FetchRequest（当一个地址上的多个Block的总大小超过该值的五分之一的时候，就把这些Block拆到多个FetchRequest中）。</td>
+</tr>
+<tr>
+<td>spark.reducer.maxReqsInFlight</td>
+<td>Int.MaxValue</td>
+<td>控制节点同时可以发送的请求数，超过这个数的请求，将被放到deferredFetchRequests中</td>
+<td>isRemoteBlockFetchable方法中验证当前正在拉取数据的请求数</td>
+</tr>
+<tr>
+<td>spark.reducer.maxBlocksInFlightPerAddress</td>
+<td>Int.MaxValue</td>
+<td>一个远程节点，可以同时拉取Block的个数</td>
+<td>1、isRemoteAddressMaxedOut方法中检查某个远程地址上正在拉取的block的数量是否超出最大值。2、在splitLocalRemoteBlocks方法中，当一个地址（BlockManagerId）上拥有的Block个数超过该值时，为了可以提交send方法，需要将这些Block拆分到多个FetchRequest中</td>
+</tr>
+<tr>
+<td>spark.shuffle.detectCorrupt</td>
+<td>true</td>
+<td>如果此参数为true，会将ManagerBuffer得到的输入流转换为ChunkedByteBufferInputStream类型</td>
+<td>在shuffleBlockFetcherIterator的next方法中</td>
+</tr>
+<tr>
+<td>spark.shuffle.compress</td>
+<td>true</td>
+<td>shuffle数据是否进行压缩</td>
+<td>在next方法调用serializerManager.wrapStream方法时会验证</td>
+</tr>
+<tr>
+<td>spark.shuffle.service.enabled</td>
+<td>false</td>
+<td>是否启用shuffleService</td>
+<td>如果启用了，则生成ExternalShuffleClient对象作为ShuffleClient，否则使用BlockTransferService.我们开启了此参数</td>
+</tr>
+</tbody>
+</table>
+<h1 id="一些有趣的东西"><a href="#一些有趣的东西" class="headerlink" title="一些有趣的东西"></a>一些有趣的东西</h1><h2 id="去哪里可以得到shuffle数据的分布？"><a href="#去哪里可以得到shuffle数据的分布？" class="headerlink" title="去哪里可以得到shuffle数据的分布？"></a>去哪里可以得到shuffle数据的分布？</h2><p>答案是MapOutputTracker，通过SparkEnv.get.mapOutputTracker就可以得到MapOutputTracker对象。<br>比如：mapOutputTracker.getMapSizesByExecutorId(handle.shuffleId, startPartition, endPartition) 就可以得到shuffleId阶段，根据ExecutorId聚合后的Block信息。</p>
+<h1 id="读写流程的整合"><a href="#读写流程的整合" class="headerlink" title="读写流程的整合"></a>读写流程的整合</h1><p><img src="/attach/5c3d87a7dd187.png" alt="image.png"></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/12/07/spark-2-11-storage/" itemprop="url">
+                  spark-2.11-storage
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-12-07T11:59:01+08:00" content="2018-12-07">
+              2018-12-07
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>Spark存储管理在Spark执行application时担负这数据的传递、存储的重要职责。因此了解Spark的存储机制对于理解Spark的数据操作和性能的优化有着很重要的作用，本文以粗粒度方式来探究一下Spark的存储（最主要是内存）。由于在Spark中任务的执行、数据的传输均是发生在Executor端，因此本文只关注Executor端的存储操作。</p>
+<h1 id="1、内存模式-On-heap与Off-heap"><a href="#1、内存模式-On-heap与Off-heap" class="headerlink" title="1、内存模式 On-heap与Off-heap"></a>1、内存模式 On-heap与Off-heap</h1><p>因为Executor是运行在JVM上的，所以Executor最直接的就是操作On-heap内存，但是除此之外，Spark还引入了Off-heap内存的使用，使Spark可以直接操作JVM之外的系统内存，并对此操作进行了优化。<br><img src="https://moji.wemomo.com/attach/pimg_5c079127d675e.png"><br>该图中关于task共享Executor内存的较少我们将在后续介绍，这里只需要关注On-heap和Off-heap的区别即可。</p>
+<h2 id="1-1、堆内内存-On-heap"><a href="#1-1、堆内内存-On-heap" class="headerlink" title="1.1、堆内内存 On-heap"></a>1.1、堆内内存 On-heap</h2><p>堆内内存的大小通过参数 –executor-memory 或 配置spark.executor.memory来控制。Spark对堆内内存的管理是一种计数上的管理，因为对对象的创建和销毁实际是由JVM来具体操作的，Spark无法准确的控制这些，因此它只是从计数（空间使用量）的角度来管理堆内内存。</p>
+<h2 id="1-2、堆外内存-Off-heap"><a href="#1-2、堆外内存-Off-heap" class="headerlink" title="1.2、堆外内存 Off-heap"></a>1.2、堆外内存 Off-heap</h2><p>为了进一步优化内存的使用进而提高Shuffle的执行效率，Spark引入了堆外内存（Off-heap），使得Spark可以使用Executor上的系统内存。默认堆外内存是不可用的，可以通过 spark.memory.offHeap.enabled来进行开启。通过JDK Unsafe API，Spark能够直接操作系统内存，因此可以精确的控制堆外内存的申请和销毁。</p>
+<h2 id="1-3、内存的统一管理"><a href="#1-3、内存的统一管理" class="headerlink" title="1.3、内存的统一管理"></a>1.3、内存的统一管理</h2><p>Spark对于内存的管理使用统一的抽象接口MemoryManager。它负责Spark的内存申请、释放以及不同用途内存之间的转换。对于内存管理的实现，Spark主要基于两种内存管理：静态内存管理模式（StaticMemoryManager）和统一内存管理模式（unifledMemoryManager）。从Spark 2.0开始，默认使用的内存管理模式为 统一内存管理模式（unifledMemoryManager）。如果想要使用静态内存管理模式，可以将 spark.memory.useLegacyMode 配置设置为true。</p>
+<h1 id="2、内存的用途分类"><a href="#2、内存的用途分类" class="headerlink" title="2、内存的用途分类"></a>2、内存的用途分类</h1><p>从内存的使用来看，Spark对内存的使用主要在两个方面：数据执行和数据存储，所以我们堆内存的划分也就分为执行内存和存储内存。执行内存主要用于shuffle、join、sorts和aggregation的消耗，而存储内存主要用于数据的缓存和集群内数据的传输。在Spark内存管理中，执行内存和存储内存的大小是通过参数 spark.memory.storageFraction 来指定的，执行内存和存储内存之和就是Executor的可用内存（对于On-heap内存，含有other部分）。</p>
+<h2 id="2-1、堆内内存中执行内存与存储内存的计算"><a href="#2-1、堆内内存中执行内存与存储内存的计算" class="headerlink" title="2.1、堆内内存中执行内存与存储内存的计算"></a>2.1、堆内内存中执行内存与存储内存的计算</h2><p>对于堆内内存，我们首先要介绍几个概念：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>解释／取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>系统内存</td>
+<td>可以理解为JVM的内存，如果设置了spark.testing.memory，则使用，否则Runtime.getRuntime.maxMemory</td>
+</tr>
+<tr>
+<td>系统预留内存</td>
+<td>系统预留的内存，依次spark.testing.reservedMemory &gt; spark.testing则为0 取值，默认为300（300 <em> 1024 </em> 1024）</td>
+</tr>
+<tr>
+<td>最小系统内存</td>
+<td>系统预留内存的1.5左右</td>
+</tr>
+<tr>
+<td>可用内存</td>
+<td>系统内存 - 预留系统内存</td>
+</tr>
+<tr>
+<td>最大内存</td>
+<td>可以被Spark使用的内存（执行内存和存储内存之和）。可用内存 * spark.memory.fraction（默认为0.6，我们集群的配置为0.7）</td>
+</tr>
+</tbody>
+</table>
+<p>最大内存又分成了存储内存和执行内存。存储内存在最大内存中的占比通过spark.memory.storageFraction（默认为0.5）配置来指定，其余的为执行内存。这里额外介绍一个细节，如果 spark.executor.memory配置的值小于 最小系统内存，executor是无法启动的。<br><img src="https://moji.wemomo.com/attach/pimg_5c07a49aee1d7.png"></p>
+<h2 id="2-2、堆外内存中执行内存和存储内存的计算"><a href="#2-2、堆外内存中执行内存和存储内存的计算" class="headerlink" title="2.2、堆外内存中执行内存和存储内存的计算"></a>2.2、堆外内存中执行内存和存储内存的计算</h2><p>堆外内存的大小是通过spark.memory.offHeap.size配置指定的。堆外内存比较简单，它不存在其他部分的内存分配，内部直接分为存储内存和执行内存。堆外存储内存所占比例同样通过配置spark.memory.storageFraction（默认0.5）来指定。<br><img src="https://moji.wemomo.com/attach/pimg_5c07a4b15897b.png"><br>对于堆内存储内存和堆外存储内存，彼此之间是相互独立的，执行内存也是如此。</p>
+<h2 id="2-3、存储级别"><a href="#2-3、存储级别" class="headerlink" title="2.3、存储级别"></a>2.3、存储级别</h2><p>我们已经知道了内存模式分为Off-heap和On-heap，而根据内存的用途有分为存储内存和执行内存。因此对于数据的存储，Spark从一下几个因素定义了存储级别（StorageLevel）：</p>
+<blockquote>
+<ol>
+<li>磁盘/内存</li>
+<li>堆内/堆外</li>
+<li>序列化/不序列化</li>
+<li>有副本/没有副本</li>
+</ol>
+</blockquote>
+<p>有了存储级别，就能够明确的说明数据存储的位置、数据存储的方式以及数据存储的个数。</p>
+<h1 id="3、静态内存管理与统一内存管理"><a href="#3、静态内存管理与统一内存管理" class="headerlink" title="3、静态内存管理与统一内存管理"></a>3、静态内存管理与统一内存管理</h1><p>最初Spark的采用的是静态内存管理，在2.0的版本中，Spark开始默认使用统一内存管理来进行内存管理。静态内存管理和统一内存管理的区别，可以简单的从执行内存和存储内存能否相互借用来区别。因为我们系统也是使用默认的统一内存管理来对内存进行管理，顾暂时不对静态内存管理进行理解。</p>
+<h2 id="3-1、统一内存管理"><a href="#3-1、统一内存管理" class="headerlink" title="3.1、统一内存管理"></a>3.1、统一内存管理</h2><p>相对于静态内存，统一内存增加了动态占用机制的优化，其规则如下：</p>
+<blockquote>
+<p>1、通过配置项spark.memory.storageFraction，对存储内存和执行内存进行基本值的划分。<br>2、当存储内存不够、执行内存充足时，可以增加存储内存的容量，减少执行内存的容量。反之亦然。<br>3、当存储不够且执行也不充足时，存储数据落盘。执行不够且存储也不够时，执行阻塞或失败。<br>4、当存储占用执行时，执行可要求存储归还，存储不够的可以落盘；当执行占用存储时，存储无法要求执行归还，只能删除数据或落盘。</p>
+</blockquote>
+<p><img src="https://moji.wemomo.com/attach/pimg_5c07afb32d3a0.png"></p>
+<h2 id="3-2-动态占用机制的实现"><a href="#3-2-动态占用机制的实现" class="headerlink" title="3.2 动态占用机制的实现"></a>3.2 动态占用机制的实现</h2><p>上面我们提到了统一内存管理的动态占用机制，它可以更加充分的使用内存，那么这种机制是如何实现的呢？上面我们也说过，Spark其实是无法精确操作内存的，而是使用了类似计数管理的方式来实现的。<br>因此，在Spark的底层实现中，它为每种内存都创建了与之对应的内存池（执行内存池和存储内存池，但是存储模式又分为堆内和堆外，所以共有四种内存池），内存池记录了对应内存的使用量和容量。</p>
+<h3 id="3-2-1-MemoryManager"><a href="#3-2-1-MemoryManager" class="headerlink" title="3.2.1 MemoryManager"></a>3.2.1 MemoryManager</h3><p>对于内存池的封装，是由 MemoryManager来实现，在其内部维持着四种内存池的引用。<br><img src="https://moji.wemomo.com/attach/pimg_5c07bd672b531.png"><br>其中只有相同内存模式的不同内存之间可以动态占用，如：OnHeapStorageMemoryPool只可以和 OnHeapExecutionMemoryPool 相互占用。另外需要注意的是，内存的总大小（执行内存和存储内存之和）一旦确定是无法修改的，虽然可以调整某个内存的大小，但是总的大小是不变的。<br>MemoryManager（UnifiedMemoryManager）主要的职责就是根据需要调整各自内存池的容量、计算各自内存池的当前使用量以及分配使用量。</p>
+<h1 id="4、存储内存的管理"><a href="#4、存储内存的管理" class="headerlink" title="4、存储内存的管理"></a>4、存储内存的管理</h1><p>存储内存最主要的使用就是数据缓存（RDD进行持久化保存）和集群内的数据传输（数据的广播）。而且我们前面也介绍了存储级别，还需要介绍一个其他的概念：Block。对于Block的理解，可以先简单的将数据的parition理解为一个Block，但是在存储过程中Block是由类型的（通过BlockId进行验证）：<br><img src="https://moji.wemomo.com/attach/pimg_5c07c4739522a.png" alt="pimg_5c07c4739522a.png"><br>从上图可以看出，BlockId由众多的子类，而属于哪种类别的BlockId，就是通过字符串模式匹配来决定的。<br>这里我们为什么要介绍Block呢？因为数据缓存就是以Block方式存储的。<br>在Spark中Storage模块负责Spark在计算过程中产生的数据，对数据的读写进行了统一的封装（包括从内存、磁盘、本地、远程）。在代码架构上，BlockManager分为Master和Salve。Dirver上运行的是Master，Executor上运行的是Slave，两者之间相同通信对数据块（Block）进行管理。</p>
+<h2 id="4-1、-具体的实现"><a href="#4-1、-具体的实现" class="headerlink" title="4.1、 具体的实现"></a>4.1、 具体的实现</h2><p>在MemoryStore中，保持一个entries对象，它是一个LinkedHashMap[BlockId, MemoryEntry[_]]对象。MemoryEntry是一个接口，它有两个实现：DeserializedMemoryEntry 和 SerializedMemoryEntry，分别处理非序列化数据和序列化数据的保存。当由此，也就明白了存储级别（StorageLevel）中序列化和非序列化的意义了。当数据向内存中缓存数据时，其实就是将数据保存到enties中，但是与普通生成兑现不太一样，他会以连续的内存来保存，也就是说一个Block内的数据，从内存上来看是连续存储的（序列化的数据很好理解，序列化之后，对象就是一串字节数，但是对于非序列化的对象，其内部会有一个转换操作）。</p>
+<h1 id="5、执行内存的管理"><a href="#5、执行内存的管理" class="headerlink" title="5、执行内存的管理"></a>5、执行内存的管理</h1><p>执行内存最主要的使用就是shuffle、sorts、aggregate等操作的时候被使用。而排序和聚合其实都是以shuffle的结果来进行操作然后写出数据，所以我们先从Shuffle的存储进行分析。</p>
+<h2 id="5-1、-Shuffle执行内存的使用"><a href="#5-1、-Shuffle执行内存的使用" class="headerlink" title="5.1、 Shuffle执行内存的使用"></a>5.1、 Shuffle执行内存的使用</h2><p>shuffle操作是RDD之间的一种数据转换，从上一个RDD中读取，写入到下一个RDD中，因此我们将从读写两个方面来分析一下：</p>
+<h2 id="5-1-1、-shufflerReader"><a href="#5-1-1、-shufflerReader" class="headerlink" title="5.1.1、 shufflerReader"></a>5.1.1、 shufflerReader</h2><p>Spark的shuffle操作是由ShuffleManager（由子类SortShuffleManager进行实现）进行操作的。ShuffleManager要读取数据就需要获取Reader，从而得到BlockStoreShuffleReader，BlockStoreShuffleReader调用read()方法进行数据读取。ShuffleManager可以通过配置项spark.shuffle.manager进行设置（默认为sort，可选的值有sort和tungsten-sort）：</p>
+<table>
+<thead>
+<tr>
+<th>spark.shuffle.manager的取值</th>
+<th>所代表的类</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sort</td>
+<td>org.apache.spark.shuffle.sort.SortShuffleManager</td>
+</tr>
+<tr>
+<td>tungsten-sort</td>
+<td>org.apache.spark.shuffle.sort.SortShuffleManager</td>
+</tr>
+</tbody>
+</table>
+<p>这里需要引入以概念：ShuffleClient，它是实际拉取数据的客户端。在Spark内部存在两种ShuffleClient：BlockTransferService和ExternalShuffleClient。如果配置项 spark.shuffle.service.enabled 为true（默认为false），则启用ExternalShuffleClient（比如我们的集群，就启用了这个配置）。<br>在生成ExternalShuffleClient的需要SparkTransportConf，该配置有两个比较重要的配置：</p>
+<table>
+<thead>
+<tr>
+<th>配置项</th>
+<th>意义</th>
+<th>取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>spark.shuffle.io.serverThreads</td>
+<td>stage之间TransServer的线程数</td>
+<td>用户设定，默认与可用的core的数量相同</td>
+</tr>
+<tr>
+<td>spark.shuffle.io.clientThreads</td>
+<td></td>
+<td>用户设定，默认与可用的core的数量相同</td>
+</tr>
+</tbody>
+</table>
+<p>可用core的数量为：用户指定core数、运行时可用core数 以及 数字8 中最小的那个值（如果用户指定的数不是0，则使用用户指定的数和8中最小的值，否则就是可用core数和8中最小的那个）。我们集群没有对此进行配置，因此会使用JVM可用的core数进行设置，但是不会超过8个。<br>ExternalShuffleClient中重要的方法就是fetchBlock方法。在fetchBlock方法，会创建连接到目标host和port的TransportClient，然后利用这个client生成OneForOneBlockFetcher来拉取指定executor上（通过参数execId）指定的block（通过blockIds指定）。&gt;_&lt; 到这里都没有看到内存的使用。。。醉了<br>突然一个不小心，原来OneForOneBlockFetcher中使用了一个参数 TempShuffleFileManager，它是一个接口，实现类为 ShuffleBlockFetcherIterator。这个类中有一个方法 createTempShuffleFile()。那么我们就看看，OneForOneBlockFetcher 是否将数据写到了临时文件吧（山路十八弯呀）。通过跟踪代码，果然是将远程的数据写入到个临时文件中。但是当数据写完之后，这个文件会被用来生成一个ManagedBuffer（具体类为FileSegmentManagerBuffer），对于这个ManagedBuffer的操作会交给listener进行处理，这个linstener就又指向了ShuffleBlockFetcherIterator中的 BlockFetchingListener，调用它的onBlockFetchSuccess方法。在新的方法中，ManagerBuffer作为一个SuccessFetchResult对象被推送到results中（一个LinkedBlockingQueue队列）。我们已经知道这个方法是在 ShuffleBlockFetcherIteraotr中，而这个类本身就是Iterator，所以对上面的队列的读取，就发生在Iterator的next()方法中。继续回到生成ShuffleBlockFetcherIteraotr的地方BlockStoreShuffleReader.read()中。在read方法中，又继续对数据进行了处理，怎么处理的呢，当然从字节流被转换为对象（进行解序列化操作），但是read返回的依旧是一个迭代器（Iterator）。因为shuffle操作肯定对需要一种聚合手段，这里采用了ExternalAppendOnlyMap进行聚合操作。如果还需要排序，则使用进一步使用ExternalSorter对象进行操作。这两个类好复杂，慢慢在看（也就是这两对象的操作会占用内存）。</p>
+<h3 id="5-1-2、ShuffleWriter"><a href="#5-1-2、ShuffleWriter" class="headerlink" title="5.1.2、ShuffleWriter"></a>5.1.2、ShuffleWriter</h3><p>shuffleWriter的调用是在ShuffleMapTask的runTask中触发的（这也很好理解，只要在执行task结束的时候才需要写数据呀），而且我们也知道，对于Task只分为两种类型ShuffleMapTask和ResultTask，因为是了解shuffle部分，所以我们只关注ShuffleMapTask，至于ResultTask以后再继续。<br>至于获取ShuffleWriter，是根据ShuffleDependency中shuffleHandle的类型所有决定的，不同的handler会生成不同的Writer：</p>
+<table>
+<thead>
+<tr>
+<th>handler类型</th>
+<th>与之对应的writer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>unsafeShuffleHandle</td>
+<td>UnsafeShuffleWriter</td>
+</tr>
+<tr>
+<td>bypassMergeSortHandle</td>
+<td>BypassMergeSortShuffleWriter</td>
+</tr>
+<tr>
+<td>其他</td>
+<td>SortShuffleWriter</td>
+</tr>
+</tbody>
+</table>
+<p>我们选择一个较为简单的Writer吧，就看SortShuffleWriter。对于Writer来说，最重要的方法必然是write。于是我们就在方法中看到了获取数据文件、生成BlockId、写文件的操作。<br><img src="https://moji.wemomo.com/attach/pimg_5c09e4c7151a3.png" alt="pimg_5c09e4c7151a3.png"><br>从目前来看，shuffle的写操作，写的是文件，而非内存，但是从文档或其他人的文章都提到有写内存的，应该是我还没有看到，会后续补充。</p>
+<h1 id="5-2、task执行内存的分配"><a href="#5-2、task执行内存的分配" class="headerlink" title="5.2、task执行内存的分配"></a>5.2、task执行内存的分配</h1><p>Executor内部是以多线程的方式执行task，要启动一个task其实就是将TaskRunner放到Executor内部的线程池中执行。既然，task是在Executor中运行，多task在运行期间，执行内存是如何分配的呢？Spark在执行内存池中维持了一个HashMap用来记录每个task所占用的内存。每个task允许使用的内存范围为 maxPoolSize/2N ~ maxPoolSize/N（N为当前活跃的Task数， maxPoolSize是执行内存池的最大空间），注意该限制只是在申请资源的时候验证，当申请资源的时候，如果可以分配给task的内存小于最小值，则会使申请资源的操作进入等待状态，等到有其他任务释放内存的时候，会被再次唤醒。<br><img src="https://moji.wemomo.com/attach/pimg_5c08aca616f57.png" alt="pimg_5c08aca616f57.png"></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/10/19/spark-2-11-ExecutorRunnable/" itemprop="url">
                   spark-2.11-ExecutorRunnable
                 </a>
@@ -313,6 +805,33 @@
           
             <p>本文是对 org.apache.spark.deploy.yarn.ExecutorRunnable 源码进行学习的分析，spark版本为2.11。</p>
 <h1 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h1><p>这个方法就是用来启动container的。准备环境、生成命令，发送给NMClient。</p>
+<h1 id="NMClient"><a href="#NMClient" class="headerlink" title="NMClient"></a>NMClient</h1><p>NMClient是Node Manager的客户端。一下是一些常用的方法。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">方法名</th>
+<th style="text-align:left">作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">public static NMClient createNMClient()</td>
+<td style="text-align:left">创建一个 NMClient实例</td>
+</tr>
+<tr>
+<td style="text-align:left">public void init(Configuration conf)</td>
+<td style="text-align:left">初始化 NMClient</td>
+</tr>
+<tr>
+<td style="text-align:left">public void start()</td>
+<td style="text-align:left">启动服务</td>
+</tr>
+<tr>
+<td style="text-align:left">public Map<string, bytebuffer=""> startContainer(Container container, ContainerLaunchContext containerLaunchContext) throws YarnException, IOException</string,></td>
+<td style="text-align:left">启动一个分配的 contianer</td>
+</tr>
+</tbody>
+</table>
 
           
         
@@ -3513,241 +4032,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/07/10/easyUseMapreduce/" itemprop="url">
-                  Easy Use Mapreduce
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-07-10T15:19:55+08:00" content="2018-07-10">
-              2018-07-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/bigdata/" itemprop="url" rel="index">
-                    <span itemprop="name">bigdata</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文用来记录MR的使用，已经遇到的一些问题和解决方法</p>
-<p>#使用Python执行MR</p>
-<h2 id="Mapper的写法"><a href="#Mapper的写法" class="headerlink" title="Mapper的写法"></a>Mapper的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> sys</div><div class="line"><span class="keyword">import</span> json</div><div class="line"><span class="keyword">import</span> time</div><div class="line"></div><div class="line"><span class="comment">#加载编码</span></div><div class="line">reload(sys)</div><div class="line">sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line"></div><div class="line"><span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">    j = json.loads(line.strip())</div><div class="line">    <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (j.get(<span class="string">"name"</span>), j.get(<span class="string">"age"</span>))</div></pre></td></tr></table></figure>
-<h2 id="Reducer的写法"><a href="#Reducer的写法" class="headerlink" title="Reducer的写法"></a>Reducer的写法</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#! /usr/bin/env python</span></div><div class="line">  <span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line">  </div><div class="line">  <span class="keyword">import</span> sys</div><div class="line">  <span class="keyword">import</span> json</div><div class="line">  <span class="keyword">import</span> time</div><div class="line">  </div><div class="line">  <span class="comment">#加载编码</span></div><div class="line">  reload(sys)</div><div class="line">  sys.setdefaultencoding(<span class="string">'utf-8'</span>)</div><div class="line">  </div><div class="line">  uri_count = &#123;&#125;</div><div class="line">  <span class="keyword">for</span> line <span class="keyword">in</span> sys.stdin:</div><div class="line">      data = line.strip().split(<span class="string">"\t"</span>)</div><div class="line">      key = <span class="string">"%s-%s"</span> % (data[<span class="number">0</span>], data[<span class="number">1</span>])</div><div class="line">      c = uri_count.get(key, <span class="number">0</span>)</div><div class="line">      uri_count[key] = c + <span class="number">1</span></div><div class="line">  </div><div class="line">  <span class="keyword">for</span> key <span class="keyword">in</span> uri_count:</div><div class="line">      <span class="keyword">print</span> <span class="string">"%s\t%s"</span> % (key, uri_count.get(key, <span class="number">0</span>))</div></pre></td></tr></table></figure>
-<p>从上面的代码可以看出来，python的脚本需要从标准输入(sys.stdin)中接入数据。</p>
-<h2 id="执行Mapreduce"><a href="#执行Mapreduce" class="headerlink" title="执行Mapreduce"></a>执行Mapreduce</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">/home/hadoop/yarn-2.8.1/bin/hadoop jar /home/hadoop/yarn-2.8.1/share/hadoop/tools/lib/hadoop-streaming-2.8.1.jar \</div><div class="line">-D mapreduce.job.queuename=bigdata.queue \</div><div class="line">-input hdfs://nameservice1/data/mylogs/api_request/2018/07/03/*/* \</div><div class="line">-output /tmp/20180703SpecialUri \</div><div class="line">-mapper &quot;specialUriMapper.py&quot; \</div><div class="line">-reducer &quot;specialUriReducer.py&quot; \</div><div class="line">-file /home/hadoop/script/user_action/specialUriMapper.py \</div><div class="line">-file /home/hadoop/script/user_action/specialUriReducer.py \</div><div class="line">-file /home/hadoop/script/user_action/kickA.log</div></pre></td></tr></table></figure>
-<p>参数说明：</p>
-<blockquote>
-<p>-D mapreduce.job.queuename用指定需要运行MR的队列<br>-input MR的输入<br>-output MR的输出<br>-mapper 指定执行MR中Mapper的程序<br>-reducer 指定执行MR中Reducer的程序<br>-file 需要一起上传的文件，如果python程序中使用了其他的数据文件，可以通过这个参数一起上传。</p>
-</blockquote>
-<p>其他一些参数：</p>
-<blockquote>
-<p>-D mapreduce.job.name Job的名称<br>-D mapreduce.job.user.name<br>-D mapreduce.job.node-label-expression<br>-D mapreduce.job.queuename<br>-D mapreduce.map.memory.mb<br>-D mapreduce.reduce.memory.mb</p>
-</blockquote>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/06/29/netty-study/" itemprop="url">
-                  netty-study
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-06-29T11:15:01+08:00" content="2018-06-29">
-              2018-06-29
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/netty/" itemprop="url" rel="index">
-                    <span itemprop="name">netty</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>NETTY学习笔记</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -3793,7 +4077,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">47</span>
+              <span class="site-state-item-count">49</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -3872,7 +4156,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <div class="copyright" >
   
   &copy;  2016-07 - 
-  <span itemprop="copyrightYear">2018</span>
+  <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
