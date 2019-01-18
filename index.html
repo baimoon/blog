@@ -248,6 +248,119 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2019/01/18/spark-2-11-thriftServer/" itemprop="url">
+                  spark-2.11-thriftServer
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-01-18T15:29:58+08:00" content="2019-01-18">
+              2019-01-18
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文记录Thrift server的学习，先从一个服务异常为切入点：</p>
+<h1 id="Thrift-Server的本地启动"><a href="#Thrift-Server的本地启动" class="headerlink" title="Thrift Server的本地启动"></a>Thrift Server的本地启动</h1><p>– 感谢韦大侠帮助<br>直接运行 HiveThriftServer2是无法正常启动的，首先需要配置启动参数：<br><img src="https://moji.wemomo.com/attach/pimg_5c1771760f7a5.png" alt="pimg_5c1771760f7a5.png"><br>在 Program arguments 中添加：-hiveconf spark.master=local[2] -hiveconf spark.driver.bindAddress=127.0.0.1<br>在Working directory中添加：/Users/renweiming/spark/spark-2.x<br>这样启动的话还是会抛出异常信息：<br><img src="https://moji.wemomo.com/attach/pimg_5c1771cf3f9a6.png" alt="pimg_5c1771cf3f9a6.png"><br>解决缺少类的方法是 File -&gt; Project Structure…<br><img src="https://moji.wemomo.com/attach/pimg_5c177201e0a2a.png" alt="pimg_5c177201e0a2a.png"><br>打开项目结构对话框<br><img src="https://moji.wemomo.com/attach/pimg_5c177250538bb.png" alt="pimg_5c177250538bb.png"><br>点击左下角的“➕”来增加Jar。一个小建议，如果你的Spark项目已经构建过了，那么其实Spark所需的jar都已经存在于本地的maven仓库里了，直接去仓库中，将对应的jar添加即可，就不再去下载jar包了。<br>常见的一些所需jar包：<br>| 异常 | 所需jar | 说明 |<br>| ———— | ————- | —————- |<br>| java.lang.ClassNotFoundException: com.google.common.cache.CacheLoader | com.google.guava | 该问题，一般是因为Scope设置的是Provided，修改为Compile即可，见表格下的截图 |<br>| 我擦，一下子启动起来了，以前配置过，以后遇到再补充吧，不给表现机会。。| …| …|<br><img src="https://moji.wemomo.com/attach/pimg_5c1774288b08d.png" alt="pimg_5c1774288b08d.png"></p>
+<h1 id="带着问题学习"><a href="#带着问题学习" class="headerlink" title="带着问题学习"></a>带着问题学习</h1><p>在Thrift server中，出现了如下异常：<br>18/12/17 15:01:00 INFO AbstractService: Service:HiveServer2 is stopped.<br>通过向上追日志，发现还有如下信息：<br>18/12/17 15:00:59 INFO HiveServer2: Shutting down HiveServer2<br>继续向上追：<br>18/12/17 15:00:59 ERROR SparkExecuteStatementOperation: Error running hive query as user : livepm<br>继续向上追：</p>
+<p>从代码结构来看：<br>HiveServer2继承CompositeService，继承AbstractService。上面的异常就是从 AbstractService的stop()方法中报出来的。而这个方法调用是从如下的流程中调用的：HiveServer2.stop() -&gt; CompositeService.stop() -&gt; AbstractService.stop()。<br>所以，从代码上来分析，肯定是什么地方调用了stop方法。<br>在HiveServer的init方法中，添加了程序关闭的钩子函数：<br><img src="https://moji.wemomo.com/attach/pimg_5c1778027340a.png" alt="pimg_5c1778027340a.png"><br>所以肯定是主动调用了stop方法，或者是异常导致HiveServer关闭了。</p>
+<p>开始看到什么记什么，稍后在整理<br>Thrift server的UI其实是在Spark的UI上增加了一个tab页，默认端口为4040，可以通过 spark.ui.port 进行自定义。Thrift Server的展示效果，是通过类 ThriftServerPage 和 ThriftServerSessionPage 来定义的。</p>
+<p>在初始化HiveThriftServer的时候，会根据Hive的配置项hive.server2.transport.mode的值（可选的有http和binary）来决定生成哪种 ThriftCLIService。如果是http则生成 ThriftHttpCLIService，否则生成 ThriftBinaryCLIService。</p>
+<h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p>入口必然是HiveThriftServer2，HiveThriftServer2的main方法，在方法的开头就生成了一个HiveServer2对象，并调用它的parse方法得到一个ServerOptionsProcessorResponse对象，该对象中包含的ServerOptionsExecutor是 StartOptionExecutor对象。 – 但是这个服务好像就没有被调用，也就是说 HiveServer2并没有被调用。</p>
+<p>接下来<br>创建了一个HiveThriftServer2对象，并调用了这个服务的init和start。<br><img src="https://moji.wemomo.com/attach/pimg_5c18ae94ed28f.png" alt="pimg_5c18ae94ed28f.png"><br>然而start方法只是调用了父类的start，并将自身的启动标示started设置为true。父类（HiveServer2）的start方法，同样又调用了父类（CompositeService）的start方法。在这个类的方法中，它将serviceList中的service（通过addService添加的）分别调用start方法，然后又调用了父类（AbstractService）的start方法。在这个顶级抽象方法中，设置了服务的开始时间、检查了当前状态为INITED，并将服务的状态设置为 STARTED。<br>所以我们的关注点就落在了 serviceList中service是如何添加进去的。我们返回看一下HiveThriftServer2的init方法，就是上图中我们调用的init方法。<br><img src="https://moji.wemomo.com/attach/pimg_5c18aee6c6ac3.png" alt="pimg_5c18aee6c6ac3.png"><br>这样就添加了两个service，分别是 SparkSQLCLIService 和 ThriftCLIService。针对THriftCLIService，会根据 hive.server2.transport.mode 的配置项（binary 或 http）（我们公司使用的是默认值“binary”，也就是用的 ThriftBinaryCLIService ）具体生成ThriftHttpCLIService或ThriftBinaryCLIService。<br>继续将此方法看完，在init的最后执行的是 initCompositeService(hiveConf)，此方法是ReflectedCompositeService定义的一个方法，具体如下：<br><img src="https://moji.wemomo.com/attach/pimg_5c18b128e9a91.png" alt="pimg_5c18b128e9a91.png"><br>这个方法，要把它作为HiveThriftServer2的一部分来读，那么它的功能就是初始化父类ServiceList中的service：</p>
+<blockquote>
+<p>得到父类（CompositeService）的serviceList，并对里面的service进行初始化（执行init方法）<br>设置hiveConf信息，通过反射设置。<br>检查服务的当前状态（确定必须是NOTINITED状态）并设置新的状态（INITED状态）。 –  为啥不直接调用AbstractService的init方法呢？</p>
+</blockquote>
+<p>继续按着顺序来吧，看一看前面通过addService添加到serviceList中的每个service吧。</p>
+<h2 id="首先看看-SparkSQLCLIService-的init"><a href="#首先看看-SparkSQLCLIService-的init" class="headerlink" title="首先看看 SparkSQLCLIService 的init"></a>首先看看 SparkSQLCLIService 的init</h2><p>为父类设置HiveConf<br>生成SparkSQLSessionManager，并将SparkSQLSessionManager通过addService添加到CompositeService的serviceList中。注意这里的CompositeService是SparkSQLCLIService自己的CompositeService。之后又调用了 initCompositeService。相当于将添加进去的service进行初始化。</p>
+<h3 id="SparkSQLSessionManager的初始化"><a href="#SparkSQLSessionManager的初始化" class="headerlink" title="SparkSQLSessionManager的初始化"></a>SparkSQLSessionManager的初始化</h3><p>首先，将hiveConf设置给父类（SparkSQLSessionManager的父类 SessionManager ）。<br>然后，判断是否开启了 hive.server2.logging.operation.enabled 配置（默认为true），如果开启了，则执行initOperationLogRootDir来初始化操作日志目录。<br>然后，根据配置项 hive.server2.async.exec.threads 的值，生成一个固定线程数的线程池，并将线程池设置给父类的 backgroundOperationPool。<br>最后，生成一个 SparkSQLOperationManager 对象，并将此对象 设置给父类（SessionManager）的 operationManager。然后对 operationManager 进行初始化。</p>
+<h3 id="SparkSQLOperationManager的初始化"><a href="#SparkSQLOperationManager的初始化" class="headerlink" title="SparkSQLOperationManager的初始化"></a>SparkSQLOperationManager的初始化</h3><p>根据配置 hive.server2.logging.operation.enabled 的值（默认为true），来确定是否要启动一个 hive.server2.logging.operation.level 配置级别的Appender。</p>
+<h2 id="再看看-ThriftBinaryCLIService"><a href="#再看看-ThriftBinaryCLIService" class="headerlink" title="再看看 ThriftBinaryCLIService"></a>再看看 ThriftBinaryCLIService</h2><p>首先，根据系统环境或配置项 hive.server2.thrift.bind.host 中得到需要绑定的host，如果没有则绑定本地地址。<br>然后，根据配置项 hive.server2.thrift.worker.keepalive.time 获取worker保持活跃的时长（默认为60秒）。<br>继续然后，从系统变量 HIVE_SERVER2_THRIFT_PORT 或配置项 hive.server2.thrift.port 中获取服务绑定的端口号，默认为10000。<br>最后，从配置项 hive.server2.thrift.min.worker.threads 和 hive.server2.thrift.max.worker.threads 中分别读取worker的最小线程数和最大线程数。<br>调用父类（AbastractService）的init方法。<br>worker活跃时长、最大线程数和最小线程数，用来初始化Service内部的线程池。</p>
+<p>综上来看，其实就是一层一层的进行初始化，但是为啥不直接调用初始化方法呢？个人推测是覆盖性操作。</p>
+<p>继续回到 HiveThriftServer2 初始化的位置，接下来就是启动 HiveThriftServer2，调用start方法，调用链如下：<br>HiveThriftServer.start() -&gt; HiveServer2.start() -&gt; CompositeService.start()(–此方法中会将serviceList中的所有service进行启动)<br>所以，接下来我们对 SparkSQLCLIService 和 ThriftBinaryCLIService 的start方法进行分析。</p>
+<h2 id="SparkSQLCLIService的启动"><a href="#SparkSQLCLIService的启动" class="headerlink" title="SparkSQLCLIService的启动"></a>SparkSQLCLIService的启动</h2><p>SparkSQLCLIService类中并没有定义start方法，但是它的父类CLIService中定义了。父类的启动很简单，首先调用父类（CompositeService）的start方法，相当于对serviceList中的各个service进行启动。然后自己内部生成一个 HiveMetaStoreClient，并链接获取默认的数据库（只是为了测试链接）。 至于serviceList中service的启动，需要结合上面的初始化来看看需要具体启动那些service。稍后上图。</p>
+<h2 id="ThriftBinaryCLIService的启动"><a href="#ThriftBinaryCLIService的启动" class="headerlink" title="ThriftBinaryCLIService的启动"></a>ThriftBinaryCLIService的启动</h2><p>ThriftBinaryCLIService自身也没有定义start方法，其父类（ThriftCLISService）定义了start方法。具体逻辑如下：调用父类（AbstractService）的start方法。然后，将自己作为参数生成一个Thread，并进行启动（因为ThriftCLIService实现了Runnable接口）。然而，ThriftCLIService自身只是定义了抽象方法run，具体实现由 ThriftBinaryCLIService 或 ThrfitHttpCLIService 来实现。因为我们使用的是 ThriftBinaryCLIService ，因此我们只对此类进行分析。<br>对于ThriftBinaryCLIService的启动，我们进行分析：<br>创建线程池、创建TTransportFactory、创建TProcessorFactory、创建serverSocket，这些是用来创建TThreadPoolServer.Args，然后使用它来创建 TThreadPoolServer，然后调用service的serve方法来启动服务。这里就会输出 Starting … on port … with … … worker threads的日志。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2019/01/17/spark-2-11-shuffleDataReadAndWrite/" itemprop="url">
                   Spark 2.11 shuffle data read and write
                 </a>
@@ -3904,134 +4017,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/07/13/HiveStudy/" itemprop="url">
-                  Hive Study
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-07-13T15:53:05+08:00" content="2018-07-13">
-              2018-07-13
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/bigdata/" itemprop="url" rel="index">
-                    <span itemprop="name">bigdata</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文用来记录自己在使用Hive Sql方面的一些经验。</p>
-<h1 id="创建表"><a href="#创建表" class="headerlink" title="创建表"></a>创建表</h1><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"># 创建了一个带有两个分区的表，这个表按照partition_date和hour进行分区</div><div class="line">CREATE EXTERNAL TABLE `user.user_action`(</div><div class="line">     `action` string COMMENT '&#123;"chs_name":"", "description":"","etl":"","value":"","remark":""&#125;',</div><div class="line">     `num` double comment '&#123;"chs_name":"", "description":"","etl":"","value":"","remark":""&#125;'</div><div class="line">  )</div><div class="line">PARTITIONED BY ( `partition_date` string COMMENT '分区日期',  `hour` string COMMENT '小时')</div><div class="line">ROW FORMAT DELIMITED</div><div class="line">    --TODO: 导入MYSQL的表建议'\t'分隔</div><div class="line">    FIELDS TERMINATED BY '\t'</div><div class="line">    COLLECTION ITEMS TERMINATED BY '\002'</div><div class="line">    MAP KEYS TERMINATED BY '\003'</div><div class="line">    LINES TERMINATED BY '\n'</div><div class="line">STORED as textfile;</div></pre></td></tr></table></figure>
-<h1 id="查询数据并将数据写入到表中"><a href="#查询数据并将数据写入到表中" class="headerlink" title="查询数据并将数据写入到表中"></a>查询数据并将数据写入到表中</h1><figure class="highlight sql"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">INSERT</span> OVERWRITE <span class="keyword">TABLE</span> user.user_action</div><div class="line"><span class="keyword">partition</span>(partition_date = <span class="string">'20180602'</span>, <span class="keyword">hour</span>=<span class="string">'0'</span>)</div><div class="line"><span class="keyword">select</span> <span class="keyword">action</span>,</div><div class="line">       <span class="keyword">sum</span>(<span class="keyword">num</span>) <span class="keyword">as</span> n</div><div class="line">  <span class="keyword">from</span> (</div><div class="line">        <span class="keyword">select</span> <span class="keyword">action</span>,</div><div class="line">               <span class="keyword">num</span></div><div class="line">          <span class="keyword">from</span> (</div><div class="line">               <span class="keyword">select</span> momo_id, </div><div class="line">                      event_num_map </div><div class="line">                 <span class="keyword">from</span> db.event_summary </div><div class="line">                <span class="keyword">where</span> partition_date = <span class="string">'20180602'</span></div><div class="line">                  <span class="keyword">and</span> <span class="keyword">size</span>(event_num_map)&gt;<span class="number">0</span></div><div class="line">          )a</div><div class="line">          LATERAL <span class="keyword">VIEW</span> EXPLODE(event_num_map)t <span class="keyword">AS</span> <span class="keyword">action</span>, <span class="keyword">num</span></div><div class="line">    </div><div class="line">  )b</div><div class="line">  <span class="keyword">group</span> <span class="keyword">by</span> <span class="keyword">action</span>;</div></pre></td></tr></table></figure>
-<p>该表从db.event_summary中查询数据然后吸入到user.user_action表中。需要注意db.event_summay中的event_num_map字段是一个map，map的key是action，value是action的数量。这里使用了一个函数LATERAL VIEW EXPLODE，用来map展开。</p>
-<h1 id="一些常用函数"><a href="#一些常用函数" class="headerlink" title="一些常用函数"></a>一些常用函数</h1><h2 id="ROW-NUMBER-OVER-函数"><a href="#ROW-NUMBER-OVER-函数" class="headerlink" title="ROW_NUMBER() OVER()函数"></a>ROW_NUMBER() OVER()函数</h2><p>ROW_NUMBER() OVER()函数用来为每条记录返回一个行号，可以用来对记录进行排序并返回该序号，需要从1开始排序。<br>OVER()是一个聚合函数，可以对记录进行分组和排序。ROW_NUMBER()不能单独使用，必须搭配OVER()才能使用，否则会报错。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select *, row_number() over() as r from mytable;</div></pre></td></tr></table></figure></p>
-<p>配合partition by/order by<br>按照某个字段排序后返回行号<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">select *, row_number() over(partition by aaaaab order by num desc) r from mytable;</div></pre></td></tr></table></figure></p>
-<p>按照aaaaab分组后，并根据aaaaaab进行倒序排列。</p>
-<h1 id="SQL中的类型转换"><a href="#SQL中的类型转换" class="headerlink" title="SQL中的类型转换"></a>SQL中的类型转换</h1><p>需要使用cast()函数进行类型转换。</p>
-<blockquote>
-<p>cast(str_column as int) </p>
-</blockquote>
-<h1 id="一些经验的总结"><a href="#一些经验的总结" class="headerlink" title="一些经验的总结"></a>一些经验的总结</h1><h2 id="一个表中分时段记录内容的统一查询"><a href="#一个表中分时段记录内容的统一查询" class="headerlink" title="一个表中分时段记录内容的统一查询"></a>一个表中分时段记录内容的统一查询</h2><h3 id="需求"><a href="#需求" class="headerlink" title="需求"></a>需求</h3><p>遇到的情况是这样的，有一个表A，表A中有24个字段（event_0_map … event_24_map）用来记录对应小时内每个用户各自发生的一些事情的数量。表结构如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">id string = 1000010</div><div class="line">event_0_map = &#123;&apos;event0&apos;:200, &apos;event2&apos;:100&#125;</div><div class="line">...</div><div class="line">event_24_map = &#123;&apos;event0&apos;:500, &apos;event2&apos;:800&#125;</div><div class="line">partition = &apos;20180101&apos;</div></pre></td></tr></table></figure></p>
-<p>现在有一个需求：需要统计每个小时发生事件最多的前100个事件</p>
-<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>因为是每个小时执行的任务，而且每个小时的数据是存放在不同的字段里面，而字段名在SQL中是不可以拼接的，如：event_24_map，无法来拼接，因此有两种方案。</p>
-<h4 id="方案一"><a href="#方案一" class="headerlink" title="方案一"></a>方案一</h4><p>生成24个任务，每个任务的SQL都一样，只是查询的字段不一样<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">select action,</div><div class="line">       num</div><div class="line">  from (</div><div class="line">       select id, </div><div class="line">              event_0_map </div><div class="line">         from online.tableA </div><div class="line">        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">          and size(event_0_map)&gt;0</div><div class="line">  )a0</div><div class="line">  LATERAL VIEW EXPLODE(event_0_map)t AS action, num</div></pre></td></tr></table></figure></p>
-<h4 id="方案二-推荐"><a href="#方案二-推荐" class="headerlink" title="方案二(推荐)"></a>方案二(推荐)</h4><p>将所有的字段同时解析，生成一个大表，再对大表进行过滤查询<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">select action,</div><div class="line">       num</div><div class="line">  from (</div><div class="line">		select action,</div><div class="line">		       num,</div><div class="line">		       &apos;00&apos; as hour</div><div class="line">		  from (</div><div class="line">		       select id, </div><div class="line">		              event_0_map </div><div class="line">		         from online.tableA </div><div class="line">		        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">		          and size(event_0_map)&gt;0</div><div class="line">		  )a0</div><div class="line">		  LATERAL VIEW EXPLODE(event_0_map)t AS action, num</div><div class="line">		union all</div><div class="line">		select action,</div><div class="line">		       num,</div><div class="line">		       &apos;01&apos; as hour</div><div class="line">		  from (</div><div class="line">		       select id, </div><div class="line">		              event_2_map </div><div class="line">		         from online.tableA </div><div class="line">		        where partition = &apos;$&#123;partition_date&#125;&apos;</div><div class="line">		          and size(event_2_map)&gt;0</div><div class="line">		  )a1</div><div class="line">		  LATERAL VIEW EXPLODE(event_2_map)t AS action, num</div><div class="line">	) data</div><div class="line"> where hour = &apos;$&#123;partition_hour&#125;&apos;</div></pre></td></tr></table></figure></p>
-<h2 id="表的删除和恢复"><a href="#表的删除和恢复" class="headerlink" title="表的删除和恢复"></a>表的删除和恢复</h2><p>在使用Hive的表的过程中，难免会有对表进行删除的情况，其实把表删除后，数据文件还是存在的，那么如何将数据按照新表的结构恢复一下呢？可以如下操作，但是需要注意的是，对于新增的字段，值是NULL。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">drop table db.table_test;</div><div class="line">...</div><div class="line">create table xxx...</div><div class="line">...</div><div class="line">MSCK REPAIR TABLE db.table_test;</div></pre></td></tr></table></figure>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -4077,7 +4062,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-count">50</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>

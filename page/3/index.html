@@ -248,6 +248,120 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/08/17/spark-streaming/" itemprop="url">
+                  Spark Streaming Programming Guide
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-08-17T16:40:48+08:00" content="2016-08-17">
+              2016-08-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是Spark Streaming手册的翻译文档，会随着自己的实现进行更新，官方文档请<a href="http://spark.apache.org/docs/latest/streaming-programming-guide.html" title="Spark Streming Programming Guide">参考</a>。</p>
+<h1 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h1><p>Spark Streaming是核心Spark API的一个延伸，它对实时数据流进行可扩展的、高吞吐量的、容灾的进行处理。数据可以从很多源（如Kafka、Flume、Kinesis或TCP socket）进行提取，然后被复杂的算法组合处理，这些复杂的算法可以使用高级别的函数，如map、reduce、join和window。最后，被处理过的数据可以推出到外部文件系统、数据库和实时图表中。实际上你可以在数据流上应用Spark的<a href="http://spark.apache.org/docs/latest/ml-guide.html" title="Machine Learning Library (MLlib) Guide">机器学习</a>和<a href="http://spark.apache.org/docs/latest/graphx-programming-guide.html" title="GraphX Programming Guide">图处理</a>。<br><img src="http://oaavtz33a.bkt.clouddn.com/streaming-arch.png" alt="spark streaming architecture" title="spark streaming architecture"><br>在内部，它如下工作。Spark Streaming接收实时的输入数据流，并将数据划分到批次中，然后在批次中数据被Spark引擎处理并生成最终的结果流。<br><img src="http://oaavtz33a.bkt.clouddn.com/streaming-flow.png" alt="Spark Streaming data flow" title="Spark Streaming data flow"><br>Spark Streaming提供了一个高级别的抽象，叫做discretized stream或DStream，它代表了一个连续的数据流。DStream可以从来自数据源（如Kafka、Flume和Kinesis）的输入数据流创建，也可以通过在其他DStream上应用高级别的操作来创建，一个DStream以一个<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.RDD" title="RDD">RDDs</a>序列来表示。<br>本指南展示了如何开始使用DStreams来编写Spark Streaming程序。你可以使用Scala、Java或Python（从Spark1.2中引入）来编写Spark Streaming程序，这些语言的代码都会在本指南中提供。你会发现tabs在本指南中随处可见，是你可以在不同语言的代码片段之间任意选择。<br><strong>注意：</strong>在Python中有少量的APIs是不同或不可用的。贯穿整个指南，你会发现<em>Python API</em>标签高亮了这些不同。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/08/17/spark-streaming/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/08/09/spark-configuration/" itemprop="url">
                   Configuration
                 </a>
@@ -1325,7 +1439,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">49</span>
+              <span class="site-state-item-count">50</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
