@@ -1,0 +1,844 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="spark," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文按照Metric的基本认识、Spark对Metrics system的配置、源码分析MetricsSystem的顺序进行学习
+Metrics目前最流行的metrics库是dropwizard/metircs，spark使用的也是这个库。下面我们介绍一下dropwizard/metircs的概念和用法。
+Maven依赖1234567&amp;lt;dependencies&amp;gt;    &amp;lt;depe">
+<meta property="og:type" content="article">
+<meta property="og:title" content="spark-2-11-metircs">
+<meta property="og:url" content="http://baimoon.github.io/2019/01/31/spark-2-11-metircs/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文按照Metric的基本认识、Spark对Metrics system的配置、源码分析MetricsSystem的顺序进行学习
+Metrics目前最流行的metrics库是dropwizard/metircs，spark使用的也是这个库。下面我们介绍一下dropwizard/metircs的概念和用法。
+Maven依赖1234567&amp;lt;dependencies&amp;gt;    &amp;lt;depe">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c52acc1de555.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c52afb97da92.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c613f9fdbb6f.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c613fccd71c9.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c613fea40b45.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c613f66f016d.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/5c626eb6d83e9.png">
+<meta property="og:updated_time" content="2019-02-12T08:16:49.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="spark-2-11-metircs">
+<meta name="twitter:description" content="本文按照Metric的基本认识、Spark对Metrics system的配置、源码分析MetricsSystem的顺序进行学习
+Metrics目前最流行的metrics库是dropwizard/metircs，spark使用的也是这个库。下面我们介绍一下dropwizard/metircs的概念和用法。
+Maven依赖1234567&amp;lt;dependencies&amp;gt;    &amp;lt;depe">
+<meta name="twitter:image" content="http://baimoon.github.io/attach/5c52acc1de555.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2019/01/31/spark-2-11-metircs/"/>
+
+  <title> spark-2-11-metircs | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                spark-2-11-metircs
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-01-31T16:05:32+08:00" content="2019-01-31">
+              2019-01-31
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文按照Metric的基本认识、Spark对Metrics system的配置、源码分析MetricsSystem的顺序进行学习</p>
+<h1 id="Metrics"><a href="#Metrics" class="headerlink" title="Metrics"></a>Metrics</h1><p>目前最流行的metrics库是dropwizard/metircs，spark使用的也是这个库。下面我们介绍一下dropwizard/metircs的概念和用法。</p>
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">&lt;dependencies&gt;</div><div class="line">    &lt;dependency&gt;</div><div class="line">        &lt;groupId&gt;io.dropwizard.metrics&lt;/groupId&gt;</div><div class="line">        &lt;artifactId&gt;metrics-core&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;$&#123;metrics.version&#125;&lt;/version&gt;</div><div class="line">    &lt;/dependency&gt;</div><div class="line">&lt;/dependencies&gt;</div></pre></td></tr></table></figure>
+<h2 id="Metric的基本使用"><a href="#Metric的基本使用" class="headerlink" title="Metric的基本使用"></a>Metric的基本使用</h2><p>MetricRegistry类是Metrics的核心，他是存放应用中所有metrics的容器，也是我们使用Metrics的第一步：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">MetricRegistry metricRegistry = <span class="keyword">new</span> MetricsRegistry();</div></pre></td></tr></table></figure></p>
+<p>每个Metrics都有一个唯一的名字，我们可以通过MetricRegistry.name来生成：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">metricName = MetricRegistry.name(<span class="string">"name"</span>, <span class="string">"namesecond"</span>, <span class="string">"namethrid"</span>); <span class="comment">//生成name.namescond.namethrid</span></div></pre></td></tr></table></figure></p>
+<p>有了MetricRegistry和Metric之后，接下来需要进行注册<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">metricRegistry.register(metricName, MetricType)</div></pre></td></tr></table></figure></p>
+<p>注册的时候，需要指定Metric的类型，详细的类型，后面会介绍。<br>以下是Spark中的一些使用参考：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">override</span> <span class="keyword">val</span> metricRegistry = <span class="keyword">new</span> <span class="type">MetricRegistry</span>()</div><div class="line"></div><div class="line">metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"threadpool"</span>, <span class="string">"activeTasks"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = threadPool.getActiveCount()</div><div class="line">&#125;)</div></pre></td></tr></table></figure></p>
+<h2 id="Metrics类型"><a href="#Metrics类型" class="headerlink" title="Metrics类型"></a>Metrics类型</h2><p>Metrics有五种类型，分别是Gauges、Counters、Meters、Histograms和Timers。</p>
+<h3 id="Gauges"><a href="#Gauges" class="headerlink" title="Gauges"></a>Gauges</h3><p>Gauges是最简单的Metrics类型，该对象中只有一个方法getValue用于返回统计的值，下面是Gauges接口的定义：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Gauge</span>&lt;<span class="title">T</span>&gt; <span class="keyword">extends</span> <span class="title">Metric</span> </span>&#123;</div><div class="line">    <span class="function">T <span class="title">getValue</span><span class="params">()</span></span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从方法可以看出，Gauge中的getValue可以返回与Gauge定义类型相同的任意类型。<br>以下是Spark中Gauges类型Metric的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"threadpool"</span>, <span class="string">"activeTasks"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = threadPool.getActiveCount()</div><div class="line">&#125;)</div><div class="line"></div><div class="line"><span class="comment">// Gauge for executor thread pool's approximate total number of tasks that have been completed</span></div><div class="line">metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"threadpool"</span>, <span class="string">"completeTasks"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Long</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Long</span> = threadPool.getCompletedTaskCount()</div><div class="line">&#125;)</div></pre></td></tr></table></figure></p>
+<p>分别定义了一个Int类型和一个Long类型的Gauges。</p>
+<h3 id="Counters"><a href="#Counters" class="headerlink" title="Counters"></a>Counters</h3><p>Counter是计数器，既然是计数器，因此可增可减。Counter其实是对AtomicLong的封装。</p>
+<h4 id="Meters支持的方法"><a href="#Meters支持的方法" class="headerlink" title="Meters支持的方法"></a>Meters支持的方法</h4><p>inc(): 计数器自加。<br>dec(): 计数器自减。</p>
+<h4 id="生成方法"><a href="#生成方法" class="headerlink" title="生成方法"></a>生成方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pendingJobs = registry.counter(MetricRegistry.name(Queue.class,<span class="string">"pending-jobs"</span>,<span class="string">"size"</span>));</div></pre></td></tr></table></figure>
+<h3 id="Meters"><a href="#Meters" class="headerlink" title="Meters"></a>Meters</h3><p>Meters用来计算事件发生的速率。Meters会统计近1分钟、5分钟、15分钟以及全部时间的速率。</p>
+<h4 id="Meters可用的方法"><a href="#Meters可用的方法" class="headerlink" title="Meters可用的方法"></a>Meters可用的方法</h4><p>mark()方法：表示发生一次事件。</p>
+<h4 id="生成方法-1"><a href="#生成方法-1" class="headerlink" title="生成方法"></a>生成方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Meter meterTps = registry.meter(MetricRegistry.name(MeterTest.class,<span class="string">"request"</span>,<span class="string">"tps"</span>));</div></pre></td></tr></table></figure>
+<h3 id="Histograms"><a href="#Histograms" class="headerlink" title="Histograms"></a>Histograms</h3><p>Histograms统计数据的分布情况。比如最大值、最小值、中间值、中位数、75百分位、90百分位、98百分位、99百分位和99.9百分位的值。</p>
+<h4 id="Histograms可用的方法"><a href="#Histograms可用的方法" class="headerlink" title="Histograms可用的方法"></a>Histograms可用的方法</h4><p>histogram.update(…): 更新一个数</p>
+<h4 id="生成方法-2"><a href="#生成方法-2" class="headerlink" title="生成方法"></a>生成方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Histogram histogram - <span class="keyword">new</span> Histogram(...)</div><div class="line">registery.register(MetricRegistry.name(...), histogram)</div></pre></td></tr></table></figure>
+<h3 id="Timers"><a href="#Timers" class="headerlink" title="Timers"></a>Timers</h3><p>Timer可以理解为Histogram和Meter的结合。</p>
+<h4 id="Timer可用的方法"><a href="#Timer可用的方法" class="headerlink" title="Timer可用的方法"></a>Timer可用的方法</h4><p>timer.time(): 记录时间</p>
+<h4 id="生成方法-3"><a href="#生成方法-3" class="headerlink" title="生成方法"></a>生成方法</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Timer timer = registry.timer(MetricRegistry.name(...))</div></pre></td></tr></table></figure>
+<h2 id="Metrics的输出"><a href="#Metrics的输出" class="headerlink" title="Metrics的输出"></a>Metrics的输出</h2><h3 id="通过JMX"><a href="#通过JMX" class="headerlink" title="通过JMX"></a>通过JMX</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">final</span> JmxReporter reporter = jmxReporter.forRegistry(registry).build()</div><div class="line">reporter.start()</div></pre></td></tr></table></figure>
+<p>一旦reporter被启动，所有在registry中的metrics可以通过JConsole或VisualVM（如果安装了MBeans插件）可见。</p>
+<h3 id="其他方式"><a href="#其他方式" class="headerlink" title="其他方式"></a>其他方式</h3><p>除了JMX，Metrics还能够以HTTP、STDOUT、CSV、SLFJ、Ganglia和Graphite的方式输出。 详细可以参考：<a href="https://metrics.dropwizard.io/3.1.0/getting-started" target="_blank" rel="external">https://metrics.dropwizard.io/3.1.0/getting-started</a> 和 <a href="https://metrics.dropwizard.io/3.1.0/manual/core/" target="_blank" rel="external">https://metrics.dropwizard.io/3.1.0/manual/core/</a></p>
+<h1 id="Spark中Metrics的配置"><a href="#Spark中Metrics的配置" class="headerlink" title="Spark中Metrics的配置"></a>Spark中Metrics的配置</h1><p>Spark的Metrics的配置，在$SPARK_HOME/conf/metrics.properties文件中配置。如果用户需要制定自己的配置文件，可以通过spark.metrics.conf来指定。默认情况下，driver或executor的root命名空间为spark.app.id，但是在某些情况下，用户想要跨driver或executor跟踪Metrics，对于这种情况，可以使用spark.metrics.namespace来自定义命名空间。</p>
+<h2 id="实例"><a href="#实例" class="headerlink" title="实例"></a>实例</h2><p>在Spark中，Metrics根据Spark的组建被划分中不同的实例。对于每个实例，可以配置一组sinks来报告metrics。如下是当前支持的实例：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">实例名</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">master</td>
+<td style="text-align:left">standalone模式Spark的master进程</td>
+</tr>
+<tr>
+<td style="text-align:left">application</td>
+<td style="text-align:left">master中的组件，对不同applications进行报告</td>
+</tr>
+<tr>
+<td style="text-align:left">worker</td>
+<td style="text-align:left">standalone模式Spark的worker进程</td>
+</tr>
+<tr>
+<td style="text-align:left">executor</td>
+<td style="text-align:left">一个Spark executor</td>
+</tr>
+<tr>
+<td style="text-align:left">driver</td>
+<td style="text-align:left">Spark的driver进程</td>
+</tr>
+<tr>
+<td style="text-align:left">shuffleService</td>
+<td style="text-align:left">Spark的Shuffle服务</td>
+</tr>
+<tr>
+<td style="text-align:left">applicationMaster</td>
+<td style="text-align:left">当在Yarn上运行时，Spark的application master</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Sinks"><a href="#Sinks" class="headerlink" title="Sinks"></a>Sinks</h2><p>每个实例能够汇报给0个或多个sink。Sinks包含在org.apache.spark.metrics.sink包中，有如下sink：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">sink</th>
+<th style="text-align:left">解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ConsoleSink</td>
+<td style="text-align:left">记录metrics信息到 console</td>
+</tr>
+<tr>
+<td style="text-align:left">CSVSink</td>
+<td style="text-align:left">以一定的间隔，将metrics数据导出到CSV文件</td>
+</tr>
+<tr>
+<td style="text-align:left">JmxSink</td>
+<td style="text-align:left">将metrics注册到JMX console</td>
+</tr>
+<tr>
+<td style="text-align:left">MetricsServlet</td>
+<td style="text-align:left">在已有的Spark UI中添加一个Servlet，以JONS数据格式来服务metrics数据</td>
+</tr>
+<tr>
+<td style="text-align:left">GraphiteSink</td>
+<td style="text-align:left">将metrics发送给Graphite节点</td>
+</tr>
+<tr>
+<td style="text-align:left">Slf4jSink</td>
+<td style="text-align:left">将metrics发送给slf4j</td>
+</tr>
+<tr>
+<td style="text-align:left">StatsdSink</td>
+<td style="text-align:left">将metrics发送给StatsD节点</td>
+</tr>
+<tr>
+<td style="text-align:left">GangliaSink</td>
+<td style="text-align:left">将metrics发送给Ganglia节点，需要重新编译Spark，将gangliaSink打包进去，默认不包含</td>
+</tr>
+</tbody>
+</table>
+<h2 id="metrics-properties"><a href="#metrics-properties" class="headerlink" title="metrics.properties"></a>metrics.properties</h2><p>可以参考：$SPARK_HOME/conf/metrics.properties.template文件，在这个文件中对source、sink等作了详细的解释，并提供了例子。</p>
+<h1 id="从Spark源码看Metrics的使用"><a href="#从Spark源码看Metrics的使用" class="headerlink" title="从Spark源码看Metrics的使用"></a>从Spark源码看Metrics的使用</h1><p>Spark中对于Metrics的处理集中在core模块下的org.apache.spark.metrics包中。<br>包结构如下：<br><img src="/attach/5c52acc1de555.png" alt="image.png"><br>其中MetricsSystem是该模块的入口，MetricsConfig为模块的配置管理，Source是Metric系统的数据源，Sink是Metrics的量输出。</p>
+<h2 id="MetricsConfig"><a href="#MetricsConfig" class="headerlink" title="MetricsConfig"></a>MetricsConfig</h2><p>MetricsConfig用来加载metrics的配置，并对MetricsSystem进行相关的配置。在MetricsSystem类中，会生成MetricsConfig对象，并进行初始化操作。</p>
+<h3 id="首先看看MetricsConfig的一些属性"><a href="#首先看看MetricsConfig的一些属性" class="headerlink" title="首先看看MetricsConfig的一些属性"></a>首先看看MetricsConfig的一些属性</h3><p>正如Spark文档说的，默认的Metrics配置文件为 metrics.properties</p>
+<h3 id="initialize方法"><a href="#initialize方法" class="headerlink" title="initialize方法"></a>initialize方法</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">initialize</span></span>() &#123;</div><div class="line">  <span class="comment">// 添加默认属性，用于没有配置文件的情况</span></div><div class="line">  setDefaultProperties(properties)</div><div class="line">  <span class="comment">// 从metrics配置文件中加载metrics配置</span></div><div class="line">  loadPropertiesFromFile(conf.getOption(<span class="string">"spark.metrics.conf"</span>))</div><div class="line"></div><div class="line">  <span class="comment">// 从Spark配置文件中加载metrics配置</span></div><div class="line">  <span class="keyword">val</span> prefix = <span class="string">"spark.metrics.conf."</span></div><div class="line">  conf.getAll.foreach &#123;</div><div class="line">    <span class="keyword">case</span> (k, v) <span class="keyword">if</span> k.startsWith(prefix) =&gt;</div><div class="line">      properties.setProperty(k.substring(prefix.length()), v)</div><div class="line">    <span class="keyword">case</span> _ =&gt;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  perInstanceSubProperties = subProperties(properties, <span class="type">INSTANCE_REGEX</span>)</div><div class="line">  <span class="comment">// 判断是否以 * 开始的实例配置，这种表示是所有实例的配置（称为默认实例配置）</span></div><div class="line">  <span class="keyword">if</span> (perInstanceSubProperties.contains(<span class="type">DEFAULT_PREFIX</span>)) &#123;</div><div class="line">    <span class="comment">// 获取默认实例配置</span></div><div class="line">    <span class="keyword">val</span> defaultSubProperties = perInstanceSubProperties(<span class="type">DEFAULT_PREFIX</span>).asScala</div><div class="line">    <span class="comment">// 循环所有非默认实例配置，将实例配置添加到非实例配置中（注意，实例配置已有的属性不会被覆盖）</span></div><div class="line">    <span class="keyword">for</span> ((instance, prop) &lt;- perInstanceSubProperties <span class="keyword">if</span> (instance != <span class="type">DEFAULT_PREFIX</span>);</div><div class="line">         (k, v) &lt;- defaultSubProperties <span class="keyword">if</span> (prop.get(k) == <span class="literal">null</span>)) &#123;</div><div class="line">      prop.put(k, v)</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在initialize方法中，首先会调用setDefaultProperties方法来加载默认配置，这是为了应对没有设置Metrics配置文件的情况（连默认的metrics.properties都没有提供）。<br>然后会调用loadPropertiesFromFile方法，从指定的配置文件中加载Metrics配置。<br>再然后，会读取Spark的所有配置项，从中筛选以”spark.metrics.conf.”为前缀的配置项，并将配置项添加到属性中。需要注意的是，在添加属性的时候，并非以配置项的全名作为属性，而是以子名作为属性名，例如：spark.metrics.conf.xxx，那么会使用xxx作为属性名，而spark.metrics.conf.xxx.x1则会使用xxx.x1作为属性名。<br>最后，该方法还会对实例属性（指定了实例的配置）进行整理。实例属性的配置类似driver.path这样的，driver就是实例，因此这里就有一个问题，对于所有实例通用的配置应该怎么设置呢？答案是<em>.path这样的。有</em>的则表示通用的默认值，没有<em>的配置，第一个dot（.）前的为实例。有实例的配置会覆盖没有实例的配置。代码中的属性private val INSTANCE_REGEX = “^(\</em>|[a-zA-Z]+)\.(.+)”.r，就解释了实例配置的模式，要不就是以“<em>”开头，要么就以字母开头，以字母开头的表示具体实例，以“</em>”开头的表示所有实例通用。<br>因此也就可以理解setDefaultProperties方法中设置默认值的作用。整理的作用就是将默认实例配置（以“*”开头的实例配置）添加到非默认实例配置中（不会覆盖非默认实例配置已有的属性）。<br>比如，有如下属性<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&#123;&quot;\\*.class&quot;-&gt;&quot;default_class&quot;, &quot;\\*.path&quot;-&gt;&quot;default_path, &quot;driver.path&quot;-&gt;&quot;driver_path&quot;&#125;</div></pre></td></tr></table></figure></p>
+<p>对于driver实例，他最后得到的属性为<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">&#123;&#123;&quot;driver&quot;-&gt;Map(&quot;path&quot;-&gt;&quot;driver_path&quot;, &quot;class&quot;-&gt;&quot;default_class&quot;&#125;&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="setDefaultProperties"><a href="#setDefaultProperties" class="headerlink" title="setDefaultProperties"></a>setDefaultProperties</h3><p>当没有配置metrics配置文件时（是指连默认的配置文件都不存在），采取的默认Metrics配置。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">setDefaultProperties</span></span>(prop: <span class="type">Properties</span>) &#123;</div><div class="line">  <span class="comment">// 默认开启了servlet类型的sink，指定servlet的class为org.apache.spark.metrics.sink.MetricsServlet</span></div><div class="line">  prop.setProperty(<span class="string">"*.sink.servlet.class"</span>, <span class="string">"org.apache.spark.metrics.sink.MetricsServlet"</span>)</div><div class="line">  <span class="comment">// 先为所有实例设置，再为master和applications类型的实例设置</span></div><div class="line">  prop.setProperty(<span class="string">"*.sink.servlet.path"</span>, <span class="string">"/metrics/json"</span>)</div><div class="line">  prop.setProperty(<span class="string">"master.sink.servlet.path"</span>, <span class="string">"/metrics/master/json"</span>)</div><div class="line">  prop.setProperty(<span class="string">"applications.sink.servlet.path"</span>, <span class="string">"/metrics/applications/json"</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="loadPropertiesFromFile"><a href="#loadPropertiesFromFile" class="headerlink" title="loadPropertiesFromFile"></a>loadPropertiesFromFile</h3><p>方法需要path参数（配置文件的名字-从Spark的配置项spark.metrics.conf中读取），如果给定的path存在，则从这个文件中加载，如果path不存在，则从classPath目录中加载默认配置文件metrics.properties。</p>
+<h2 id="MetricsSystem"><a href="#MetricsSystem" class="headerlink" title="MetricsSystem"></a>MetricsSystem</h2><p>MetricsSystem类是对外提供的一个对象，从调用来看，在Master、SparkEnv和Work中都有创建MetricsSystem的代码。其中Master和Work是对于standalone模式下创建的。SparkEnv中是对driver和executor进行创建的。生成MetricsSystem的时候是需要指定instance参数的。因此从创建MetricsSystem的代码我们也能够知道MetricsSystem都支持哪些instance。<br>TODO 对于applications的创建，有时间再找<br>这里，我们先抛开对MetricsSystem的操作，我们先看看MetricsSystem的实现</p>
+<h3 id="创建MetricsSystem"><a href="#创建MetricsSystem" class="headerlink" title="创建MetricsSystem"></a>创建MetricsSystem</h3><p>从所有的生成MetricsSyste的代码来看，MetricsSystem都是通过如下代码创建的：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">val</span> metricsSystem = <span class="type">MetricsSystem</span>.createMetricsSystem(<span class="string">"worker"</span>, conf, securityMgr) <span class="comment">// 这里创建的一个work实例的MetricsSystem</span></div></pre></td></tr></table></figure>
+<p>而对于createMetricsSystem方法的定义也很多简单，就是new了一个MetricsSystem对象：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">createMetricsSystem</span></span>(</div><div class="line">    instance: <span class="type">String</span>, conf: <span class="type">SparkConf</span>, securityMgr: <span class="type">SecurityManager</span>): <span class="type">MetricsSystem</span> = &#123;</div><div class="line">  <span class="keyword">new</span> <span class="type">MetricsSystem</span>(instance, conf, securityMgr)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="注册Source"><a href="#注册Source" class="headerlink" title="注册Source"></a>注册Source</h3><p>创建了MetricsSystem，接下来就需要向它注册source。我们以Worker中MetricsSystem的使用来作为参考。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">metricsSystem.registerSource(workerSource)</div><div class="line">metricsSystem.start()</div><div class="line">metricsSystem.getServletHandlers.foreach(webUi.attachHandler)</div></pre></td></tr></table></figure></p>
+<p>因此，我们来看一下MetricsSystem的registerSource方法<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">registerSource</span></span>(source: <span class="type">Source</span>) &#123;</div><div class="line">  sources += source</div><div class="line">  <span class="keyword">try</span> &#123;</div><div class="line">    <span class="keyword">val</span> regName = buildRegistryName(source)</div><div class="line">    registry.register(regName, source.metricRegistry)</div><div class="line">  &#125; <span class="keyword">catch</span> &#123;</div><div class="line">    <span class="keyword">case</span> e: <span class="type">IllegalArgumentException</span> =&gt; logInfo(<span class="string">"Metrics already registered"</span>, e)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>将source添加Source列表中，然后调用buildRegistryName方法生成source注册使用的名字，然后进行注册，那么需要看一下buildRegistryName方法<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[spark] <span class="function"><span class="keyword">def</span> <span class="title">buildRegistryName</span></span>(source: <span class="type">Source</span>): <span class="type">String</span> = &#123;</div><div class="line">  <span class="keyword">val</span> metricsNamespace = conf.get(<span class="type">METRICS_NAMESPACE</span>).orElse(conf.getOption(<span class="string">"spark.app.id"</span>))</div><div class="line"></div><div class="line">  <span class="keyword">val</span> executorId = conf.getOption(<span class="string">"spark.executor.id"</span>)</div><div class="line">  <span class="keyword">val</span> defaultName = <span class="type">MetricRegistry</span>.name(source.sourceName)</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (instance == <span class="string">"driver"</span> || instance == <span class="string">"executor"</span>) &#123;</div><div class="line">    <span class="keyword">if</span> (metricsNamespace.isDefined &amp;&amp; executorId.isDefined) &#123;</div><div class="line">      <span class="type">MetricRegistry</span>.name(metricsNamespace.get, executorId.get, source.sourceName)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      <span class="comment">// Only Driver and Executor set spark.app.id and spark.executor.id.</span></div><div class="line">      <span class="comment">// Other instance types, e.g. Master and Worker, are not related to a specific application.</span></div><div class="line">      <span class="keyword">if</span> (metricsNamespace.isEmpty) &#123;</div><div class="line">        logWarning(<span class="string">s"Using default name <span class="subst">$defaultName</span> for source because neither "</span> +</div><div class="line">          <span class="string">s"<span class="subst">$&#123;METRICS_NAMESPACE.key&#125;</span> nor spark.app.id is set."</span>)</div><div class="line">      &#125;</div><div class="line">      <span class="keyword">if</span> (executorId.isEmpty) &#123;</div><div class="line">        logWarning(<span class="string">s"Using default name <span class="subst">$defaultName</span> for source because spark.executor.id is "</span> +</div><div class="line">          <span class="string">s"not set."</span>)</div><div class="line">      &#125;</div><div class="line">      defaultName</div><div class="line">    &#125;</div><div class="line">  &#125; <span class="keyword">else</span> &#123; defaultName &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>buildRegistryName方法，就是根据Source，构建一个向MetricRegistry注册的名字。这个名字是唯一的。其基本思路就是根据namespace（从spark.metrics.namespace或spark.app.id中取）和executorId（从spark.executor.id中取）构建一个注册用的名字，但是需要注意的是，是否使用这两个值作为构建的条件，要依赖实例是否是drvier或executor，否则一律使用source的名字生成。<br>注册好Source，调用MetricsSystem的start方法启动MetricsSystem。</p>
+<h3 id="启动start方法"><a href="#启动start方法" class="headerlink" title="启动start方法"></a>启动start方法</h3><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">start</span></span>() &#123;</div><div class="line">  require(!running, <span class="string">"Attempting to start a MetricsSystem that is already running"</span>)</div><div class="line">  running = <span class="literal">true</span></div><div class="line">  <span class="type">StaticSources</span>.allSources.foreach(registerSource)</div><div class="line">  registerSources()</div><div class="line">  registerSinks()</div><div class="line">  sinks.foreach(_.start)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>start方法代码很少，但是包含的东西却挺多。注册静态Source，所谓的静态Source，其实就是不依赖用户配置的Source。接着调用registerSources方法，这个注册是读取配置的文件中当前实例（instance）的配置，对Source的class进行实例化并注册。然后是调用registerSinks方法来注册Sink，也是将配置文件中当前实例（instance）的配置进行操作，对Sink的class进行实例化，并加入到Sink集合中等待调用（调用sink的report方法）；最后启动所有的sink。</p>
+<h2 id="Source"><a href="#Source" class="headerlink" title="Source"></a>Source</h2><p>Source就是Metrics的数据源，我们对Source中的统计数据进行操作，Metrics系统会从已经注册的Source中获取这些数据，然后由Sink报告出去。下面我们以WorkSource来进行分析，看看如何自定义一个Source。</p>
+<h3 id="WorkSource"><a href="#WorkSource" class="headerlink" title="WorkSource"></a>WorkSource</h3><p>先看一下WorkSource的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[worker] <span class="class"><span class="keyword">class</span> <span class="title">WorkerSource</span>(<span class="params">val worker: <span class="type">Worker</span></span>) <span class="keyword">extends</span> <span class="title">Source</span> </span>&#123;</div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> sourceName = <span class="string">"worker"</span></div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> metricRegistry = <span class="keyword">new</span> <span class="type">MetricRegistry</span>()</div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"executors"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = worker.executors.size</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  <span class="comment">// Gauge for cores used of this worker</span></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"coresUsed"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = worker.coresUsed</div><div class="line">  &#125;)</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>WorkSource中metric的类型只涉及到了Gauge，也就是这些值不需要用户参与。对于需要用户参与的我们可以参考StaticSources，稍后也会看到。WorkSource的逻辑很简单，就是注册了一些metric，并制定了这些metric如何取值。</p>
+<h3 id="StaticSources-HiveCatalogMetrics"><a href="#StaticSources-HiveCatalogMetrics" class="headerlink" title="StaticSources$HiveCatalogMetrics"></a>StaticSources$HiveCatalogMetrics</h3><p>接下来看一下StaticSources$HiveCatalogMetrics的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">object</span> <span class="title">HiveCatalogMetrics</span> <span class="keyword">extends</span> <span class="title">Source</span> </span>&#123;</div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> sourceName: <span class="type">String</span> = <span class="string">"HiveExternalCatalog"</span></div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> metricRegistry: <span class="type">MetricRegistry</span> = <span class="keyword">new</span> <span class="type">MetricRegistry</span>()</div><div class="line"></div><div class="line">  <span class="keyword">val</span> <span class="type">METRIC_PARTITIONS_FETCHED</span> = metricRegistry.counter(<span class="type">MetricRegistry</span>.name(<span class="string">"partitionsFetched"</span>))</div><div class="line">  <span class="keyword">val</span> <span class="type">METRIC_FILES_DISCOVERED</span> = metricRegistry.counter(<span class="type">MetricRegistry</span>.name(<span class="string">"filesDiscovered"</span>))</div><div class="line">  ...</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">reset</span></span>(): <span class="type">Unit</span> = &#123;</div><div class="line">    <span class="type">METRIC_PARTITIONS_FETCHED</span>.dec(<span class="type">METRIC_PARTITIONS_FETCHED</span>.getCount())</div><div class="line">    <span class="type">METRIC_FILES_DISCOVERED</span>.dec(<span class="type">METRIC_FILES_DISCOVERED</span>.getCount())</div><div class="line">    ...</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="comment">// clients can use these to avoid classloader issues with the codahale classes</span></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">incrementFetchedPartitions</span></span>(n: <span class="type">Int</span>): <span class="type">Unit</span> = <span class="type">METRIC_PARTITIONS_FETCHED</span>.inc(n)</div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">incrementFilesDiscovered</span></span>(n: <span class="type">Int</span>): <span class="type">Unit</span> = <span class="type">METRIC_FILES_DISCOVERED</span>.inc(n)</div><div class="line">  ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个类中metric的类型为Counter，reset方法、incrementFetchedPartitions方法和incrementFilesDiscovered方法就是对这些Counter进行操作。</p>
+<h2 id="Sink"><a href="#Sink" class="headerlink" title="Sink"></a>Sink</h2><p>Spark中已经内置了多种Sink，有ConsoleSink、CsvSink、JmxSink、MetricsServlet等，基本可以满足我们的需求了。接下来我们分析一两个常用Sink的实现。</p>
+<h3 id="JmxSink"><a href="#JmxSink" class="headerlink" title="JmxSink"></a>JmxSink</h3><p>JmxSink的定义如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">JmxSink</span>(<span class="params">val property: <span class="type">Properties</span>, val registry: <span class="type">MetricRegistry</span>,</span></span></div><div class="line">    securityMgr: <span class="type">SecurityManager</span>) <span class="keyword">extends</span> <span class="title">Sink</span> &#123;</div><div class="line">  <span class="keyword">val</span> reporter: <span class="type">JmxReporter</span> = <span class="type">JmxReporter</span>.forRegistry(registry).build()</div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">start</span></span>() &#123;</div><div class="line">    reporter.start()</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">stop</span></span>() &#123;</div><div class="line">    reporter.stop()</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">report</span></span>() &#123; &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>JmxSink继承Sink特征，因此它需要实现start()、stop()和report()方法。另外在JmxSink定义中创建了一个JmxReporter对象，创建reporter对象时需要MetricRegistry对象，这就将Source和Sink中的Report联系了起来（metric注册到Source的MetricRegistry，source注册到MetricsSystem的MetricRegistry，在生成Sink中Reporter的时候会使用MetrcsSystem中的MetricRegistry）。那么Sink是如何报告自己收集的metrics呢？我理解的是，内部的Reporter会自己报告，也可以调用Sink的report方法，report方法再调用reporter的report方法。（—-TODO，Reporter的汇报，会稍后补充）</p>
+<h3 id="ConsoleSink"><a href="#ConsoleSink" class="headerlink" title="ConsoleSink"></a>ConsoleSink</h3><p>ConsoleSink的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[spark] <span class="class"><span class="keyword">class</span> <span class="title">ConsoleSink</span>(<span class="params">val property: <span class="type">Properties</span>, val registry: <span class="type">MetricRegistry</span>,</span></span></div><div class="line">    securityMgr: <span class="type">SecurityManager</span>) <span class="keyword">extends</span> <span class="title">Sink</span> &#123;</div><div class="line">  <span class="keyword">val</span> <span class="type">CONSOLE_DEFAULT_PERIOD</span> = <span class="number">10</span></div><div class="line">  <span class="keyword">val</span> <span class="type">CONSOLE_DEFAULT_UNIT</span> = <span class="string">"SECONDS"</span></div><div class="line"></div><div class="line">  <span class="keyword">val</span> <span class="type">CONSOLE_KEY_PERIOD</span> = <span class="string">"period"</span></div><div class="line">  <span class="keyword">val</span> <span class="type">CONSOLE_KEY_UNIT</span> = <span class="string">"unit"</span></div><div class="line"></div><div class="line">  <span class="keyword">val</span> pollPeriod = <span class="type">Option</span>(property.getProperty(<span class="type">CONSOLE_KEY_PERIOD</span>)) <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">Some</span>(s) =&gt; s.toInt</div><div class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="type">CONSOLE_DEFAULT_PERIOD</span></div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">val</span> pollUnit: <span class="type">TimeUnit</span> = <span class="type">Option</span>(property.getProperty(<span class="type">CONSOLE_KEY_UNIT</span>)) <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">Some</span>(s) =&gt; <span class="type">TimeUnit</span>.valueOf(s.toUpperCase(<span class="type">Locale</span>.<span class="type">ROOT</span>))</div><div class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt; <span class="type">TimeUnit</span>.valueOf(<span class="type">CONSOLE_DEFAULT_UNIT</span>)</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="type">MetricsSystem</span>.checkMinimalPollingPeriod(pollUnit, pollPeriod)</div><div class="line"></div><div class="line">  <span class="keyword">val</span> reporter: <span class="type">ConsoleReporter</span> = <span class="type">ConsoleReporter</span>.forRegistry(registry)</div><div class="line">      .convertDurationsTo(<span class="type">TimeUnit</span>.<span class="type">MILLISECONDS</span>)</div><div class="line">      .convertRatesTo(<span class="type">TimeUnit</span>.<span class="type">SECONDS</span>)</div><div class="line">      .build()</div><div class="line"></div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">start</span></span>() &#123;</div><div class="line">    reporter.start(pollPeriod, pollUnit)</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">stop</span></span>() &#123;</div><div class="line">    reporter.stop()</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">report</span></span>() &#123;</div><div class="line">    reporter.report()</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>ConsoleSink中也实现了三个必须的方法，除此之外还定义了一个ConsoleReporter。而且它实现的三个方法其实也是对ConsoleReporter进行操作的。查看其他的Sink，也能够发现，每个Sink都有一个Reporter（除了MetricsServlet外，它的逻辑与普通Sink不同）。</p>
+<h2 id="Source和Sink的操作"><a href="#Source和Sink的操作" class="headerlink" title="Source和Sink的操作"></a>Source和Sink的操作</h2><h3 id="Source的操作"><a href="#Source的操作" class="headerlink" title="Source的操作"></a>Source的操作</h3><p>对于Source的操作，我们就参考StaticSources$HiveCatalogMetrics中相关metric的操作吧。<br>如下是HiveClientImpl的一个方法，他就在操作Source的METRIC_PARTITIONS_FETCHED。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getPartitions</span></span>(</div><div class="line">      table: <span class="type">CatalogTable</span>,</div><div class="line">      spec: <span class="type">Option</span>[<span class="type">TablePartitionSpec</span>]): <span class="type">Seq</span>[<span class="type">CatalogTablePartition</span>] = withHiveState &#123;</div><div class="line">    <span class="keyword">val</span> hiveTable = toHiveTable(table, <span class="type">Some</span>(userName))</div><div class="line">    <span class="keyword">val</span> parts = spec <span class="keyword">match</span> &#123;</div><div class="line">      <span class="keyword">case</span> <span class="type">None</span> =&gt; shim.getAllPartitions(client, hiveTable).map(fromHivePartition)</div><div class="line">      <span class="keyword">case</span> <span class="type">Some</span>(s) =&gt;</div><div class="line">        assert(s.values.forall(_.nonEmpty), <span class="string">s"partition spec '<span class="subst">$s</span>' is invalid"</span>)</div><div class="line">        client.getPartitions(hiveTable, s.asJava).asScala.map(fromHivePartition)</div><div class="line">    &#125;</div><div class="line">    <span class="type">HiveCatalogMetrics</span>.incrementFetchedPartitions(parts.length)</div><div class="line">    parts</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<h3 id="Sink的操作"><a href="#Sink的操作" class="headerlink" title="Sink的操作"></a>Sink的操作</h3><p>对于Sink的调用，是在MetricsSystem的report方法中触发的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">report</span></span>() &#123;</div><div class="line">  sinks.foreach(_.report())</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>对于MetricsSystem中report方法的调用，会在各个组建停止的时候调用，进行强制汇报。</p>
+<h2 id="Source、Sink、MetricsSystem以及MetricsConfig之间的关系"><a href="#Source、Sink、MetricsSystem以及MetricsConfig之间的关系" class="headerlink" title="Source、Sink、MetricsSystem以及MetricsConfig之间的关系"></a>Source、Sink、MetricsSystem以及MetricsConfig之间的关系</h2><p><img src="/attach/5c52afb97da92.png" alt="image.png"></p>
+<h2 id="自定义Source"><a href="#自定义Source" class="headerlink" title="自定义Source"></a>自定义Source</h2><p>要定义自己的Source对象，需要实现org.apache.spark.metrics.source.Source特征，并实现sourceName(String类型)和metricRegistry(MetricRegistry类型)方法。之后定义自己的metric类型即可，可用的metric类型已经在上面的第一部分进行介绍。如下是DAGScheduulerSource的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[scheduler] <span class="class"><span class="keyword">class</span> <span class="title">DAGSchedulerSource</span>(<span class="params">val dagScheduler: <span class="type">DAGScheduler</span></span>)</span></div><div class="line">    <span class="keyword">extends</span> <span class="type">Source</span> &#123;</div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> metricRegistry = <span class="keyword">new</span> <span class="type">MetricRegistry</span>()</div><div class="line">  <span class="keyword">override</span> <span class="keyword">val</span> sourceName = <span class="string">"DAGScheduler"</span></div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"stage"</span>, <span class="string">"failedStages"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = dagScheduler.failedStages.size</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"stage"</span>, <span class="string">"runningStages"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = dagScheduler.runningStages.size</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"stage"</span>, <span class="string">"waitingStages"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = dagScheduler.waitingStages.size</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"job"</span>, <span class="string">"allJobs"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = dagScheduler.numTotalJobs</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  metricRegistry.register(<span class="type">MetricRegistry</span>.name(<span class="string">"job"</span>, <span class="string">"activeJobs"</span>), <span class="keyword">new</span> <span class="type">Gauge</span>[<span class="type">Int</span>] &#123;</div><div class="line">    <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">getValue</span></span>: <span class="type">Int</span> = dagScheduler.activeJobs.size</div><div class="line">  &#125;)</div><div class="line"></div><div class="line">  <span class="comment">/** Timer that tracks the time to process messages in the DAGScheduler's event loop */</span></div><div class="line">  <span class="keyword">val</span> messageProcessingTimer: <span class="type">Timer</span> =</div><div class="line">    metricRegistry.timer(<span class="type">MetricRegistry</span>.name(<span class="string">"messageProcessingTime"</span>))</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在这个类的定义中，实现了Source特征，并重写了metricRegistry和sourceName方法。接下来注册了自己要统计的metric，默认是以servlet中展示这些信息，我们可以通过www.xxxxx:8088/proxy/application_id/metrics/json来查看对应的输出：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">...</div><div class="line">&quot;application_1530945921317_6019078.driver.DAGScheduler.job.activeJobs&quot;:&#123;&quot;value&quot;:2&#125;,&quot;application_1530945921317_6019078.driver.DAGScheduler.job.allJobs&quot;:&#123;&quot;value&quot;:77&#125;,&quot;application_1530945921317_6019078.driver.DAGScheduler.stage.failedStages&quot;:&#123;&quot;value&quot;:0&#125;,&quot;application_1530945921317_6019078.driver.DAGScheduler.stage.runningStages&quot;:&#123;&quot;value&quot;:2&#125;,&quot;application_1530945921317_6019078.driver.DAGScheduler.stage.waitingStages&quot;:&#123;&quot;value&quot;:0&#125;,</div><div class="line">...</div></pre></td></tr></table></figure></p>
+<p>自定义的类截图<br><img src="/attach/5c613f9fdbb6f.png" alt="image.png"><br>该类会在DAGScheduler中进行实例化：<br><img src="/attach/5c613fccd71c9.png" alt="image.png"><br>然后在SparkContext中进行注册：<br><img src="/attach/5c613fea40b45.png" alt="image.png"><br>以下是自定义的source注册后，在servlet中的显示<br><img src="/attach/5c613f66f016d.png" alt="image.png"></p>
+<h3 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h3><p>如果在配置文件中配置自己的source呢？关键是如何定义。。。需要看一下</p>
+<p>对于配置文件中metrics的配置格式如下：</p>
+<blockquote>
+<p>[instance].[sink|source].[name].[options] = xxxx<br>[instance]可以是master、worker、executor、driver或application，也就是明确了实例的类型。如果让所有实例都可以使用，可以使用“*”代替。<br>[sink|source]指定配置项是sink的信息还是source的信息，只能二选一。<br>[name]指定sink或source的名字。<br>[options]指定sink或source的相关属性，如class。</p>
+</blockquote>
+<p>注意点：如果是需要进行配置的自定义source，有两点需要注意。</p>
+<blockquote>
+<p>配置中必须通过class属性指定类名，程序会根据类名进行反射。<br>配置的自定义Source必须有不含构造参数的构造方法，否则无法实例化。</p>
+</blockquote>
+<h2 id="配置自定义Source"><a href="#配置自定义Source" class="headerlink" title="配置自定义Source"></a>配置自定义Source</h2><p>编辑 metrics.properties配置文件<br>增加如下配置即可<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">driver.source.rwmTest.class=org.apache.spark.metrics.source.RWMTestSource</div></pre></td></tr></table></figure></p>
+<p>UI中的显示信息<br><img src="/attach/5c626eb6d83e9.png" alt="image.png"></p>
+<h2 id="配置项"><a href="#配置项" class="headerlink" title="配置项"></a>配置项</h2><h3 id="Spark-config"><a href="#Spark-config" class="headerlink" title="Spark config"></a>Spark config</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">配置项</th>
+<th style="text-align:left">默认值</th>
+<th style="text-align:left">意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">spark.metrics.conf</td>
+<td style="text-align:left">metrics.properties</td>
+<td style="text-align:left">Metrics系统的配置文件</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.metrics.conf.xxx</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">将xxx作为属性，添加到属性中，可以将其理解为 metrics.properties中配置的一种转移，会和metrics.properties中的配置项放在一起，而且此配置优先级较高</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.metrics.namespace</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">metrics的命名空间，参与构建Metrics source注册名的生成</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.app.id</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">如果spark.metrics.namespace没有指定值，则使用该值作为namespace，参与构建Metrics source注册名的生成</td>
+</tr>
+<tr>
+<td style="text-align:left">spark.executor.id</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">executor的id，参数构建Metrics source注册名的生成</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Metrics-config"><a href="#Metrics-config" class="headerlink" title="Metrics config"></a>Metrics config</h3><table>
+<thead>
+<tr>
+<th style="text-align:left">配置项</th>
+<th style="text-align:left">默认值</th>
+<th style="text-align:left">意义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">source.(.+).(.+)</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">source的配置信息，就是以source.xxx.xxx形式的，只能有两个dot(.)</td>
+</tr>
+<tr>
+<td style="text-align:left">sink.(.+).(.+)</td>
+<td style="text-align:left">无</td>
+<td style="text-align:left">sink的配置信息，就是以sink.xxx.xxx形式的，只能有两个dot(.)</td>
+</tr>
+</tbody>
+</table>
+<p>对于source和sink的配置，参考：$SPARK_HOME/conf/metrics.properties.template</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/spark/" rel="tag">#spark</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2019/01/23/yarn-restApi/" rel="next" title="Yarn RestApi">
+                <i class="fa fa-chevron-left"></i> Yarn RestApi
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">52</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Metrics"><span class="nav-number">1.</span> <span class="nav-text">Metrics</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Maven依赖"><span class="nav-number">1.1.</span> <span class="nav-text">Maven依赖</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metric的基本使用"><span class="nav-number">1.2.</span> <span class="nav-text">Metric的基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metrics类型"><span class="nav-number">1.3.</span> <span class="nav-text">Metrics类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Gauges"><span class="nav-number">1.3.1.</span> <span class="nav-text">Gauges</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Counters"><span class="nav-number">1.3.2.</span> <span class="nav-text">Counters</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Meters支持的方法"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">Meters支持的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成方法"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">生成方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Meters"><span class="nav-number">1.3.3.</span> <span class="nav-text">Meters</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Meters可用的方法"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">Meters可用的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成方法-1"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">生成方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Histograms"><span class="nav-number">1.3.4.</span> <span class="nav-text">Histograms</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Histograms可用的方法"><span class="nav-number">1.3.4.1.</span> <span class="nav-text">Histograms可用的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成方法-2"><span class="nav-number">1.3.4.2.</span> <span class="nav-text">生成方法</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Timers"><span class="nav-number">1.3.5.</span> <span class="nav-text">Timers</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Timer可用的方法"><span class="nav-number">1.3.5.1.</span> <span class="nav-text">Timer可用的方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#生成方法-3"><span class="nav-number">1.3.5.2.</span> <span class="nav-text">生成方法</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Metrics的输出"><span class="nav-number">1.4.</span> <span class="nav-text">Metrics的输出</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#通过JMX"><span class="nav-number">1.4.1.</span> <span class="nav-text">通过JMX</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他方式"><span class="nav-number">1.4.2.</span> <span class="nav-text">其他方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Spark中Metrics的配置"><span class="nav-number">2.</span> <span class="nav-text">Spark中Metrics的配置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#实例"><span class="nav-number">2.1.</span> <span class="nav-text">实例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sinks"><span class="nav-number">2.2.</span> <span class="nav-text">Sinks</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#metrics-properties"><span class="nav-number">2.3.</span> <span class="nav-text">metrics.properties</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从Spark源码看Metrics的使用"><span class="nav-number">3.</span> <span class="nav-text">从Spark源码看Metrics的使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#MetricsConfig"><span class="nav-number">3.1.</span> <span class="nav-text">MetricsConfig</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#首先看看MetricsConfig的一些属性"><span class="nav-number">3.1.1.</span> <span class="nav-text">首先看看MetricsConfig的一些属性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#initialize方法"><span class="nav-number">3.1.2.</span> <span class="nav-text">initialize方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#setDefaultProperties"><span class="nav-number">3.1.3.</span> <span class="nav-text">setDefaultProperties</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#loadPropertiesFromFile"><span class="nav-number">3.1.4.</span> <span class="nav-text">loadPropertiesFromFile</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MetricsSystem"><span class="nav-number">3.2.</span> <span class="nav-text">MetricsSystem</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建MetricsSystem"><span class="nav-number">3.2.1.</span> <span class="nav-text">创建MetricsSystem</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#注册Source"><span class="nav-number">3.2.2.</span> <span class="nav-text">注册Source</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#启动start方法"><span class="nav-number">3.2.3.</span> <span class="nav-text">启动start方法</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Source"><span class="nav-number">3.3.</span> <span class="nav-text">Source</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WorkSource"><span class="nav-number">3.3.1.</span> <span class="nav-text">WorkSource</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#StaticSources-HiveCatalogMetrics"><span class="nav-number">3.3.2.</span> <span class="nav-text">StaticSources$HiveCatalogMetrics</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Sink"><span class="nav-number">3.4.</span> <span class="nav-text">Sink</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#JmxSink"><span class="nav-number">3.4.1.</span> <span class="nav-text">JmxSink</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ConsoleSink"><span class="nav-number">3.4.2.</span> <span class="nav-text">ConsoleSink</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Source和Sink的操作"><span class="nav-number">3.5.</span> <span class="nav-text">Source和Sink的操作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Source的操作"><span class="nav-number">3.5.1.</span> <span class="nav-text">Source的操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Sink的操作"><span class="nav-number">3.5.2.</span> <span class="nav-text">Sink的操作</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Source、Sink、MetricsSystem以及MetricsConfig之间的关系"><span class="nav-number">3.6.</span> <span class="nav-text">Source、Sink、MetricsSystem以及MetricsConfig之间的关系</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#自定义Source"><span class="nav-number">3.7.</span> <span class="nav-text">自定义Source</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#问题"><span class="nav-number">3.7.1.</span> <span class="nav-text">问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置自定义Source"><span class="nav-number">3.8.</span> <span class="nav-text">配置自定义Source</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#配置项"><span class="nav-number">3.9.</span> <span class="nav-text">配置项</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Spark-config"><span class="nav-number">3.9.1.</span> <span class="nav-text">Spark config</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Metrics-config"><span class="nav-number">3.9.2.</span> <span class="nav-text">Metrics config</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

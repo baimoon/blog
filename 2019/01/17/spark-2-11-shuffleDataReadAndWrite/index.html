@@ -92,7 +92,6 @@
 <meta property="og:site_name" content="Baimoon's Note">
 <meta property="og:description" content="本文记录对Spark Shuffle过程中对数据读写的梳理。本文将先从数据的读入作为切入点，也就是从ShuffleReader的源码作为切入，然后在逐步的展开。因此本文将从读取和写入两个角度来进行分析，最后在用流程图的方式将读取和写入整合起来。
 数据读取ShuffleReader的实现类ShuffleRead是定义在org.apache.spark.shuffle包中的一个接口（理解为接口吧，其实">
-<meta property="og:image" content="http://baimoon.github.io/attach/5c3d9486c3305.png">
 <meta property="og:image" content="http://baimoon.github.io/attach/5c3f1cf6f0fa4.png">
 <meta property="og:image" content="http://baimoon.github.io/attach/5c3db21e60597.png">
 <meta property="og:image" content="http://baimoon.github.io/attach/5c3db673d673f.png">
@@ -106,12 +105,12 @@
 <meta property="og:image" content="http://baimoon.github.io/attach/5c40545e9e2c3.png">
 <meta property="og:image" content="http://baimoon.github.io/attach/5c3f269fe5441.png">
 <meta property="og:image" content="http://baimoon.github.io/attach/5c3d87a7dd187.png">
-<meta property="og:updated_time" content="2019-01-17T11:12:47.000Z">
+<meta property="og:updated_time" content="2019-01-23T02:39:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Spark 2.11 shuffle data read and write">
 <meta name="twitter:description" content="本文记录对Spark Shuffle过程中对数据读写的梳理。本文将先从数据的读入作为切入点，也就是从ShuffleReader的源码作为切入，然后在逐步的展开。因此本文将从读取和写入两个角度来进行分析，最后在用流程图的方式将读取和写入整合起来。
 数据读取ShuffleReader的实现类ShuffleRead是定义在org.apache.spark.shuffle包中的一个接口（理解为接口吧，其实">
-<meta name="twitter:image" content="http://baimoon.github.io/attach/5c3d9486c3305.png">
+<meta name="twitter:image" content="http://baimoon.github.io/attach/5c3f1cf6f0fa4.png">
 
 
 
@@ -325,7 +324,7 @@
       
         <p>本文记录对Spark Shuffle过程中对数据读写的梳理。本文将先从数据的读入作为切入点，也就是从ShuffleReader的源码作为切入，然后在逐步的展开。因此本文将从读取和写入两个角度来进行分析，最后在用流程图的方式将读取和写入整合起来。</p>
 <h1 id="数据读取"><a href="#数据读取" class="headerlink" title="数据读取"></a>数据读取</h1><h2 id="ShuffleReader的实现类"><a href="#ShuffleReader的实现类" class="headerlink" title="ShuffleReader的实现类"></a>ShuffleReader的实现类</h2><p>ShuffleRead是定义在org.apache.spark.shuffle包中的一个接口（理解为接口吧，其实是trait），它只定义了一个方法read()，并且这个方法返回一个Iterator（迭代器）。对于ShuffleReader的实现类，只有一个类 BlockStoreShuffleReader，与ShuffleReader定义在同一个包中。</p>
-<h3 id="ShuffleReader的read-方法的实现"><a href="#ShuffleReader的read-方法的实现" class="headerlink" title="ShuffleReader的read()方法的实现"></a>ShuffleReader的read()方法的实现</h3><p>read()基本的流程图参考如下如下<br><img src="/attach/5c3d9486c3305.png" alt="image.png"></p>
+<h3 id="ShuffleReader的read-方法的实现"><a href="#ShuffleReader的read-方法的实现" class="headerlink" title="ShuffleReader的read()方法的实现"></a>ShuffleReader的read()方法的实现</h3><p>read()基本的流程图参考如下如下<br><img src="" alt="image.png"></p>
 <p>在read()方法中，首先生成一个ShuffleBlockFetcherIterator对象。该对象的详细介绍会在后面进行。<br>生成的ShuffleBlockFetcherIterator本身就是一个Iterator，但是需要注意这个Iterator中包含的数据都是进行了加密和压缩的，我们在之后分析ShuffleBlockFetcherIterator的时候会了解到。<br>接着，我们会得到序列化器的实例，将ShuffleBlockFectherIterator中的数据进行解析。<br>如果Shuffle的依赖中定义了聚合器，则需要进行一次聚合操作（将上面的迭代器中的数据再次处理）：如果是map端聚合，则使用聚合器的 combineCombinersByKey来处理，否则使用combineValuesByKey来处理。<br>最后，创建一个ExternalSorter并将上一步的数据全部插入到这个sorter中，并使用这个ExternalSorter创建一个CompletionIterator返回。<br>大家在这里会看到聚合器和ExternalSorter，这就实现了Shuffle的基本操作。</p>
 <h2 id="ShuffleBlockFetcherIterator的实现与流程"><a href="#ShuffleBlockFetcherIterator的实现与流程" class="headerlink" title="ShuffleBlockFetcherIterator的实现与流程"></a>ShuffleBlockFetcherIterator的实现与流程</h2><p>生成这个对象需要一系列参数：</p>
 <table>
@@ -572,7 +571,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">50</span>
+              <span class="site-state-item-count">52</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -580,7 +579,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">19</span>
+                <span class="site-state-item-count">20</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -589,7 +588,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">23</span>
+                <span class="site-state-item-count">24</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
