@@ -92,21 +92,21 @@ Thrift Server的本地启动– 感谢韦大侠帮助直接运行 HiveThriftServ
 <meta property="og:site_name" content="Baimoon's Note">
 <meta property="og:description" content="本文记录Thrift server的学习，先从一个服务异常为切入点：
 Thrift Server的本地启动– 感谢韦大侠帮助直接运行 HiveThriftServer2是无法正常启动的，首先需要配置启动参数：在 Program arguments 中添加：-hiveconf spark.master=local[2] -hiveconf spark.driver.bindAddress=127.0">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c1771760f7a5.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c1771cf3f9a6.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c177201e0a2a.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c177250538bb.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c1774288b08d.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c1778027340a.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c18ae94ed28f.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c18aee6c6ac3.png">
-<meta property="og:image" content="https://moji.wemomo.com/attach/pimg_5c18b128e9a91.png">
-<meta property="og:updated_time" content="2019-01-18T07:35:27.000Z">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c1771760f7a5.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c1771cf3f9a6.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c177201e0a2a.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c177250538bb.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c1774288b08d.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c1778027340a.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c18ae94ed28f.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c18aee6c6ac3.png">
+<meta property="og:image" content="http://baimoon.github.io/attach/pimg_5c18b128e9a91.png">
+<meta property="og:updated_time" content="2019-02-14T02:43:36.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="spark-2.11-thriftServer">
 <meta name="twitter:description" content="本文记录Thrift server的学习，先从一个服务异常为切入点：
 Thrift Server的本地启动– 感谢韦大侠帮助直接运行 HiveThriftServer2是无法正常启动的，首先需要配置启动参数：在 Program arguments 中添加：-hiveconf spark.master=local[2] -hiveconf spark.driver.bindAddress=127.0">
-<meta name="twitter:image" content="https://moji.wemomo.com/attach/pimg_5c1771760f7a5.png">
+<meta name="twitter:image" content="http://baimoon.github.io/attach/pimg_5c1771760f7a5.png">
 
 
 
@@ -300,13 +300,13 @@ Thrift Server的本地启动– 感谢韦大侠帮助直接运行 HiveThriftServ
 
       
         <p>本文记录Thrift server的学习，先从一个服务异常为切入点：</p>
-<h1 id="Thrift-Server的本地启动"><a href="#Thrift-Server的本地启动" class="headerlink" title="Thrift Server的本地启动"></a>Thrift Server的本地启动</h1><p>– 感谢韦大侠帮助<br>直接运行 HiveThriftServer2是无法正常启动的，首先需要配置启动参数：<br><img src="https://moji.wemomo.com/attach/pimg_5c1771760f7a5.png" alt="pimg_5c1771760f7a5.png"><br>在 Program arguments 中添加：-hiveconf spark.master=local[2] -hiveconf spark.driver.bindAddress=127.0.0.1<br>在Working directory中添加：/Users/renweiming/spark/spark-2.x<br>这样启动的话还是会抛出异常信息：<br><img src="https://moji.wemomo.com/attach/pimg_5c1771cf3f9a6.png" alt="pimg_5c1771cf3f9a6.png"><br>解决缺少类的方法是 File -&gt; Project Structure…<br><img src="https://moji.wemomo.com/attach/pimg_5c177201e0a2a.png" alt="pimg_5c177201e0a2a.png"><br>打开项目结构对话框<br><img src="https://moji.wemomo.com/attach/pimg_5c177250538bb.png" alt="pimg_5c177250538bb.png"><br>点击左下角的“➕”来增加Jar。一个小建议，如果你的Spark项目已经构建过了，那么其实Spark所需的jar都已经存在于本地的maven仓库里了，直接去仓库中，将对应的jar添加即可，就不再去下载jar包了。<br>常见的一些所需jar包：<br>| 异常 | 所需jar | 说明 |<br>| ———— | ————- | —————- |<br>| java.lang.ClassNotFoundException: com.google.common.cache.CacheLoader | com.google.guava | 该问题，一般是因为Scope设置的是Provided，修改为Compile即可，见表格下的截图 |<br>| 我擦，一下子启动起来了，以前配置过，以后遇到再补充吧，不给表现机会。。| …| …|<br><img src="https://moji.wemomo.com/attach/pimg_5c1774288b08d.png" alt="pimg_5c1774288b08d.png"></p>
+<h1 id="Thrift-Server的本地启动"><a href="#Thrift-Server的本地启动" class="headerlink" title="Thrift Server的本地启动"></a>Thrift Server的本地启动</h1><p>– 感谢韦大侠帮助<br>直接运行 HiveThriftServer2是无法正常启动的，首先需要配置启动参数：<br><img src="/attach/pimg_5c1771760f7a5.png" alt="pimg_5c1771760f7a5.png"><br>在 Program arguments 中添加：-hiveconf spark.master=local[2] -hiveconf spark.driver.bindAddress=127.0.0.1<br>在Working directory中添加：/Users/renweiming/spark/spark-2.x<br>这样启动的话还是会抛出异常信息：<br><img src="/attach/pimg_5c1771cf3f9a6.png" alt="pimg_5c1771cf3f9a6.png"><br>解决缺少类的方法是 File -&gt; Project Structure…<br><img src="/attach/pimg_5c177201e0a2a.png" alt="pimg_5c177201e0a2a.png"><br>打开项目结构对话框<br><img src="/attach/pimg_5c177250538bb.png" alt="pimg_5c177250538bb.png"><br>点击左下角的“➕”来增加Jar。一个小建议，如果你的Spark项目已经构建过了，那么其实Spark所需的jar都已经存在于本地的maven仓库里了，直接去仓库中，将对应的jar添加即可，就不再去下载jar包了。<br>常见的一些所需jar包：<br>| 异常 | 所需jar | 说明 |<br>| ———— | ————- | —————- |<br>| java.lang.ClassNotFoundException: com.google.common.cache.CacheLoader | com.google.guava | 该问题，一般是因为Scope设置的是Provided，修改为Compile即可，见表格下的截图 |<br>| 我擦，一下子启动起来了，以前配置过，以后遇到再补充吧，不给表现机会。。| …| …|<br><img src="/attach/pimg_5c1774288b08d.png" alt="pimg_5c1774288b08d.png"></p>
 <h1 id="带着问题学习"><a href="#带着问题学习" class="headerlink" title="带着问题学习"></a>带着问题学习</h1><p>在Thrift server中，出现了如下异常：<br>18/12/17 15:01:00 INFO AbstractService: Service:HiveServer2 is stopped.<br>通过向上追日志，发现还有如下信息：<br>18/12/17 15:00:59 INFO HiveServer2: Shutting down HiveServer2<br>继续向上追：<br>18/12/17 15:00:59 ERROR SparkExecuteStatementOperation: Error running hive query as user : livepm<br>继续向上追：</p>
-<p>从代码结构来看：<br>HiveServer2继承CompositeService，继承AbstractService。上面的异常就是从 AbstractService的stop()方法中报出来的。而这个方法调用是从如下的流程中调用的：HiveServer2.stop() -&gt; CompositeService.stop() -&gt; AbstractService.stop()。<br>所以，从代码上来分析，肯定是什么地方调用了stop方法。<br>在HiveServer的init方法中，添加了程序关闭的钩子函数：<br><img src="https://moji.wemomo.com/attach/pimg_5c1778027340a.png" alt="pimg_5c1778027340a.png"><br>所以肯定是主动调用了stop方法，或者是异常导致HiveServer关闭了。</p>
+<p>从代码结构来看：<br>HiveServer2继承CompositeService，继承AbstractService。上面的异常就是从 AbstractService的stop()方法中报出来的。而这个方法调用是从如下的流程中调用的：HiveServer2.stop() -&gt; CompositeService.stop() -&gt; AbstractService.stop()。<br>所以，从代码上来分析，肯定是什么地方调用了stop方法。<br>在HiveServer的init方法中，添加了程序关闭的钩子函数：<br><img src="/attach/pimg_5c1778027340a.png" alt="pimg_5c1778027340a.png"><br>所以肯定是主动调用了stop方法，或者是异常导致HiveServer关闭了。</p>
 <p>开始看到什么记什么，稍后在整理<br>Thrift server的UI其实是在Spark的UI上增加了一个tab页，默认端口为4040，可以通过 spark.ui.port 进行自定义。Thrift Server的展示效果，是通过类 ThriftServerPage 和 ThriftServerSessionPage 来定义的。</p>
 <p>在初始化HiveThriftServer的时候，会根据Hive的配置项hive.server2.transport.mode的值（可选的有http和binary）来决定生成哪种 ThriftCLIService。如果是http则生成 ThriftHttpCLIService，否则生成 ThriftBinaryCLIService。</p>
 <h1 id="启动流程"><a href="#启动流程" class="headerlink" title="启动流程"></a>启动流程</h1><p>入口必然是HiveThriftServer2，HiveThriftServer2的main方法，在方法的开头就生成了一个HiveServer2对象，并调用它的parse方法得到一个ServerOptionsProcessorResponse对象，该对象中包含的ServerOptionsExecutor是 StartOptionExecutor对象。 – 但是这个服务好像就没有被调用，也就是说 HiveServer2并没有被调用。</p>
-<p>接下来<br>创建了一个HiveThriftServer2对象，并调用了这个服务的init和start。<br><img src="https://moji.wemomo.com/attach/pimg_5c18ae94ed28f.png" alt="pimg_5c18ae94ed28f.png"><br>然而start方法只是调用了父类的start，并将自身的启动标示started设置为true。父类（HiveServer2）的start方法，同样又调用了父类（CompositeService）的start方法。在这个类的方法中，它将serviceList中的service（通过addService添加的）分别调用start方法，然后又调用了父类（AbstractService）的start方法。在这个顶级抽象方法中，设置了服务的开始时间、检查了当前状态为INITED，并将服务的状态设置为 STARTED。<br>所以我们的关注点就落在了 serviceList中service是如何添加进去的。我们返回看一下HiveThriftServer2的init方法，就是上图中我们调用的init方法。<br><img src="https://moji.wemomo.com/attach/pimg_5c18aee6c6ac3.png" alt="pimg_5c18aee6c6ac3.png"><br>这样就添加了两个service，分别是 SparkSQLCLIService 和 ThriftCLIService。针对THriftCLIService，会根据 hive.server2.transport.mode 的配置项（binary 或 http）（我们公司使用的是默认值“binary”，也就是用的 ThriftBinaryCLIService ）具体生成ThriftHttpCLIService或ThriftBinaryCLIService。<br>继续将此方法看完，在init的最后执行的是 initCompositeService(hiveConf)，此方法是ReflectedCompositeService定义的一个方法，具体如下：<br><img src="https://moji.wemomo.com/attach/pimg_5c18b128e9a91.png" alt="pimg_5c18b128e9a91.png"><br>这个方法，要把它作为HiveThriftServer2的一部分来读，那么它的功能就是初始化父类ServiceList中的service：</p>
+<p>接下来<br>创建了一个HiveThriftServer2对象，并调用了这个服务的init和start。<br><img src="/attach/pimg_5c18ae94ed28f.png" alt="pimg_5c18ae94ed28f.png"><br>然而start方法只是调用了父类的start，并将自身的启动标示started设置为true。父类（HiveServer2）的start方法，同样又调用了父类（CompositeService）的start方法。在这个类的方法中，它将serviceList中的service（通过addService添加的）分别调用start方法，然后又调用了父类（AbstractService）的start方法。在这个顶级抽象方法中，设置了服务的开始时间、检查了当前状态为INITED，并将服务的状态设置为 STARTED。<br>所以我们的关注点就落在了 serviceList中service是如何添加进去的。我们返回看一下HiveThriftServer2的init方法，就是上图中我们调用的init方法。<br><img src="/attach/pimg_5c18aee6c6ac3.png" alt="pimg_5c18aee6c6ac3.png"><br>这样就添加了两个service，分别是 SparkSQLCLIService 和 ThriftCLIService。针对THriftCLIService，会根据 hive.server2.transport.mode 的配置项（binary 或 http）（我们公司使用的是默认值“binary”，也就是用的 ThriftBinaryCLIService ）具体生成ThriftHttpCLIService或ThriftBinaryCLIService。<br>继续将此方法看完，在init的最后执行的是 initCompositeService(hiveConf)，此方法是ReflectedCompositeService定义的一个方法，具体如下：<br><img src="/attach/pimg_5c18b128e9a91.png" alt="pimg_5c18b128e9a91.png"><br>这个方法，要把它作为HiveThriftServer2的一部分来读，那么它的功能就是初始化父类ServiceList中的service：</p>
 <blockquote>
 <p>得到父类（CompositeService）的serviceList，并对里面的service进行初始化（执行init方法）<br>设置hiveConf信息，通过反射设置。<br>检查服务的当前状态（确定必须是NOTINITED状态）并设置新的状态（INITED状态）。 –  为啥不直接调用AbstractService的init方法呢？</p>
 </blockquote>
