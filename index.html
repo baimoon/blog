@@ -248,6 +248,727 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2019/02/19/spark-2-11-submit/" itemprop="url">
+                  Spark 2.11 Submit的流程
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-02-19T19:02:07+08:00" content="2019-02-19">
+              2019-02-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark-2-11/" itemprop="url" rel="index">
+                    <span itemprop="name">spark 2.11</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文用于整理在使用spark-submit提交任务的流程，目前（2019-02-19）侧重于在提交任务时jar包的处理。</p>
+<h1 id="spark-submit脚本的定义"><a href="#spark-submit脚本的定义" class="headerlink" title="spark-submit脚本的定义"></a>spark-submit脚本的定义</h1><p>使用spark-submit提交任务的时候，实际上调用的是${SPARK_HOME}/bin/spark-submit来提交的。例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt; \</div><div class="line">  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... # other options</div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+<p>如下是${SPARK_HOME}/bin/spark-submit脚本的定义：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">exec &quot;$&#123;SPARK_HOME&#125;&quot;/bin/spark-class org.apache.spark.deploy.SparkSubmit &quot;$@&quot;</div></pre></td></tr></table></figure></p>
+<p>从代码可以看出，实际上执行的是 org.apache.spark.deploy.SparkSubmit类。因此我们具体看看这个类的实现。</p>
+<h1 id="SparkSubmit的启动流程"><a href="#SparkSubmit的启动流程" class="headerlink" title="SparkSubmit的启动流程"></a>SparkSubmit的启动流程</h1><p>—- 这里先随便写，稍后在整理</p>
+<p>如下是SparkSubmit主函数的定义：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">main</span></span>(args: <span class="type">Array</span>[<span class="type">String</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="keyword">val</span> appArgs = <span class="keyword">new</span> <span class="type">SparkSubmitArguments</span>(args)</div><div class="line">  <span class="keyword">if</span> (appArgs.verbose) &#123;</div><div class="line">    <span class="comment">// scalastyle:off println</span></div><div class="line">    printStream.println(appArgs)</div><div class="line">    <span class="comment">// scalastyle:on println</span></div><div class="line">  &#125;</div><div class="line">  appArgs.action <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">SUBMIT</span> =&gt; submit(appArgs)</div><div class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">KILL</span> =&gt; kill(appArgs)</div><div class="line">    <span class="keyword">case</span> <span class="type">SparkSubmitAction</span>.<span class="type">REQUEST_STATUS</span> =&gt; requestStatus(appArgs)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>进入主函数后，会使用SparkSubmitArguments类对SparkSubmit的命令行参数进行解析。然后根据参数中的action信息进行具体的操作。<br>由此也可以看出，SparkSubmit支持三种action：–submit、–kill和–status。</p>
+<h2 id="SparkSubmitArguments"><a href="#SparkSubmitArguments" class="headerlink" title="SparkSubmitArguments"></a>SparkSubmitArguments</h2><p>SparkSubmitArgument的继承关系<br><img src="/attach/5c6bb98cb92e4.png" alt="image.png"><br>其中SparkSubmitArgumentsParser是没有具体实现，SparkSubmitOptionParser主要用来解析option。</p>
+<h3 id="可用的Option"><a href="#可用的Option" class="headerlink" title="可用的Option"></a>可用的Option</h3><p>从SparkSubmitOptionParser中我们可以看出，可以使用option如下：</p>
+<h4 id="标准参数"><a href="#标准参数" class="headerlink" title="标准参数"></a>标准参数</h4><table>
+<thead>
+<tr>
+<th>option的定义</th>
+<th>意义</th>
+<th>例如</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>–class</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–conf</td>
+<td>‘’，可以使用“-c”来代替</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–deploy-mode</td>
+<td>部署模式，有两种模式：client和cluster</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–driver-class-path</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–driver-cores</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–driver-java-options</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–driver-library-path</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–driver-memory</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–executor-memory</td>
+<td>执行application的内存大小</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–jars</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–kill</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–master</td>
+<td>‘’</td>
+<td>–master yarn-client</td>
+</tr>
+<tr>
+<td>–name</td>
+<td>提交的application的名字</td>
+<td>–name spark_thrift_server_test</td>
+</tr>
+<tr>
+<td>–packages</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–exclude-packages</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–properties-file</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–proxy-user</td>
+<td>提交任务所用的代理用户</td>
+<td>–proxy-user myUser</td>
+</tr>
+<tr>
+<td>–py-files</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–repositories</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–status</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–total-executor-cores</td>
+<td>执行application的最大executor的数量</td>
+<td>–total-executor-cores 20</td>
+</tr>
+</tbody>
+</table>
+<h4 id="标识型参数。"><a href="#标识型参数。" class="headerlink" title="标识型参数。"></a>标识型参数。</h4><p>这些option只会作为检测，不会取值。</p>
+<table>
+<thead>
+<tr>
+<th>option的定义</th>
+<th>意义</th>
+<th>例如</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>–help</td>
+<td>‘’，可以使用“-h”代替</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–supervise</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–usage-error</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–verbose</td>
+<td>‘’，可以使用“-v”代替</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–version</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+</tbody>
+</table>
+<h4 id="Yarn独享参数"><a href="#Yarn独享参数" class="headerlink" title="Yarn独享参数"></a>Yarn独享参数</h4><table>
+<thead>
+<tr>
+<th>option的定义</th>
+<th>意义</th>
+<th>例如</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>–archives</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–executor-cores</td>
+<td>执行任务的executor的core的数量</td>
+<td>–executor-cores 3</td>
+</tr>
+<tr>
+<td>–keytab</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–num-executors</td>
+<td>执行任务的executor的个数</td>
+<td>–num-executors 10</td>
+</tr>
+<tr>
+<td>–principal</td>
+<td>‘’</td>
+<td>–</td>
+</tr>
+<tr>
+<td>–queue</td>
+<td>执行任务的资源队列</td>
+<td>–queue test_queue</td>
+</tr>
+</tbody>
+</table>
+<h3 id="option的定义和解析"><a href="#option的定义和解析" class="headerlink" title="option的定义和解析"></a>option的定义和解析</h3><h4 id="非标识型参数"><a href="#非标识型参数" class="headerlink" title="非标识型参数"></a>非标识型参数</h4><p>parse方法，实现了对命令行参数的解析。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Pattern eqSeparatedOpt = Pattern.compile(<span class="string">"(--[^=]+)=(.+)"</span>);</div></pre></td></tr></table></figure></p>
+<p>定义了获取参数的模式，必须以“–”开头，然后是不能为“=”的任意字符，接着是“=”号，最后是任意字符，例如：–name=testName。<br>但是这也不是必须的格式，在解析参数的代码中还包含了另外一种逻辑：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">Matcher m = eqSeparatedOpt.matcher(arg);</div><div class="line"></div><div class="line"><span class="keyword">if</span> (m.matches()) &#123;</div><div class="line">  arg = m.group(<span class="number">1</span>);</div><div class="line">  value = m.group(<span class="number">2</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Look for options with a value.</span></div><div class="line">String name = findCliOption(arg, opts);</div><div class="line"><span class="keyword">if</span> (name != <span class="keyword">null</span>) &#123;</div><div class="line">  <span class="keyword">if</span> (value == <span class="keyword">null</span>) &#123;</div><div class="line">    <span class="keyword">if</span> (idx == args.size() - <span class="number">1</span>) &#123;</div><div class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(</div><div class="line">        String.format(<span class="string">"Missing argument for option '%s'."</span>, arg));</div><div class="line">    &#125;</div><div class="line">    idx++;</div><div class="line">    value = args.get(idx);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">if</span> (!handle(name, value)) &#123;</div><div class="line">    <span class="keyword">break</span>;</div><div class="line">  &#125;</div><div class="line"><span class="keyword">continue</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以第一个参数为key，第二个参数为value。<br>也就是说命令行参数中包含的参数，要么是key=value的格式，要么是key value的模式。也可以是两种格式的组合，但是必须要保证key value的匹配，如果key key=value，那么后面的这个key=value将会作为前面key的value来解析。另外，如果参数的最后一个为key，还会抛出IllegalArgumentException异常。<br>如下传递是正确的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">key1 value1 key2=value2 key3 value3</div></pre></td></tr></table></figure></p>
+<p>如下传递是错误的<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">key1 key2=value2  -- 会把key2=value2当做key1的value</div><div class="line">key1=value2 key2  -- 抛出IllegalArgumentException，无法获取key2的value</div></pre></td></tr></table></figure></p>
+<p>还有一个需要注意的是，如果提供了不在上面列表中的参数，会抛出UnsupportedOperationException异常，并退出程序的执行。</p>
+<h4 id="标识型参数"><a href="#标识型参数" class="headerlink" title="标识型参数"></a>标识型参数</h4><p>标志性参数只会检测这个参数是否存在，不会从命令行中读取值。</p>
+<h3 id="参数的处理"><a href="#参数的处理" class="headerlink" title="参数的处理"></a>参数的处理</h3><p>上面参数解析后，就会得到key和value。然后调用handle方法做进一步处理。SparkSubmitOptionParser要求子类必须实现handle方法，如果子类未实现handle方法，就会调用自身的handle方法，从而抛出UnsupportedOperationException异常。因此，我们看一下子类SplarkSubmitArguments的handle方法。</p>
+<h4 id="SparkSubmitArgumnet-handle"><a href="#SparkSubmitArgumnet-handle" class="headerlink" title="SparkSubmitArgumnet.handle"></a>SparkSubmitArgumnet.handle</h4><p>方法逻辑很简单，就是检测上面的key是否合法（规定的），如果合法，就设置相应属性的值。如下是合法参数名的值，以及value存储对应SparkSubmitArgumengt中变量，以及value的合法性要求：</p>
+<table>
+<thead>
+<tr>
+<th>key的定义</th>
+<th>value的存储变量</th>
+<th>value的合法性要求</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>–name</td>
+<td>name</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–master</td>
+<td>master</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–class</td>
+<td>mainClass</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–deploy-mode</td>
+<td>deployMode</td>
+<td>client或cluster</td>
+</tr>
+<tr>
+<td>–num-executors</td>
+<td>numExecutors</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–total-executor-cores</td>
+<td>totalExecutorCores</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–executor-cores</td>
+<td>executorCores</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–executor-memory</td>
+<td>executorMemory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–driver-memory</td>
+<td>driverMemory</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–driver-cores</td>
+<td>driverCores</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–driver-class-path</td>
+<td>driverExtraClassPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–driver-java-options</td>
+<td>driverExtraJavaOptions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–driver-library-path</td>
+<td>driverExtraLibraryPath</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–properties-file</td>
+<td>propertiesFile</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–kill</td>
+<td>value保存在submissionToKill中，同时设置action = KILL</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–status</td>
+<td>value保存在submissionToRequestStatusFor中，同时设置action = REQUEST_STATUS</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–supervise</td>
+<td>设置supervise=true</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–queue</td>
+<td>queue</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–files</td>
+<td>files</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–py-files</td>
+<td>pyFiles</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–archives</td>
+<td>archives</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–jars</td>
+<td>jars</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–packages</td>
+<td>packages</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–exclude-packages</td>
+<td>packagesExclusions</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–repositories</td>
+<td>repositories</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–conf或-c</td>
+<td>解析properties文件后保存在sparkProperties中</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–proxy-user</td>
+<td>proxyUser</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–principal</td>
+<td>principal</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–keytab</td>
+<td>keytab</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–help</td>
+<td>执行printUsageAndExit(0)，打印用法并退出</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–verbose</td>
+<td>设置verbose为true</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–version</td>
+<td>调用printVersionAndExit()方法，打印版本并退出</td>
+<td>-</td>
+</tr>
+<tr>
+<td>–usage-error</td>
+<td>执行printUsageAndExit(1)，打印用法并退出</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<h2 id="SparkSubmitArguments-1"><a href="#SparkSubmitArguments-1" class="headerlink" title="SparkSubmitArguments"></a>SparkSubmitArguments</h2><p>在SparkSubmit中会利用main的参数生成一个SparkSubmitArguments的，生成SparkSubmitArguments对象的时候就会执行如下代码：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">try</span> &#123;</div><div class="line">  parse(args.asJava)</div><div class="line">&#125; <span class="keyword">catch</span> &#123;</div><div class="line">  <span class="keyword">case</span> e: <span class="type">IllegalArgumentException</span> =&gt;</div><div class="line">    <span class="type">SparkSubmit</span>.printErrorAndExit(e.getMessage())</div><div class="line">&#125;</div><div class="line"><span class="comment">// Populate `sparkProperties` map from properties file</span></div><div class="line">mergeDefaultSparkProperties()</div><div class="line"><span class="comment">// Remove keys that don't start with "spark." from `sparkProperties`.</span></div><div class="line">ignoreNonSparkProperties()</div><div class="line"><span class="comment">// Use `sparkProperties` map along with env vars to fill in any missing parameters</span></div><div class="line">loadEnvironmentArguments()</div><div class="line"></div><div class="line">validateArguments()</div></pre></td></tr></table></figure></p>
+<h3 id="参数的解析流程"><a href="#参数的解析流程" class="headerlink" title="参数的解析流程"></a>参数的解析流程</h3><p>parse方法定义在SparkSubmitOptionParser类中，用于解析命令行传递过来的参数。参考上面的“option的定义和解析”部分。</p>
+<h3 id="合并默认的Spark属性"><a href="#合并默认的Spark属性" class="headerlink" title="合并默认的Spark属性"></a>合并默认的Spark属性</h3><p>合并默认的Spark属性，调用的是mergeDefaultSparkProperties方法。<br>该方法将会从两个位置读取配置文件：</p>
+<blockquote>
+<p>命令行中-–properties-file参数指定的属性文件。<br>SPARK_CONF_DIR目录或SPARK_HOME/conf下的spark-default.properties文件</p>
+</blockquote>
+<p>其中优先使用–properties-file参数所指定的文件。<br>根据这里确定的属性文件，将属性加载到内存中作为默认属性与命令行中使用–conf或–c配置的属性进行合并，优先使用–conf或–c指定的属性。</p>
+<h3 id="驳回非Spark属性"><a href="#驳回非Spark属性" class="headerlink" title="驳回非Spark属性"></a>驳回非Spark属性</h3><p>什么属于非Spark属性呢？就是那些不以“spark”开头的属性。将上面合并后的属性进行遍历，将不是以“spark”开头的属性，从属性集合中移除。</p>
+<h3 id="加载环境参数"><a href="#加载环境参数" class="headerlink" title="加载环境参数"></a>加载环境参数</h3><p>加载环境参数的意思就是对于那些通过上面操作，依然没有被设置的属性，从环境配置中再加在一次。基本上的思路就是判断属性是否已经有值，如果没有则从上面的属性中加在一次，如果还没有则再从环境中加在一次。所以参数的优先级如下：命令行中指定 -&gt; 属性中配置(–conf-&gt; –properties-file -&gt; spark_home/conf/spark-default.properties) -&gt; 环境</p>
+<table>
+<thead>
+<tr>
+<th>变量</th>
+<th>属性中的配置项</th>
+<th>环境中的配置项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>master</td>
+<td>spark.master</td>
+<td>MASTER</td>
+</tr>
+<tr>
+<td>driverExtraClassPath</td>
+<td>spark.driver.extraClassPath</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>driverExtraJavaOptions</td>
+<td>spark.driver.extraJavaOptions</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>driverExtraLibraryPath</td>
+<td>spark.driver.extraLibraryPath</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>driverMemory</td>
+<td>spark.driver.memory</td>
+<td>SPARK_DRIVER_MEMORY</td>
+</tr>
+<tr>
+<td>driverCores</td>
+<td>spark.driver.cores</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>executorMemory</td>
+<td>spark.executor.memory</td>
+<td>SPARK_EXECUTOR_MEMORY</td>
+</tr>
+<tr>
+<td>executorCores</td>
+<td>spark.executor.cores</td>
+<td>SPARK_EXECUTOR_CORES</td>
+</tr>
+<tr>
+<td>totalExecutorCores</td>
+<td>spark.cores.max</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>name</td>
+<td>spark.app.name</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>jars</td>
+<td>spark.jars</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>files</td>
+<td>spark.files</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>ivyRepoPath(新增)</td>
+<td>spark.jars.ivy</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>packages</td>
+<td>spark.jars.packages</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>packagesExclusions</td>
+<td>spark.jars.excludes</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>deployMode</td>
+<td>spark.submit.deployMode</td>
+<td>DEPLOY_MODE</td>
+</tr>
+<tr>
+<td>numExecutors</td>
+<td>spark.executor.instances</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>queue</td>
+<td>spark.yarn.queue</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>keytab</td>
+<td>spark.yarn.keytab</td>
+<td>Null</td>
+</tr>
+<tr>
+<td>principal</td>
+<td>spark.yarn.principal</td>
+<td>Null</td>
+</tr>
+</tbody>
+</table>
+<p>基本的设置就是以上这些，但是除了这些，还有其他一些逻辑：</p>
+<p>主类的确定<br>当没有通过mainClass指定主类，且不是python或R时，会从jar包中读取主类：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (mainClass == <span class="literal">null</span> &amp;&amp; !isPython &amp;&amp; !isR &amp;&amp; primaryResource != <span class="literal">null</span>) &#123;</div><div class="line">  <span class="keyword">val</span> uri = <span class="keyword">new</span> <span class="type">URI</span>(primaryResource)</div><div class="line">  <span class="keyword">val</span> uriScheme = uri.getScheme()</div><div class="line"></div><div class="line">  uriScheme <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="string">"file"</span> =&gt;</div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        <span class="keyword">val</span> jar = <span class="keyword">new</span> <span class="type">JarFile</span>(uri.getPath)</div><div class="line">        <span class="comment">// Note that this might still return null if no main-class is set; we catch that later</span></div><div class="line">        mainClass = jar.getManifest.getMainAttributes.getValue(<span class="string">"Main-Class"</span>)</div><div class="line">      &#125; <span class="keyword">catch</span> &#123;</div><div class="line">        <span class="keyword">case</span> e: <span class="type">Exception</span> =&gt;</div><div class="line">          <span class="type">SparkSubmit</span>.printErrorAndExit(<span class="string">s"Cannot load main class from JAR <span class="subst">$primaryResource</span>"</span>)</div><div class="line">      &#125;</div><div class="line">    <span class="keyword">case</span> _ =&gt;</div><div class="line">      <span class="type">SparkSubmit</span>.printErrorAndExit(</div><div class="line">        <span class="string">s"Cannot load main class from JAR <span class="subst">$primaryResource</span> with URI <span class="subst">$uriScheme</span>. "</span> +</div><div class="line">        <span class="string">"Please specify a class through --class."</span>)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>master的确定<br>如果没有设置master，则将master设置为local[*]</p>
+<p>name的确定<br>如果master是以“yarn”开头的，则使用当前的name，如果没有设置，则从环境变量SPARK_YARN_APP_NAME中获取；如果环境中也没有，则从主类中获取，如果主类中也没有，则从primaryResource中获取。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (master.startsWith(<span class="string">"yarn"</span>)) &#123;</div><div class="line">  name = <span class="type">Option</span>(name).orElse(env.get(<span class="string">"SPARK_YARN_APP_NAME"</span>)).orNull</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Set name from main class if not given</span></div><div class="line">name = <span class="type">Option</span>(name).orElse(<span class="type">Option</span>(mainClass)).orNull</div><div class="line"><span class="keyword">if</span> (name == <span class="literal">null</span> &amp;&amp; primaryResource != <span class="literal">null</span>) &#123;</div><div class="line">  name = <span class="type">Utils</span>.stripDirectory(primaryResource)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>action的确定<br>如果没有设置action，则将action默认设置为submit。</p>
+<h3 id="验证参数"><a href="#验证参数" class="headerlink" title="验证参数"></a>验证参数</h3><p>验证参数是要根据action，进行区分验证，不同的action有不同的参数要求。</p>
+<h4 id="submit"><a href="#submit" class="headerlink" title="submit"></a>submit</h4><p>对于提交参数的验证，要求如下</p>
+<blockquote>
+<p>必须指定主要资源：也就是说jar、python或R不能同时为空。<br>主类必须通过–class指定或者在Jar中包含。<br>如果指定了pyFile，则要求主资源必须是Python脚本。<br>如果master是yarn，则要求环境变量中必须包含HADOOP_CONF_DIR或YARN_CONF_DIR<br>配置中不能同时存在 proxyUser和principal。</p>
+</blockquote>
+<p>为什么proxyUser和principal不能同时存在呢？因为这是两种不同的认证方式，只能使用一种。对于proxyUser方式，会调用Hadoop的相关API创建代理用户，然后用代理用户执行runMain方法。如果设置了principal，就必须设置–keytab来指定keytab文件，然后会使用keytab信息进行登录。</p>
+<h4 id="kill"><a href="#kill" class="headerlink" title="kill"></a>kill</h4><p>对于kill参数的验证，要求如下</p>
+<blockquote>
+<p>master必须是以spark://或mesos://开头的，其他的不支持kill<br>submissionToKill必须指定，也就是必须指定要kill的submission。</p>
+</blockquote>
+<h4 id="status"><a href="#status" class="headerlink" title="status"></a>status</h4><p>对于请求状态的验证，要求如下</p>
+<blockquote>
+<p>master必须是以spark://或mesos://开头的，其他的不支持status查询<br>submissionToRequestStatusFor必须指定，也就是必须说明要查询状态的信息。</p>
+</blockquote>
+<p>至此SparkSubmitArguments对参数的加载（从命令行、配置文件、环境变量）和验证就完成。我们继续回到SparkSubmit中。</p>
+<h2 id="Spark-Submit"><a href="#Spark-Submit" class="headerlink" title="Spark Submit"></a>Spark Submit</h2><p>我们已经知道SparkSubmit类支持三种action，现在我们先看看当action为submit时的相关操作。<br>用来处理action为submit的方法为submit<br>在submit方法中，大体分为三个功能：提交环境准备、根据代理用户进行操作、根据部署模式进行操作。<br>对于代理用户的相关操作，就是判断是否指定了代理用户，如果指定了代理用户，则使用代理用户的身份执行runMain，如果没有指定代理用户，则直接执行runMain（相当于使用当前用户）。<br>对于部署模式的相关操作，基本上都是调用doRunMain方法，只是对于standalone模式下，如果出现异常会做一些其他操作。doRunMain方法，就是根据代理用户进行操作。<br>所以，这里会将主要任务落到两个方法上：runMain和prepareSubmitEnvironment。</p>
+<h3 id="prepareSubmitEnvironment"><a href="#prepareSubmitEnvironment" class="headerlink" title="prepareSubmitEnvironment"></a>prepareSubmitEnvironment</h3><p>这个方法的逻辑特别的复杂，因为我们使用Yarn并且不使用Python和R语言，所以会将与Yarn无关以及与Python和R相关的代码都去掉。我们按照它的循序操作进行划块分析</p>
+<h4 id="证书的管理"><a href="#证书的管理" class="headerlink" title="证书的管理"></a>证书的管理</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 从证书管理器那里获得证书下一次更新的时间</span></div><div class="line"><span class="keyword">val</span> nearestTimeOfNextRenewal = credentialManager.obtainCredentials(hadoopConf, credentials)</div><div class="line"></div><div class="line"><span class="comment">// 如果已经有证书了，则将证书设置给当前用户</span></div><div class="line"><span class="keyword">if</span> (credentials != <span class="literal">null</span>) &#123;</div><div class="line">  <span class="type">UserGroupInformation</span>.getCurrentUser.addCredentials(credentials)</div><div class="line">  logDebug(<span class="type">YarnSparkHadoopUtil</span>.get.dumpTokens(credentials).mkString(<span class="string">"\n"</span>))</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// 如果我们使用principal和keytab登录，那么证书需要在之后的时间被重新构建，我们应当将下一次的重构和更新时间传递给构建者和更新者</span></div><div class="line"><span class="keyword">if</span> (loginFromKeytab &amp;&amp; nearestTimeOfNextRenewal &gt; <span class="type">System</span>.currentTimeMillis() &amp;&amp;</div><div class="line">  nearestTimeOfNextRenewal != <span class="type">Long</span>.<span class="type">MaxValue</span>) &#123;</div><div class="line"></div><div class="line">  <span class="keyword">val</span> currTime = <span class="type">System</span>.currentTimeMillis()</div><div class="line">  <span class="keyword">val</span> renewalTime = (nearestTimeOfNextRenewal - currTime) * <span class="number">0.75</span> + currTime</div><div class="line">  <span class="keyword">val</span> updateTime = (nearestTimeOfNextRenewal - currTime) * <span class="number">0.8</span> + currTime</div><div class="line"></div><div class="line">  sparkConf.set(<span class="type">CREDENTIALS_RENEWAL_TIME</span>, renewalTime.toLong)</div><div class="line">  sparkConf.set(<span class="type">CREDENTIALS_UPDATE_TIME</span>, updateTime.toLong)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>代码中的credentials代表的就是证书信息，该对象在setupCredentials方法中创建，创建的代码如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">setupCredentials</span></span>(): <span class="type">Unit</span> = &#123;</div><div class="line"></div><div class="line">	<span class="comment">// 判断是否是使用Kerberos进行登录，如果配置中设置了principal就表示使用kerberos，而且要求配置了Keytab信息</span></div><div class="line">	loginFromKeytab = sparkConf.contains(<span class="type">PRINCIPAL</span>.key)</div><div class="line">	<span class="keyword">if</span> (loginFromKeytab) &#123;</div><div class="line">	  principal = sparkConf.get(<span class="type">PRINCIPAL</span>).get</div><div class="line">	  keytab = sparkConf.get(<span class="type">KEYTAB</span>).orNull</div><div class="line"></div><div class="line">	  require(keytab != <span class="literal">null</span>, <span class="string">"Keytab must be specified when principal is specified."</span>)</div><div class="line">	  <span class="comment">// 加载Keytab文件，并对文件名</span></div><div class="line">	  <span class="keyword">val</span> f = <span class="keyword">new</span> <span class="type">File</span>(keytab)</div><div class="line">	  amKeytabFileName = f.getName + <span class="string">"-"</span> + <span class="type">UUID</span>.randomUUID().toString</div><div class="line">	  sparkConf.set(<span class="type">PRINCIPAL</span>.key, principal)</div><div class="line">	&#125;</div><div class="line">	<span class="comment">// 创建当前用户的证书的拷贝</span></div><div class="line">	credentials = <span class="keyword">new</span> <span class="type">Credentials</span>(<span class="type">UserGroupInformation</span>.getCurrentUser.getCredentials)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>从方法的实现可以看出，如果开启了Kerberos登录功能（Spark配置中包含了spark.yarn.principal配置），就会创建证书。证书管理的功能就是：如果证书存在，将证书添加到当前用户中；根据时间设置证书的重新生成时间和更新时间。</p>
+<h4 id="资源添加和验证"><a href="#资源添加和验证" class="headerlink" title="资源添加和验证"></a>资源添加和验证</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 用于保存添加到分发缓存的URI列表，如果同一个URI被添加多次，YARN将以内部错误使container启动失败</span></div><div class="line"><span class="keyword">val</span> distributedUris = <span class="keyword">new</span> <span class="type">HashSet</span>[<span class="type">String</span>]</div><div class="line"><span class="comment">// 用于保存添加到分发缓存的URI是否有相同的名字，如果有相同的名字的被提交多次，但是文件路径不同，Yarn将以内部错误是container启动失败</span></div><div class="line"><span class="keyword">val</span> distributedNames = <span class="keyword">new</span> <span class="type">HashSet</span>[<span class="type">String</span>]</div><div class="line"></div><div class="line"><span class="keyword">val</span> replication = sparkConf.get(<span class="type">STAGING_FILE_REPLICATION</span>).map(_.toShort)</div><div class="line">  .getOrElse(fs.getDefaultReplication(destDir))</div><div class="line"><span class="comment">// 用来保存本地资源的集合</span></div><div class="line"><span class="keyword">val</span> localResources = <span class="type">HashMap</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]()</div><div class="line"><span class="comment">// 在HDFS上创建 staging目录，并将目录的访问权限设置为700</span></div><div class="line"><span class="type">FileSystem</span>.mkdirs(fs, destDir, <span class="keyword">new</span> <span class="type">FsPermission</span>(<span class="type">STAGING_DIR_PERMISSION</span>))</div><div class="line"></div><div class="line"><span class="comment">// 保存文件的文件状态，不是以文件为key而是一个文件的URI作为key</span></div><div class="line"><span class="keyword">val</span> statCache: <span class="type">Map</span>[<span class="type">URI</span>, <span class="type">FileStatus</span>] = <span class="type">HashMap</span>[<span class="type">URI</span>, <span class="type">FileStatus</span>]()</div><div class="line"><span class="keyword">val</span> symlinkCache: <span class="type">Map</span>[<span class="type">URI</span>, <span class="type">Path</span>] = <span class="type">HashMap</span>[<span class="type">URI</span>, <span class="type">Path</span>]()</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">addDistributedUri</span></span>(uri: <span class="type">URI</span>): <span class="type">Boolean</span> = &#123;</div><div class="line">  <span class="keyword">val</span> uriStr = uri.toString()</div><div class="line">  <span class="comment">// 获取要分发的文件名</span></div><div class="line">  <span class="keyword">val</span> fileName = <span class="keyword">new</span> <span class="type">File</span>(uri.getPath).getName</div><div class="line">  <span class="comment">// 如果URI已经被添加多次，添加失败，如果文件名也被添加多次，添加失败，否则添加成功</span></div><div class="line">  <span class="keyword">if</span> (distributedUris.contains(uriStr)) &#123;</div><div class="line">    logWarning(<span class="string">s"Same path resource <span class="subst">$uri</span> added multiple times to distributed cache."</span>)</div><div class="line">    <span class="literal">false</span></div><div class="line">  &#125; <span class="keyword">else</span> <span class="keyword">if</span> (distributedNames.contains(fileName)) &#123;</div><div class="line">    logWarning(<span class="string">s"Same name resource <span class="subst">$uri</span> added multiple times to distributed cache"</span>)</div><div class="line">    <span class="literal">false</span></div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    distributedUris += uriStr</div><div class="line">    distributedNames += fileName</div><div class="line">    <span class="literal">true</span></div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>distributedUris和distributedNames用来进行资源添加的验证（在addDistributedUri中使用），在添加资源的时候，资源是以URI的方式来添加，对于同一个URI只允许添加一次，并且如果URI不同，但是文件名相同的情况，也会验证，同一个文件名的文件也只允许添加一次。另外代码中还设置了资源文件的存放位置（(spark.yarn.stagingDir|～)/.sparkStaging/application_id）、资源文件的副本数（3）以及资源文件目录的权限（700）。addDistributedUri方法用来进行验证。</p>
+<h4 id="资源分发操作"><a href="#资源分发操作" class="headerlink" title="资源分发操作"></a>资源分发操作</h4><p>distribute方法是资源分发的实现。具体定义如下：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">distribute</span></span>(</div><div class="line">    path: <span class="type">String</span>,</div><div class="line">    resType: <span class="type">LocalResourceType</span> = <span class="type">LocalResourceType</span>.<span class="type">FILE</span>,</div><div class="line">    destName: <span class="type">Option</span>[<span class="type">String</span>] = <span class="type">None</span>,</div><div class="line">    targetDir: <span class="type">Option</span>[<span class="type">String</span>] = <span class="type">None</span>,</div><div class="line">    appMasterOnly: <span class="type">Boolean</span> = <span class="literal">false</span>): (<span class="type">Boolean</span>, <span class="type">String</span>) = &#123;</div><div class="line"></div><div class="line">  <span class="keyword">val</span> trimmedPath = path.trim()</div><div class="line">  <span class="keyword">val</span> localURI = <span class="type">Utils</span>.resolveURI(trimmedPath)</div><div class="line">  <span class="comment">// 判断URI是否是以local开头的</span></div><div class="line">  <span class="keyword">if</span> (localURI.getScheme != <span class="type">LOCAL_SCHEME</span>) &#123;</div><div class="line">    <span class="comment">// 将URI添加到分发缓存，同时会对URI和FileName进行验证，不允许重复添加</span></div><div class="line">    <span class="keyword">if</span> (addDistributedUri(localURI)) &#123;</div><div class="line">      <span class="keyword">val</span> localPath = getQualifiedLocalPath(localURI, hadoopConf)</div><div class="line">      <span class="comment">// 拼接在混存中保存的名字</span></div><div class="line">      <span class="keyword">val</span> linkname = targetDir.map(_ + <span class="string">"/"</span>).getOrElse(<span class="string">""</span>) +</div><div class="line">        destName.orElse(<span class="type">Option</span>(localURI.getFragment())).getOrElse(localPath.getName())</div><div class="line">      <span class="comment">// 保存文件的缓存子目录</span></div><div class="line">      <span class="keyword">val</span> destPath = copyFileToRemote(destDir, localPath, replication, symlinkCache)</div><div class="line">      <span class="comment">// 目标文件系统，HDFS</span></div><div class="line">      <span class="keyword">val</span> destFs = <span class="type">FileSystem</span>.get(destPath.toUri(), hadoopConf)</div><div class="line">      <span class="comment">// 将文件添加到缓存</span></div><div class="line">      <span class="comment">// destFs 是HDFS文件系统</span></div><div class="line">      distCacheMgr.addResource(</div><div class="line">        destFs, hadoopConf, destPath, localResources, resType, linkname, statCache,</div><div class="line">        appMasterOnly = appMasterOnly)</div><div class="line">      (<span class="literal">false</span>, linkname)</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      (<span class="literal">false</span>, <span class="literal">null</span>)</div><div class="line">    &#125;</div><div class="line">  &#125; <span class="keyword">else</span> &#123;</div><div class="line">    (<span class="literal">true</span>, trimmedPath)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这个方法的作用就是将不是以“local”开头的文件添加到分发缓存中（调用addDistributedUri方法），添加的时候会进行验证。copyFileToRemote方法的作用，就是将本地的文件（file://）上传到HDFS上，copyFileToRemote方法中会进行两个文件系统的对比，只有当源文件系统和目标文件系统不同（不同的HDFS或一个是HDFS一个是普通文件系统）才会进行复制文件。最后调用ClientDistributedCacheManager的addResource方法将文件加入到Resource列表中供后面启动container使用。</p>
+<h4 id="分发Keytab文件"><a href="#分发Keytab文件" class="headerlink" title="分发Keytab文件"></a>分发Keytab文件</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (loginFromKeytab) &#123;</div><div class="line">  logInfo(<span class="string">"To enable the AM to login from keytab, credentials are being copied over to the AM"</span> +</div><div class="line">    <span class="string">" via the YARN Secure Distributed Cache."</span>)</div><div class="line">  <span class="keyword">val</span> (_, localizedPath) = distribute(keytab,</div><div class="line">    destName = <span class="type">Some</span>(amKeytabFileName),</div><div class="line">    appMasterOnly = <span class="literal">true</span>)</div><div class="line">  require(localizedPath != <span class="literal">null</span>, <span class="string">"Keytab file already distributed."</span>)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>amKeytabFileName是添加了UUID后缀的名字，作用就是调用distribute方法，将keytab文件分发，但是只是分发给Application Master。</p>
+<h4 id="jar文件的分发逻辑"><a href="#jar文件的分发逻辑" class="headerlink" title="jar文件的分发逻辑"></a>jar文件的分发逻辑</h4><p>在对Jar进行分发的时候，会有三种情况：</p>
+<blockquote>
+<p>设置了spark.yarn.archive<br>设置了spark.yarn.jars<br>spark.yarn.archeive和spark.yarn.jars都没有设设置</p>
+</blockquote>
+<p>当同时设置了spark.yarn.archive和spark.yarn.jars时，spark.yarn.archive优先级高。</p>
+<h5 id="spark-yarn-archive"><a href="#spark-yarn-archive" class="headerlink" title="spark.yarn.archive"></a>spark.yarn.archive</h5><p>如果配置了spark.yarn.archive（目录，且要求必须不是以local开头的文件系统），则将spark.yarn.archive配置的目录作为ARCHIVE类型的资源分发到“<strong>spark_libs</strong>”目录中。</p>
+<h5 id="spark-yarn-jars"><a href="#spark-yarn-jars" class="headerlink" title="spark.yarn.jars"></a>spark.yarn.jars</h5><p>如果配置了spark.yarn.jars（必须是文件，多个文件用逗号分隔），则将spark.yarn.jars中的每个文件作为FILE类型资源分发到“<strong>spark_libs</strong>”目录中。<br>对于local文件（以local://）开头的文件，会将其重新设置到sparkConf中的“spark.yarn.jars”配置项中。</p>
+<h5 id="上传-SPARK-HOME-下的jars"><a href="#上传-SPARK-HOME-下的jars" class="headerlink" title="上传${SPARK_HOME}下的jars"></a>上传${SPARK_HOME}下的jars</h5><p>对于既没有配置spark.yarn.archive又没有配置spark.yarn.jars，那么系统会将环境变量${SPARK_HOME}中指定的目录下的jars或assembly/target/scala-%{scala_version}}/jars目录中的jar打包为一个“<strong>spark_libs</strong>.zip”文件，然后将这个文件作为ARCHIVE类型分发到“<strong>spark_libs</strong>”目录。</p>
+<p>看了三种情况，这里有一个问题，对于配置了spark,yarn.archive和什么都没有配置的情况，都是将URI作为ARCHIVE类型资源分发到“<strong>spark_libs</strong>”目录中，那么这两个参数还有什么作用么？其实最主要的区别就是在进行文件拷本的时候，也就是调用copyFileToRemote方法的时候，可以减少上传操作。</p>
+<p>如下是jar文件分发的逻辑实现：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> sparkArchive = sparkConf.get(<span class="type">SPARK_ARCHIVE</span>)</div><div class="line"><span class="comment">// 如果定义了 spark.yarn.archive</span></div><div class="line"><span class="keyword">if</span> (sparkArchive.isDefined) &#123;</div><div class="line">  <span class="keyword">val</span> archive = sparkArchive.get</div><div class="line">  <span class="comment">// 要求 spark.yarn.archive 的value不是是本地目录（local://开头）</span></div><div class="line">  require(!isLocalUri(archive), <span class="string">s"<span class="subst">$&#123;SPARK_ARCHIVE.key&#125;</span> cannot be a local URI."</span>)</div><div class="line">  distribute(<span class="type">Utils</span>.resolveURI(archive).toString,</div><div class="line">    resType = <span class="type">LocalResourceType</span>.<span class="type">ARCHIVE</span>,</div><div class="line">    destName = <span class="type">Some</span>(<span class="type">LOCALIZED_LIB_DIR</span>))</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">  sparkConf.get(<span class="type">SPARK_JARS</span>) <span class="keyword">match</span> &#123;</div><div class="line">    <span class="keyword">case</span> <span class="type">Some</span>(jars) =&gt;</div><div class="line">      <span class="comment">// Break the list of jars to upload, and resolve globs.</span></div><div class="line">      <span class="comment">// 将spark.yarn.jars中配置的jar（非本地jar）进行分发</span></div><div class="line">      <span class="keyword">val</span> localJars = <span class="keyword">new</span> <span class="type">ArrayBuffer</span>[<span class="type">String</span>]()</div><div class="line">      jars.foreach &#123; jar =&gt;</div><div class="line">        <span class="keyword">if</span> (!isLocalUri(jar)) &#123;</div><div class="line">          <span class="comment">// 得到jar的路径</span></div><div class="line">          <span class="keyword">val</span> path = getQualifiedLocalPath(<span class="type">Utils</span>.resolveURI(jar), hadoopConf)</div><div class="line">          <span class="comment">// 得到文件系统</span></div><div class="line">          <span class="keyword">val</span> pathFs = <span class="type">FileSystem</span>.get(path.toUri(), hadoopConf)</div><div class="line">          pathFs.globStatus(path).filter(_.isFile()).foreach &#123; entry =&gt;</div><div class="line">            <span class="keyword">val</span> uri = entry.getPath().toUri()</div><div class="line">            statCache.update(uri, entry)</div><div class="line">            <span class="comment">// 分发jar</span></div><div class="line">            distribute(uri.toString(), targetDir = <span class="type">Some</span>(<span class="type">LOCALIZED_LIB_DIR</span>))</div><div class="line">          &#125;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">          localJars += jar</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      sparkConf.set(<span class="type">SPARK_JARS</span>, localJars)</div><div class="line"></div><div class="line">    <span class="keyword">case</span> <span class="type">None</span> =&gt;</div><div class="line">      <span class="comment">// No configuration, so fall back to uploading local jar files.</span></div><div class="line">      <span class="comment">// 没有配置 spark.yarn.archive和spark.yarn.jars 需要上传本地的jar包</span></div><div class="line">      logWarning(<span class="string">s"Neither <span class="subst">$&#123;SPARK_JARS.key&#125;</span> nor <span class="subst">$&#123;SPARK_ARCHIVE.key&#125;</span> is set, falling back "</span> +</div><div class="line">        <span class="string">"to uploading libraries under SPARK_HOME."</span>)</div><div class="line">      <span class="comment">// 在Spark home目录下查找存放jar的目录</span></div><div class="line">      <span class="keyword">val</span> jarsDir = <span class="keyword">new</span> <span class="type">File</span>(<span class="type">YarnCommandBuilderUtils</span>.findJarsDir(</div><div class="line">        sparkConf.getenv(<span class="string">"SPARK_HOME"</span>)))</div><div class="line">      <span class="comment">// 创建一个名为 __spark_libs__.zip的</span></div><div class="line">      <span class="keyword">val</span> jarsArchive = <span class="type">File</span>.createTempFile(<span class="type">LOCALIZED_LIB_DIR</span>, <span class="string">".zip"</span>,</div><div class="line">        <span class="keyword">new</span> <span class="type">File</span>(<span class="type">Utils</span>.getLocalDir(sparkConf)))</div><div class="line">      <span class="comment">// 利用 __spark_libs__.zip创建输出流</span></div><div class="line">      <span class="keyword">val</span> jarsStream = <span class="keyword">new</span> <span class="type">ZipOutputStream</span>(<span class="keyword">new</span> <span class="type">FileOutputStream</span>(jarsArchive))</div><div class="line"></div><div class="line">      <span class="comment">// 将jar目录下的所有jar文件，添加到__spark_libs__.zip的输出流中，这里其实就是将 jar打包成一个 __spark_libs__.zip的文件</span></div><div class="line">      <span class="keyword">try</span> &#123;</div><div class="line">        jarsStream.setLevel(<span class="number">0</span>)</div><div class="line">        jarsDir.listFiles().foreach &#123; f =&gt;</div><div class="line">          <span class="keyword">if</span> (f.isFile &amp;&amp; f.getName.toLowerCase(<span class="type">Locale</span>.<span class="type">ROOT</span>).endsWith(<span class="string">".jar"</span>) &amp;&amp; f.canRead) &#123;</div><div class="line">            jarsStream.putNextEntry(<span class="keyword">new</span> <span class="type">ZipEntry</span>(f.getName))</div><div class="line">            <span class="type">Files</span>.copy(f, jarsStream)</div><div class="line">            jarsStream.closeEntry()</div><div class="line">          &#125;</div><div class="line">        &#125;</div><div class="line">      &#125; <span class="keyword">finally</span> &#123;</div><div class="line">        jarsStream.close()</div><div class="line">      &#125;</div><div class="line"></div><div class="line">      <span class="comment">// 将打包好的__spark_libs__.zip进行分发， 分发到__spark_libs__目录下</span></div><div class="line">      distribute(jarsArchive.toURI.getPath,</div><div class="line">        resType = <span class="type">LocalResourceType</span>.<span class="type">ARCHIVE</span>,</div><div class="line">        destName = <span class="type">Some</span>(<span class="type">LOCALIZED_LIB_DIR</span>))</div><div class="line">      jarsArchive.delete()</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>看到代码的实现，这里还有一个问题，对于配置spark.yarn.jars的情况，如果其中的jar是以“local://”开头的，会将这些文件加入到列表中，然后用这个列表来重新设置spark.yarn.jars的配置，那么后续还会怎么处理呢？也就是说对于以local://开头配置的文件，要怎么处理呢？</p>
+<h4 id="分发用户Jar包"><a href="#分发用户Jar包" class="headerlink" title="分发用户Jar包"></a>分发用户Jar包</h4><p>对于用户的jar包（通过–jar参数指定的），会将其以“<strong>app</strong>.jar”进行分发<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="type">Option</span>(args.userJar).filter(_.trim.nonEmpty).foreach &#123; jar =&gt;</div><div class="line">  <span class="keyword">val</span> (isLocal, localizedPath) = distribute(jar, destName = <span class="type">Some</span>(<span class="type">APP_JAR_NAME</span>))</div><div class="line">  <span class="keyword">if</span> (isLocal) &#123;</div><div class="line">    require(localizedPath != <span class="literal">null</span>, <span class="string">s"Path <span class="subst">$jar</span> already distributed"</span>)</div><div class="line">    <span class="comment">// If the resource is intended for local use only, handle this downstream</span></div><div class="line">    <span class="comment">// by setting the appropriate property</span></div><div class="line">    sparkConf.set(<span class="type">APP_JAR</span>, localizedPath)</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h4 id="其他需要分发的"><a href="#其他需要分发的" class="headerlink" title="其他需要分发的"></a>其他需要分发的</h4><p>除了上面那些分发的内容，用户还可以设置spark.yarn.dist.jars、spark.yarn.dist.files或spark.yarn.dist.archives配置项来制定自己要分发的文件，对于spark.yarn.dist.jars指定的jar，会被添加到classPath中，另外两个不会。需要注意的是这些文件不能和之前上传的URI或文件名相同，否则不会分发。然后这些值会作为配置项“spark.yarn.secondary.jars”的信息进行设置。对于那些AM不需要，但是executor需要的jar，可以通过这种方式来配置。</p>
+<h4 id="配置项的上传"><a href="#配置项的上传" class="headerlink" title="配置项的上传"></a>配置项的上传</h4><p>除了上面的jar包、文件的分发，系统还会上传，配置项会被上传到(spark.yarn.stagingDir|～)/.sparkStaging/application_id/<strong>spark_conf</strong>.zip位置。<br>上传的内容配置内容如下，“spark.overlay.hadoop.conf.filenames”配置项中指定的配置文件、log4j.properties、metrics.properties、环境变量“HADOOP_CONF_DIR”目录中的文件、环境变量“YARN_CONF_DIR”目录中的文件。其中如果有相同的配置文件，那么最后两个环境变量中的文件优先级最低。除了这些文件，系统还会将内存中sparkConf的属性和Keytab文件中的属性，以“<strong>spark_conf</strong>.properties”进行保存，一起添加到压缩文件<strong>spark_conf</strong>.zip中，一起上传到spark.yarn.stagingDir|～)/.sparkStaging/application_id/<strong>spark_conf</strong>.zip位置。</p>
+<p>这些资源如何传递给container呢？答案是生成ContainerLaunchContext时（Records.newRecord(classOf[ContainerLaunchContext])–这样创建），作为localResources属性设置的。除了localResource，还有一个environment需要设置，环境信息和资源信息一样，也会上传到“(spark.yarn.stagingDir|～)/.sparkStaging/application_id/”目录下。对于环境的准备，稍后介绍。</p>
+<h3 id="创建Container启动上下文-createContainerLaunchContext"><a href="#创建Container启动上下文-createContainerLaunchContext" class="headerlink" title="创建Container启动上下文 - createContainerLaunchContext"></a>创建Container启动上下文 - createContainerLaunchContext</h3><p>创建Container的启动上下文（通过createContainerLaunchContext方法实现），分为几个模块，包括：申请ApplicationId、创建资源目录、准备启动环境、准备启动资源、生成启动命令（包括：生成java配置、确定用户class和jar、确定启动类（ApplicationMaster或ExecutorLauncher））以及设置Application访问ACL。</p>
+<h3 id="创建Container提交上下文-ApplicationSubmissionContext"><a href="#创建Container提交上下文-ApplicationSubmissionContext" class="headerlink" title="创建Container提交上下文 - ApplicationSubmissionContext"></a>创建Container提交上下文 - ApplicationSubmissionContext</h3><p>创建Container提交上下文是通过createApplicationSubmissionContext方法实现的。与其说是创建不如说设置，因为这个上下文是通过newApp.getApplicationSubmissionContext得到的，而newApp是通过yarn客户端调用createApplication得到的。<br>这个方法对Context设置的信息如下</p>
+<table>
+<thead>
+<tr>
+<th>context属性</th>
+<th>取值</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>applicationName</td>
+<td>spark.app.name配置项，默认为Spark</td>
+</tr>
+<tr>
+<td>queue</td>
+<td>spark.yarn.queue配置项</td>
+</tr>
+<tr>
+<td>AMContainerSpec</td>
+<td>上面生成的ContainerLaunchContext</td>
+</tr>
+<tr>
+<td>applcationType</td>
+<td>“SPARK”</td>
+</tr>
+<tr>
+<td>applicationTags</td>
+<td>spark.yarn.tags配置项，如果是多值，逐个设置</td>
+</tr>
+<tr>
+<td>maxAppAttempts</td>
+<td>spark.yarn.maxAppAttempts配置项</td>
+</tr>
+<tr>
+<td>attemptFailuresValidityInterval</td>
+<td>spark.yarn.am.attemptFailuresValidityInterval配置项</td>
+</tr>
+<tr>
+<td>AMContainerResourceRequest</td>
+<td>新生成的ResourceRequest对象，ResourceRequest对象包含的信息，如下表，该配置只有在spark.yarn.am.nodeLabelExpression设置时有效</td>
+</tr>
+<tr>
+<td>resource</td>
+<td>新生成的Resource对象，包括所需的内存和CPU，该配置只有在spark.yarn.am.nodeLabelExpression没有设置时有效</td>
+</tr>
+<tr>
+<td>logAggregationContext</td>
+<td>新生成的LogAggregationContext，只有在spark.yarn.rolledLog.includePattern设置时有效</td>
+</tr>
+</tbody>
+</table>
+<p>ResourceRequest包含的信息如下<br>|属性|取值|<br>|-|-|<br>|resourceName|*，等|<br>|priority|Priority对象，默认为0|<br>|capability|Resource对象，包含内存和cpu|<br>|numContainers|所需container的数量|<br>|nodeLableExpression|节点标签表达式 —- 这个在申请资源时有什么作用|</p>
+<p>将上面补充好的ApplicationSubmissionContext对象作为参数，通过yarn客户端的submitApplication方法，就完成了application的提交。</p>
+<h3 id="启动环境的配置"><a href="#启动环境的配置" class="headerlink" title="启动环境的配置"></a>启动环境的配置</h3><p>启动环境的配置，是通过方法setupLaunchEnv来实现的。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2019/01/31/spark-2-11-metircs/" itemprop="url">
                   spark-2-11-metircs
                 </a>
@@ -4047,180 +4768,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-ClusterModeOverview/" itemprop="url">
-                  Spark 2.3.1 Cluster Mode Overview
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-08-10T11:17:30+08:00" content="2018-08-10">
-              2018-08-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
-                    <span itemprop="name">spark 2.3.1</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Cluster-Mode-Overview"><a href="#Cluster-Mode-Overview" class="headerlink" title="Cluster Mode Overview"></a>Cluster Mode Overview</h1><p>本文档对Spark如何在集群上运行给出了一个简短的浏览，以便更加容易理解相关组件。通过看application submission guide来学习关于在集群上启动一个applicaiton的信息。</p>
-<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark的application作为一组独立的进程在集群上运行，通过你主程序（被称为driver）中的SparkContext对象来协调合作。<br>具体来说，要在集群上运行application，SparkContext能够连接到某种类型的集群管理器（Spark自己的standalone集群管理器、Mesos或YARN），集群管理器能够跨application分配资源。一旦连接成功，Spark得到集群节点上的executor，这些executor为你的application执行计算以及存储数据。接下来SparkContext发送你的application代码（由传递给你SparkContext的JAR或Python文件定义）到executor。最终，SparkContext发送任务到executor来运行。</p>
-<p>此处是图片<img src=""><br>关于这个结构，有一些有用的东西需要注意：</p>
-<blockquote>
-<p>1、每个application会得到自己的executor进程，这些executor在这个application持续期间保持不变并以多线程运行任务。这样的好处是application彼此隔离，无论是在调度方面（每个driver调度它自己的任务）还是executor方面（来自不同application的任务运行在不同的JVM中）。因此，这也意味着数据在不同的Spark application之间是不能共享的，除非借助其他外部存储。<br>2、Spark与底层集群管理器无关。只要它能够得到executor进程，并且它们能够彼此通信，这样即使是在支持其他application的集群管理器上也能相对简单的运行。<br>3、在driver程序整个生命周期内，它必须监听并接受来自它的executor的连接（查看网路配置章节spark.driver.port）。因此，driver程序对于它的worker节点来说必须是可以迅指的。<br>4、因为driver在集群上调度任务，因此它应该靠近worker节点，最好是在相同的局域网内。如果你想要远程向集群发送请求，最好为你的driver打开一个RPC，让它就近提交，而不是在远离worker节点的地方运行driver。</p>
-</blockquote>
-<h2 id="Cluster-Manager-Types"><a href="#Cluster-Manager-Types" class="headerlink" title="Cluster Manager Types"></a>Cluster Manager Types</h2><p>系统当前支持3种集群管理器：</p>
-<blockquote>
-<p>Stangalone - Spark自带的一种集群管理器，使用它能够很容易的构建集群。<br>Apache Mesos - 一个很普遍的集群管理器，它还能够运行Hadoop的MapReduce和服务应用。<br>Hadoop YARN -    Hadoop2种的资源管理器。<br>Kubernetes - 一个开源的系统，用于自动部署、扩展以及管理application。</p>
-</blockquote>
-<h2 id="Submitting-Applications"><a href="#Submitting-Applications" class="headerlink" title="Submitting Applications"></a>Submitting Applications</h2><p>使用spark-submit脚本可以将application提交到任何类型集群。<a href="/blog/2018/08/09/spark-2-3-1-submit-applications">application submission guide</a>描述了应该如何做。</p>
-<h2 id="Monitoring"><a href="#Monitoring" class="headerlink" title="Monitoring"></a>Monitoring</h2><p>每个driver程序都有一个Web UI，端口一般是4040，这个web UI展示了运行的任务、executor已经存储的使用情况。通过在浏览器中输入http://<driver-node>:4040就可以访问这个UI。<a href="http://spark.apache.org/docs/latest/monitoring.html" title="monitoring guide" target="_blank" rel="external">monitoring guide</a>描述了其他的监控项。</driver-node></p>
-<h2 id="Job-Scheduling"><a href="#Job-Scheduling" class="headerlink" title="Job Scheduling"></a>Job Scheduling</h2><p>spark给出了两种资源分配，一种是跨applications（在集群管理器级别上），一种是application中（在相同SparkContext上出现多次计算的情况）。<a href="http://spark.apache.org/docs/latest/job-scheduling.html" title="job scheduling overview" target="_blank" rel="external">job scheduling overview</a>描述了详细信息。</p>
-<h2 id="Glossary"><a href="#Glossary" class="headerlink" title="Glossary"></a>Glossary</h2><p>下面的表格列出了常用的一些集群概念：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Term</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">Application</td>
-<td style="text-align:left">在Spark上构建的用户程序。由一个driver程序和集群上的executors组成。</td>
-</tr>
-<tr>
-<td style="text-align:left">Application jar</td>
-<td style="text-align:left">一个包含了用户的Spark application的jar。在某些情况下用户可能想要创建一个”uber jar”来包含他们的application以及依赖。用户的jar应当不要包含Hadoop或Spark的库，因为这些库会在运行时自动被添加。</td>
-</tr>
-<tr>
-<td style="text-align:left">Driver program</td>
-<td style="text-align:left">运行application的main函数并创建SparkContext的进程。</td>
-</tr>
-<tr>
-<td style="text-align:left">Cluster</td>
-<td style="text-align:left">一个额外的服务，用来获取集群上的资源（如standalong manager、Mesos或YARN）。</td>
-</tr>
-<tr>
-<td style="text-align:left">Deploy mode</td>
-<td style="text-align:left">用来区分在哪里运行driver进程。在“cluster”模式中，系统在集群内部启动driver。在“client”模式中，在集群之外启动driver。</td>
-</tr>
-<tr>
-<td style="text-align:left">Worker node</td>
-<td style="text-align:left">集群中任何可以运行application的节点。</td>
-</tr>
-<tr>
-<td style="text-align:left">Executor</td>
-<td style="text-align:left">在worker节点上启动的用来处理application的进程，它执行任务并在内存或磁盘上保存数据。每个application都有自己的exectors。</td>
-</tr>
-<tr>
-<td style="text-align:left">Task</td>
-<td style="text-align:left">发送给executor的一个工作单元。</td>
-</tr>
-<tr>
-<td style="text-align:left">Job</td>
-<td style="text-align:left">由多个tasks组成的一个并行计算，并为一个spark action产生结果（如 save、collect）。 你将会在driver的日志中看到它们。</td>
-</tr>
-<tr>
-<td style="text-align:left">Stage</td>
-<td style="text-align:left">每个job被划分为一更小的task，称为stage，这些stage相互依赖（类似MapReduce中map阶段和reduce阶段）。你将会在driver的日志中看到他们。</td>
-</tr>
-</tbody>
-</table>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -4266,7 +4813,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">52</span>
+              <span class="site-state-item-count">53</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
