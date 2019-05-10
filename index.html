@@ -248,6 +248,207 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2019/05/05/yarn-learn/" itemprop="url">
+                  yarn-learn
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-05-05T21:39:19+08:00" content="2019-05-05">
+              2019-05-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/yarn/" itemprop="url" rel="index">
+                    <span itemprop="name">yarn</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文用来记录自己读书的一些笔记</p>
+<h1 id="YARN-组件的功能概述"><a href="#YARN-组件的功能概述" class="headerlink" title="YARN 组件的功能概述"></a>YARN 组件的功能概述</h1><p>YARN集群主要分为三个部分：ResourceManager、NodeManager和ApplicationMaster。其中ResourceManager的重要组成部分为调度器和ApplicationMaster。</p>
+<p>ResourceManager作为独立的进程运行在专有的机器上，负责集群中所有应用程序的资源分配。它可以为用户提供公平的、基于容量的、本地化的资源调度。在Yarn资源的分配单位为Container，它是一组内存和cpu核数的组合（目前只有内存和cpu）。RsoueceManager和运行在每个节点上的NodeManager会进行交互以便执行和跟踪资源的分配。基于可扩展性需求，ResourceManager和NodeManager之间通过心跳进行通信。NodeManager负责本地可用资源的监控，故障报告以及Container生命周期的管理（启动或终止任务）。<br>用户将Application提交给ResourceManager，被ResourceManager接受的Applcation会被传递给Scheduler并允许其运行。一旦Scheduler有足够的资源可以满足需求，Application的状态就会从Accepted转为Running。ResourceManager会为ApplicationMaster分配一个Container，ApplicationMaster通常被称为“Container0”.<br>ApplicationMaster是每个用户作业的主进程，负责管理作业的生命周期，包括动态的增加或减少Container，管理执行流程，处理故障和计算偏差，以及执行其他的本地优化。<br>ApplicationMaster可以运行以任何编程语言实现的用户程序。通常，ApplicationMaster需要利用多台服务器的处理能力来完成一个作业，因此ApplicationMaster会向ResourceManager进行资源请求。这些资源会包含本地化优势和Container的容量（内存和cpu）。ResourceManager根据可用资源和调度策略来为每个Application分配资源。当一个Container被分配给一个ApplicationMaster时，ResourceManager为该资源生成一个租约，ApplicationMaster通过心跳会得到该租约。基于令牌的机制，保证了ApplicationMaster在NodeManager上使用Container的可靠性。Container在运行过程中，会通过特定协议与ApplicationMaster通信，来报告状态和健康信息，以及接受框架的特定指令（杀掉任务等）。通过这种方式，Yarn提供了对Container的监控和生命周期管理的基础框架，而应用程序特定语义由每个框架独立管理。</p>
+<h2 id="ResourceManager"><a href="#ResourceManager" class="headerlink" title="ResourceManager"></a>ResourceManager</h2><p>ResourceManager是集群所有资源的仲裁者。它的主要职责就是调度，即在竞争的应用程序之间分配系统中的可用资源，但是它不关心每个应用程序的状态。调度器只处理应用程序的整体资源分配，不关心局部优化和内部流程。ResouceManager不负责的职能，它没有跟踪应用程序的执行流程，没有任务容错能力。</p>
+<h2 id="Yarn调度器"><a href="#Yarn调度器" class="headerlink" title="Yarn调度器"></a>Yarn调度器</h2><p>Yarn有一个可插拔的调度器组件，根据不同的使用场景和用户需求，管理员可以选择不同的调度策略，目前支持FIFO、Capacity和Fair。具体使用哪种调度器可以在yarn-default.xml中设置。</p>
+<h3 id="FIFO"><a href="#FIFO" class="headerlink" title="FIFO"></a>FIFO</h3><p>先进先出调度器，它不考虑作业的优先级和范围。FIFO比较适合低负载集群，当使用大型共享集群时，它的功能不佳。</p>
+<h3 id="Capacity"><a href="#Capacity" class="headerlink" title="Capacity"></a>Capacity</h3><p>Capacity调度器允许多个组安全的共享一个大规模Hadoop集群。要使用Capacity调度器，管理员使用总槽位容量的预定值配置一个或多个队列。这种分配保证了每个队列的最小使用量。管理员为每个队列的可用资源容量配置软限制和可选的硬限制。每个队列有严格的ACL，用来控制那些用户可以向那些队列提交作业。同时也有措施来保证无法查看或修改其他用户的应用程序。<br>Capacity调度器允许共享集群，同时给每个用户或组一定的最小容量保证。这些最小值在不需要时可以放弃，超出的容量将会给予那些最饥饿的队列，饥饿程度用运行中或已用的队列容量来衡量。<br>队列的定义和属性可以由管理员以安全的方式，在运行期间修改，以尽量减少对用户的干扰。管理员可以在运行期间添加额外的队列。管理不能在运行期间删除已有队列，但是可以在运行期间停止队列，以确保现有application运行完毕后不会再有新的应用程序被提交。<br>当工作负载可预见的情况下，Capacity调度器效果最好，有助于分配最小容量。在每个队列内部，使用层次化的FIFO来调度多个Application，类似于在独立的FIFO调度器中使用的方式。</p>
+<h3 id="Fair调度器"><a href="#Fair调度器" class="headerlink" title="Fair调度器"></a>Fair调度器</h3><p>Fair调度器是将资源公平分配给应用的方法，使得所有应用在平均情况下随着时间得到相等的份额。<br>在Fair调度模型中，每个Application都属于某一个队列。Yarn Container的分配是选择使用了最少资源的队列，在这个队列中，再选择使用最少资源的应用程序。默认情况下，所有的用户共享一个名为“default”的队列。应用程序可以在提交时指定想要添加的队列。另外，也可以将Fair调度器配置成根据请求中包含的用户名来分配队列。Fair调度器还支持许多功能，如队列的权重、最小份额、最大份额以及队列内FIFO策略，但基本原则就是尽可能平均共享资源。<br>Fair调度器也支持抢占的概念，从而可以从ApplicationMaster那里要回Container，并且根据配置和应用程序的设计，抢占和随后的资源分配可以是友好的或者强制的。<br>除了提供平均共享，Fair调度器还允许保证队列的最小份额，确保某些用户、组或者生产应用程序总能够得到足够的资源。当队列中有等待的Application时，它至少能够得到最小份额的资源。Fair调度器可以通过配置文件限制每个用户和每个对了中运行Application的数量。<br>Fair调度器允许Container请求一定量的内存资源。为了避免多个较小内存Application饿死一个较大内存应用，引入了“reserved Container”，如果由于内存不足，一个Applicaiton不能立即使用一个Container，可以将其保留给其他应用程序，这样，其他应用程序不能使用这个Container，直到它被释放。被保留的Container会等待其他本地Container被释放，然后使用这些额外的容量来完成这个作业。一个保留的Container只允许在一个节点上，并且一个节点只允许一个保留的Container。<br>Fair调度器也支持层次化队列，队列可以嵌套在其他队列中，每个队列将它的资源再以一种公平的调度方式分配给它的子队列。</p>
+<h2 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h2><p>Container是单个节点上一组资源（内存、CPU等）的集合。单个NodeManager上可以有多个Container，Container由NodeManager监控，由ResourceManager调度。<br>每个Application都是从ApplicationMaster开始，而且这个ApplicationMaster本身也是一个Container（Container0）。启动后，ApplicationMaster会向ResourceManager请求更多的Container，在运行期间，可以动态的请求或释放Continer。</p>
+<h2 id="NodeManager"><a href="#NodeManager" class="headerlink" title="NodeManager"></a>NodeManager</h2><p>NodeManager的职责包括：与ResourceManager保持通信、管理Container的生命周期、监控每个Container的资源使用、跟踪节点健康状态、管理日志和不同应用程序的附属服务。<br>NodeManager启动时会向ResourceManager进行注册，然后发送包含自身状态的心跳，并等待来自ResourceManager的指令。<br>Contianer使用一个Container启动上下文来描述，这个描述包含环境变量、在远程存储上的依赖、安全令牌、NodeManager服务的載荷以及创建进程的必要命令。在验证了Container租约之后，NodeManager为Container配置环境，包括根据资源限制初始化它的监控。NodeManager可以杀死由ResourceManager指定的Container，或者资源超出限制的Container。</p>
+<h2 id="ApplicationMaster"><a href="#ApplicationMaster" class="headerlink" title="ApplicationMaster"></a>ApplicationMaster</h2><p>ApplicationMaster是协调集群中应用程序执行的进程。每个Application都有自己独特的ApplicationMaster，负责与ResourceManager申请资源，并与NodeManager协同工作来执行和监控任务。<br>ApplicationMaster启动后，后周期性向ResourceManager发送心跳来报告自己的健康以及更新它资源需求。在建好需求模型后，ApplicationMaster在发送给ResourceManager的心跳中封装了它的偏好和限制。在随后的心跳应答中，ApplicationMaster会收到集群中特定节点上绑定了一定资源的container租约。根据Resourcemanager发来的租约，ApplicationMaster可以更新它的执行计划以适应资源的过剩或不足。Container可以在Application运行期间被申请或释放。</p>
+<h2 id="YARN资源模型"><a href="#YARN资源模型" class="headerlink" title="YARN资源模型"></a>YARN资源模型</h2><p>YARN资源分配模型提供了更大的灵活性，解决了静态分配的低效率问题。每个Container都有一些非静态资源，这些资源目前支持内存和CPU，还可以支持带宽GPU等。</p>
+<h3 id="客户端资源请求"><a href="#客户端资源请求" class="headerlink" title="客户端资源请求"></a>客户端资源请求</h3><p>Yarn应用程序是从客户端资源请求开始的。客户端先通知ResourceManager要提交一个Application，ResourceManager在应答中给出一个ApplicationID以及有助于客户端请求资源的集群容量信息。</p>
+<h3 id="ApplicationMaster分配Container"><a href="#ApplicationMaster分配Container" class="headerlink" title="ApplicationMaster分配Container"></a>ApplicationMaster分配Container</h3><p>在得到ResourceManager的应答后，客户端使用“Application Submission Context”（包含ApplicationID、用户名、队列以及其他启动ApplicationMaster所需的信息）发送请求给ResourceManager，同时也会将“Container Launch Context”发送给ResourceManager。Container Launch Context中描述了资源需求（内存和CPU）、作业文件、安全令牌以及在节点上启动ApplicationMaster所需的其他信息。<br>ResourceManager收到“Application Submission Context”后，为ApplicationMaster调度一个可用的Container（Container0），然后启动ApplicationMaster，启动ApplicationMaster之后，ResourceManager会告诉ApplicationMaster当前的资源报告。<br>基于可用资源报告，ApplicationMaster会请求一定的Container。ResourceManager根据资源调度策略，尽可能最优（如本地优势）的分配Container，并作为资源请求的应答发送给ApplicationMaster。<br>在作业的执行过程中，ApplicationMaster会向ResourceManager发送心跳信息。ApplicationMaster还可以将申请和释放Container的信息包含在心跳中。当作业结束时会向RsourceManager发送完成信息并退出。</p>
+<h3 id="ApplicationMaster与Container管理器的通信"><a href="#ApplicationMaster与Container管理器的通信" class="headerlink" title="ApplicationMaster与Container管理器的通信"></a>ApplicationMaster与Container管理器的通信</h3><p>在这个阶段，ResourceManager已经将启动NodeManager的控制权交给了ApplicationMaster。ApplicationMaster将单独联系NodeManager并提供Container Launch Context（包含依赖文件、安全令牌以及启动进程所需的命令）。启动Container时，所有数据文件、可执行文件以及必要的依赖文件都会拷贝到节点的本地存储上，依赖文件可以被相同节点上相同Application的Container共享。<br>一旦启动Container，ApplicationMaster会检查它们的状态，ResourceManager不参与Application的执行，只处理调度以及监控其他资源。Container可以被ResourceManager给Kill掉，当Container被Kill掉之后，NodeManager会清理它的本地工作目录。如果是Applicaiton完成，ResourceManager会通知NodeManager聚合日志病清理Container专用的文件。</p>
+<h2 id="管理Application的依赖文件"><a href="#管理Application的依赖文件" class="headerlink" title="管理Application的依赖文件"></a>管理Application的依赖文件</h2><p>当启动一个Container时，ApplicationMaster可以指定该Container所需文件，因此，这些文件会被本地化处理，而Yarn负责本地化处理的所有操作。</p>
+<h3 id="LocalResource的定义"><a href="#LocalResource的定义" class="headerlink" title="LocalResource的定义"></a>LocalResource的定义</h3><p>这部分包含两个操作</p>
+<blockquote>
+<p>Localization：拷贝/下载远程资源到本地文件系统的过程。<br>LocalResource：LocalResource代表运行Container所需的本地资源。NodeManager负责在启动Container之前将这些资源本地化。<br>LocalCache：NodeManager维护和管理所有已下载文件的几种本地缓存，这些资源基于最初拷贝该文件时使用的远程URL作为唯一标识。</p>
+</blockquote>
+<p>对于每种资源，应用程序都可以指定下面的信息：</p>
+<blockquote>
+<p>URL：待下载的LocalResource的远程地址。<br>Size：LocalResource的大小，以byte为单位。<br>Creation timestamp：资源在远程文件系统上创建的时间。<br>LocalResourceType：NodeManager本地化的资源类型，包括FILE、ARCHIVE和PATTERN。<br>Patten：用于从存档文件中提取条目的样式（只对PATTERN类型适用）。<br>LocalResourceVisibility：指定NodeManager本地化资源的可见性，包括：PUBLIC、PRIVATE和APPLICATION。</p>
+</blockquote>
+<h3 id="LocalResource时间戳"><a href="#LocalResource时间戳" class="headerlink" title="LocalResource时间戳"></a>LocalResource时间戳</h3><p>NodeManager在下载资源文件之前，会检查这些文件有没有被修改过，这个检查可以确保LocalResource的一致性–应用程序在整个运行期间使用相同的文件内容。<br>一旦文件从远程位置拷贝到NodeManager的本地磁盘，它失去了除了URL之外所有与原始文件的联系，不再对远程文件的修改进行跟踪。为了避免不一致的问题，Yarn会让依赖于被修改的远程文件的Container失败。<br>ApplicationMaster在一个节点上启动Container时，会向NodeManager指定资源的时间戳。</p>
+<h3 id="LocalResource类型"><a href="#LocalResource类型" class="headerlink" title="LocalResource类型"></a>LocalResource类型</h3><blockquote>
+<p>FILE：一个普通文件，文本或二进制文件。<br>ARCHIVE：压缩文件，会被NodeManager自动解压缩。目前可以识别jar、tar、tar.gz以及zip。<br>PATTERN：ARCHIVE和FILE类型的组合。目前只有JAR文件支持PATTERN类型。</p>
+</blockquote>
+<h3 id="LocalResource的可见性"><a href="#LocalResource的可见性" class="headerlink" title="LocalResource的可见性"></a>LocalResource的可见性</h3><p>由LocalResource-Visibility指定，LocalResource有三种可见性：</p>
+<h4 id="PUBLIC"><a href="#PUBLIC" class="headerlink" title="PUBLIC"></a>PUBLIC</h4><p>标记为PUBLIC的LocalResource可以被任何用户的Container访问。这些文件被拷贝到公共的LocalCache，之后本地上任何Container都可以直接从这个公共的LocalCache中读取文件，在LocalCache被清除之前，都不需要再次下载文件。</p>
+<h4 id="PRIVATE"><a href="#PRIVATE" class="headerlink" title="PRIVATE"></a>PRIVATE</h4><p>使用PRIVATE标记的LocalResource可以被节点上同一用户的应用程序共享。这些LocalResource被复制到特定用户的私有缓存中。由同一个用户的不同应用程序的所有Container都可以访问这些文件。</p>
+<h4 id="APPLICATION"><a href="#APPLICATION" class="headerlink" title="APPLICATION"></a>APPLICATION</h4><p>使用APPLICATION标记的资源可以被同一节点上相同Application的Container所共享。这些LocalResource被复制到应用程序专有的LocalCache。</p>
+<h3 id="LocalResource的生命周期"><a href="#LocalResource的生命周期" class="headerlink" title="LocalResource的生命周期"></a>LocalResource的生命周期</h3><p>不同类型的LocalResource具有不同的生命周期：</p>
+<blockquote>
+<p>PUBLIC LocalResource 在Container或者应用程序结束时都不会被删除，但是在磁盘容量紧张时会删除。这个阈值可以通过yarn.nodemanager.localizer.cache.target-size-mb来指定。<br>PRIVATE LocalResource 与PUBLIC LocalResource的生命周期相同。<br>APPLICATION LocalResource会在应用程序结束后立即被删除。</p>
+</blockquote>
+<p>注意：APPLICATION LocalResource生命周期是以Application来界定，而不是ApplicationAttempt。</p>
+<h1 id="Apache-Hadoop-YARN的管理"><a href="#Apache-Hadoop-YARN的管理" class="headerlink" title="Apache Hadoop YARN的管理"></a>Apache Hadoop YARN的管理</h1><h2 id="基本的Yarn管理"><a href="#基本的Yarn管理" class="headerlink" title="基本的Yarn管理"></a>基本的Yarn管理</h2><p>Yarn环境的基本配置文件如下：</p>
+<blockquote>
+<p>core-default.xml 系统范围的配置<br>hdfs-default.xml 分布式文件系统的配置<br>mapred-default.xml YARN的MapReduce框架配置<br>yarn-default.xml YARN的配置</p>
+</blockquote>
+<h3 id="YARN的管理工具"><a href="#YARN的管理工具" class="headerlink" title="YARN的管理工具"></a>YARN的管理工具</h3><p>Yarn有一些内置管理功能，通过yarn rmadmin -help 命令行命令可以查看具体的命令说明。</p>
+<h3 id="增加或关闭YARN节点"><a href="#增加或关闭YARN节点" class="headerlink" title="增加或关闭YARN节点"></a>增加或关闭YARN节点</h3><p>有两个文件决定了哪些节点属于集群内，哪些节点数据不属于集群内：yarn.resourcemanager.nodes.include-path和yarn.resourcemanager.nodes.exclude-path。当这两个文件修改之后，可以通过下面的命令行命令来刷新ResourceManager，对节点进行容纳或踢出。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshNodes</div></pre></td></tr></table></figure></p>
+<p>执行刷新命令需要管理员权限，管理员是通过ResourceManager上配置项 yarn.admin.acl 来指定的。</p>
+<h3 id="Capacity调度器的配置"><a href="#Capacity调度器的配置" class="headerlink" title="Capacity调度器的配置"></a>Capacity调度器的配置</h3><p>调度器的详细配置会在稍后介绍，这里我们介绍重新配置和添加队列。<br>要重新配置或添加队列，可以使用前面提到的confidence-haddoop2.sh或者直接编辑$Hadoop_conf_dir/etc/hadoop/capacity-scheduler.xml来实现。修改后，执行如下命令行命令来进行刷新：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshQueues</div></pre></td></tr></table></figure></p>
+<p>注意不能够删除队列，只能增加或重新配置队列。</p>
+<h3 id="YRAN的Web代理"><a href="#YRAN的Web代理" class="headerlink" title="YRAN的Web代理"></a>YRAN的Web代理</h3><p>默认情况下，代理是作为ResourceManager的一部分运行的，但是也可以通过配置项 yarn.web-proxy.address 来使其独立运行。配置项默认为空，表示在ResourceManager运行。独立运行时，通过 yarn.web-proxy.principal 和 yarn.web-proxy.keytab 两个配置项可以控制使用 Kerberos 进行安全认证。</p>
+<h3 id="使用-JobHistoryServer"><a href="#使用-JobHistoryServer" class="headerlink" title="使用 JobHistoryServer"></a>使用 JobHistoryServer</h3><p>。。。</p>
+<h3 id="更新用户到用户组的映射关系"><a href="#更新用户到用户组的映射关系" class="headerlink" title="更新用户到用户组的映射关系"></a>更新用户到用户组的映射关系</h3><p>配置项 hadoop.security.group.mapping 决定了 ResourceManager 中使用的用户与用户组的映射关系的定义类。默认为org.apache.hadoop.security.ShellBasedUnixGroupsMapping，如果用户想要实现自己的类，需要实现org.apache.hadoop.security.GroupMappingServiceProvider接口。如果修改了映射关系，则需要使用下面的命令来更新ResourceManager：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshUserToGroupMapping</div></pre></td></tr></table></figure></p>
+<h3 id="更新超级用户代理群映射关系"><a href="#更新超级用户代理群映射关系" class="headerlink" title="更新超级用户代理群映射关系"></a>更新超级用户代理群映射关系</h3><p>通过配置 hadoop.proxyuser.&lt; proxy-user-name &gt;.groups ，可以让用户$proxy-user-name 成为具有特殊权限的用户，它可以模拟配置值中的任意用户。配置项 hadoop.proxyuser.&lt; proxy-user-name &gt;.hosts 的配置值为逗号分隔的主机列表，只有配置在这里的这些主机，才可以使用前面的 $proxy-user-name 来模拟所配置的用户。如果修改这两个配置，则需要使用下面的命令行命令来更新ResourceManager：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshSuperUserGroupsConfiguration</div></pre></td></tr></table></figure></p>
+<p>$proxy-user-name用户在模拟其他用户时，自己必须使用Kerberos认证。</p>
+<h3 id="更新ResourceManager管理的ACL"><a href="#更新ResourceManager管理的ACL" class="headerlink" title="更新ResourceManager管理的ACL"></a>更新ResourceManager管理的ACL</h3><p>配置项 yarn.admin.acl 指定了谁是YRAN集群的管理员。管理员可以更新队列、管理节点列表、用户-群组映射、管理列表本身以及服务级别的ACL。还可以查看任何用户的Application、访问所有的Web界面、调用任何Web服务，以及杀掉任何队列中的Application。<br>这个配置项的值是一个用逗号分隔的用户列表和一个用逗号分隔的用户组列表，用户列表和用户组列表使用空格分隔，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">user1,user2 group1,group2</div></pre></td></tr></table></figure></p>
+<p>当这个配置项变更后，管理员需要使用下面的命令行命令来刷新ResourceManager<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshAdminAcls</div></pre></td></tr></table></figure></p>
+<h3 id="重新加载服务级授权策略文件"><a href="#重新加载服务级授权策略文件" class="headerlink" title="重新加载服务级授权策略文件"></a>重新加载服务级授权策略文件</h3><p>管理员可以使用下面的命令行命令来重新加载授权策略文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshServiceACL</div></pre></td></tr></table></figure></p>
+<h3 id="管理YARN作业"><a href="#管理YARN作业" class="headerlink" title="管理YARN作业"></a>管理YARN作业</h3><p>Yarn的作业可以通过 yarn application 命令来管理。可以使用的子命令有：kill、list、status、appTypes和help。如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn application -list</div></pre></td></tr></table></figure></p>
+<p>各个子命令的作用，通过名字我们也可以看出来。</p>
+<h3 id="设置Container的内存"><a href="#设置Container的内存" class="headerlink" title="设置Container的内存"></a>设置Container的内存</h3><p>通过 yarn-site.xml 中的三个重要的配置，可以控制Container的内存：</p>
+<blockquote>
+<p>yarn.nodemanager.resource.memory-mb 指定了NodeManager可以给Container使用的内存总量（机器上可以用来给Container分配的最大内存）。<br>yarn.scheduler.minimum-allocation-mb 是ResourceManager允许分配给Container的最小内存。如果请求的Container的内存值小于这个值，则使用这个值，默认为1024MB。<br>yarn.scheduler.maximum-allocation-mb 是ResourceManager允许分配给Container的最大内存，默认为8192MB。</p>
+</blockquote>
+<h3 id="设置Container核数"><a href="#设置Container核数" class="headerlink" title="设置Container核数"></a>设置Container核数</h3><p>通过 yarn-site.xml中的配置，我们可以控制Container的核数：</p>
+<blockquote>
+<p>yarn.scheduler.minimum-allocation-vcores 指定了Container使用的最小core数。<br>yarn.scheduler.maximum-allocation-vcores 指定了Container使用的最大core数。<br>yarn.nodemanager.resource.cpu-vcores 指定了节点上可以用来给Container分配的总core数。</p>
+</blockquote>
+<h3 id="用户日志管理"><a href="#用户日志管理" class="headerlink" title="用户日志管理"></a>用户日志管理</h3><p>在应用完成后，Yarn通过NodeManager提供的将日志安全的移动到HDFS上的功能，解决了日志管理问题。</p>
+<h4 id="Yarn上的日志聚合"><a href="#Yarn上的日志聚合" class="headerlink" title="Yarn上的日志聚合"></a>Yarn上的日志聚合</h4><p>有了Yarn，对于同一个应用的所有Container的日志，可以聚合并写到指定文件系统的指定目录中的一个单独文件中。用户可以通过命令行工具、web用户界面或直接从文件系统来访问这些日志。 在MapReduce的JobHistoryServer中运行着一个AggregatedLogDeletionService服务，会周期性的删除聚合日志。</p>
+<h4 id="Web用户界面"><a href="#Web用户界面" class="headerlink" title="Web用户界面"></a>Web用户界面</h4><p>在应用运行期间，用户可以通过ApplicationMaster的用户界面看到日志，它将用户重定向到NodeManager的用户界面。一旦Application运行结束，完整的信息就交由JobHistoryServer管理。</p>
+<h4 id="命令行访问"><a href="#命令行访问" class="headerlink" title="命令行访问"></a>命令行访问</h4><p>用户还可以使用命令行工具来与日志进行交互。可以运行下面的命令来查看可用命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs</div></pre></td></tr></table></figure></p>
+<p>命令的格式为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs -applicationId &lt; application ID &gt; [Options]</div></pre></td></tr></table></figure></p>
+<p>常用的选项有：-appOwner、-containerId、-nodeAddress，例如下面的命令可以打印出整个Application的全部日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs -applicationId XXXXXXX</div></pre></td></tr></table></figure></p>
+<p>使用命令行工具的优点是可以通过Shell工具来帮助处理日志信息。</p>
+<h4 id="日志的管理和配置"><a href="#日志的管理和配置" class="headerlink" title="日志的管理和配置"></a>日志的管理和配置</h4><p>yarn.nodemanager.log-dirs 决定了在Container运行时，它的日志在节点上保存的位置。应用的本地化日志目录在{yarn.nodemanager.log-dirs}/application<em>${applicationId}下。各个Container的日志目录位于{yarn.nodemanager.log-dirs}/application</em>${applicationId}/container_{$containerId}子目录中。<br>yarn.log-aggregation-enable 指定了是否开启日志聚合功能。如果关闭了，NodeManager会本地化保存日志，不会进行聚合操作。</p>
+<p>如果开启了日志聚合功能，那么下面的配置也将生效：</p>
+<blockquote>
+<p>yarn.nodemanager.remote-app-log-dir：指定了NodeManager将在哪里聚合日志。<br>yarn.nodemanager.remote-app-log-dir-suffix：将在${yarn.nodemanager.remote-app-log-dir}/${user}下创建远程日志的后缀。默认为log。<br>yarn.log-aggregation.retain-seconds：删除聚合日志的延迟，将在这个时长之后删除日志。如果为负数则表示不删除。<br>yarn.log-aggregation.retain-check-interval-seconds：定义检查日志删除的周期，如果为0或负数，那么将会按照聚合日志保留时间的十分之一来计算。<br>yarn.log.server.url：Application完成后，NodeManager用来将Web用户界面重定向的URL。</p>
+</blockquote>
+<p>如果关闭了日志聚合功能，那么下面的配置将生效：</p>
+<blockquote>
+<p>yarn.nodemanager.log.retain-seconds：日志聚合功能关闭的情况下，各个节点上保留用户日志的时长（单位：秒）。<br>yarn.nodemanager.log.deletion-threads-count：日志聚合功能关闭情况下，NodeManager用于清理日志所启动的线程数量。</p>
+</blockquote>
+<h4 id="日志权限"><a href="#日志权限" class="headerlink" title="日志权限"></a>日志权限</h4><p>远程日志目录需要其所有者是${NMUser}，权限为1777，并且目录和组属于${NMGroup}。每个Application级的目录都是770。</p>
+<h1 id="Apache-Hadoop-YARN的架构指南"><a href="#Apache-Hadoop-YARN的架构指南" class="headerlink" title="Apache Hadoop YARN的架构指南"></a>Apache Hadoop YARN的架构指南</h1><p>Yarn将它的功能分为两层：资源管理平台和程序调度执行。ResourceManager只是简单地基于应用程序的请求做中心的资源配置，而不关心应用程序是如何使用这些资源的。它把这个职责委托给了ApplicationMaster，由ApplicationMaster来协调单个应用程序从ResourceManager请求来的资源的逻辑执行，产生应用程序自己的具体的工作计划，ApplicationMaster利用接收到的资源，协调这个具体计划的执行。</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ApplicationMaster和响应的Container一起组成了一个YARN的应用程序。ResourceManager提供应用程序的调度。每个应用程序由一个ApplicationMaster管理，以Container的相识请求每个任务的计算资源。Container由ResourceManager调度，在NodeManager上运行。</p>
+<h2 id="ResourceManager-1"><a href="#ResourceManager-1" class="headerlink" title="ResourceManager"></a>ResourceManager</h2><p>ResourceManager和如下的组件一起工作：</p>
+<blockquote>
+<p>每个节点上的NodeManager： 从ResourceManager中获取指令，管理单个节点上可用资源，并接收ApplicationMaster的资源请求。<br>每个应用程序的ApplicationMaster： ApplicationMaster向ResourceManager申请资源并和NodeManager一起工作，启动、监控和停止Container。</p>
+</blockquote>
+<h3 id="ResourceManager组件概述"><a href="#ResourceManager组件概述" class="headerlink" title="ResourceManager组件概述"></a>ResourceManager组件概述</h3><p>ResourceManager会向客户端、NodeManager、ApplicationMaster和其他内部核心组件提供服务。</p>
+<h3 id="客户端与ResourceManager交互"><a href="#客户端与ResourceManager交互" class="headerlink" title="客户端与ResourceManager交互"></a>客户端与ResourceManager交互</h3><h1 id="YARN-的HA"><a href="#YARN-的HA" class="headerlink" title="YARN 的HA"></a>YARN 的HA</h1><p>参考地址：<a href="https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html" target="_blank" rel="external">https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html</a></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2019/04/23/spark-2-11-BlockManager/" itemprop="url">
                   spark-2-11-BlockManager
                 </a>
@@ -4104,588 +4305,6 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/08/10/spark-2-3-1-SparkSQL-DataFramesAndDatasetsGuide/" itemprop="url">
-                  Spark 2.3.1 Spark SQL DataFrames and DatasetsGuide
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-08-10T15:21:30+08:00" content="2018-08-10">
-              2018-08-10
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/spark-2-3-1/" itemprop="url" rel="index">
-                    <span itemprop="name">spark 2.3.1</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="Spark-SQL-DataFrames-and-Dataset-Guide"><a href="#Spark-SQL-DataFrames-and-Dataset-Guide" class="headerlink" title="Spark SQL, DataFrames and Dataset Guide"></a>Spark SQL, DataFrames and Dataset Guide</h1><h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a>Overview</h2><p>Spark SQL是一个用于结构化数据处理的Spark模块。与Spark RDD API不同，由Spark SQL提供的这些接口在结构化数据和结构化计算执行方面提供了更多信息。在内部，Spark SQL使用了这个额外信息来执行额外的优化。有几种与Spark SQL交互的方法，包括SQL和Dataset API。当计算一个结果时，相同的计算引擎会被使用，与你执行计算使用的API／语言无关。这种统一意味着开发者能够轻松在那些提供更加原始的方式处理给定转换的不同API之间进行来回切换。<br>本篇中所有例子使用的样例数据包含在Spark中，并能够使用spark-shell、pyspark shell或sparkR shell来运行。</p>
-<h3 id="SQL"><a href="#SQL" class="headerlink" title="SQL"></a>SQL</h3><p>Spark SQL的一种用法时执行SQL查询。Spark SQL还能够被用来从Hive实例中读取数据。关于如何配置这个特性，请参考<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#hive-tables" title="Hive Tables " target="_blank" rel="external">Hive Tables</a>。当在另一种编程语言中执行SQL时，结果会作为一个Dataset/DataFrame来返回。你还能够使用<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#running-the-spark-sql-cli" title="command-line" target="_blank" rel="external">command-line</a>或<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#running-the-thrift-jdbcodbc-server" title="JDBC/ODBC" target="_blank" rel="external">JDBC/ODBC</a>的方式与SQL接口进行交互。</p>
-<h3 id="Datasets-and-DataFrames"><a href="#Datasets-and-DataFrames" class="headerlink" title="Datasets and DataFrames"></a>Datasets and DataFrames</h3><p>一个Dataset就是一个分布式数据集。Dataset作为一个新接口在Spark 1.6中被添加，它提供了RDD的优点（强类型、能够使用强大的lambda函数）和Spark SQL的优化执行引擎的有点。一个Dataset能够根据JVM对象来构造，然后使用函数转换（map、flatMap、filter）进行操作。Dataset的API在Scala和Java中时可用的。Python还不支持Dataset API。但是因为Python的动态特性，Dataset API的很多优点已经可用了（例如你可以很自然的通过名称来访问某一行的一个字段 row.columnName）。对于R语言也是如此。<br>一个DataFrame是一个带有列名的数据集。它在概念上等同于关系数据库中的一个表或者一个是R语言或Python语言中data frame，但是底层具更加优化。DataFrame可以根据各种资源进行构建，例如：结构化的数据文件、Hive中的表、外部数据库以及已经存在的RDD。DataFrame API在Scala、Java、Python和R语言中都可用。在Scala和Java中，一个DataFrame相当于一个有很多行的Dataset。在<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Dataset" title="Scala API" target="_blank" rel="external">Scala API</a>中，DataFrame相当于一个Dataset[Row]类型。而在<a href="http://spark.apache.org/docs/latest/api/java/index.html?org/apache/spark/sql/Dataset.html" title="Java API" target="_blank" rel="external">Java API</a>中，用户需要使用Dataset<row>来表述一个DataFrame。<br>在本文中，我们将经常引用Scala/Java由有Row组成的Dataset来表述DataFrame。</row></p>
-<h2 id="Getting-Started"><a href="#Getting-Started" class="headerlink" title="Getting Started"></a>Getting Started</h2><h3 id="Starting-Point-SparkSession"><a href="#Starting-Point-SparkSession" class="headerlink" title="Starting Point: SparkSession"></a>Starting Point: SparkSession</h3><p>Spark中，所有功能的切入点是<a href="http://spark.apache.org/docs/latest/api/java/index.html#org.apache.spark.sql.SparkSession" title="SparkSession" target="_blank" rel="external">SparkSession</a>类。要创建一个基本的SparkSession，只需要使用SparkSession.builder()<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</div><div class="line"></div><div class="line">SparkSession spark = SparkSession</div><div class="line">  .builder()</div><div class="line">  .appName(<span class="string">"Java Spark SQL basic example"</span>)</div><div class="line">  .config(<span class="string">"spark.some.config.option"</span>, <span class="string">"some-value"</span>)</div><div class="line">  .getOrCreate();</div></pre></td></tr></table></figure></p>
-<p>在Spark库的“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”目录下，查看完整的示例代码。<br>SparkSession是Spark 2.0的内置功能，用于提供Hive特性，包括用来写HiveQL查询、<br>访问Hive UDFs已经从Hive表中读取数据。要使用这些特性，你不需要配置Hive。</p>
-<h3 id="Creating-DataFrames"><a href="#Creating-DataFrames" class="headerlink" title="Creating DataFrames"></a>Creating DataFrames</h3><p>使用SparkSession，application能够从一个已经存在的RDD、一个Hive表或<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#data-sources" title="Spark data sources" target="_blank" rel="external">Spark data sources</a>来创建DataFrame。<br>作为一个例子，下面的代码根据一个JSON文件中的内容来创建一个DataFrame：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; df = spark.read().json(<span class="string">"examples/src/main/resources/people.json"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Displays the content of the DataFrame to stdout</span></div><div class="line">df.show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看Spark库中的“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”。</p>
-<h3 id="Untyped-Dataset-Operations-aka-DataFrame-Operations"><a href="#Untyped-Dataset-Operations-aka-DataFrame-Operations" class="headerlink" title="Untyped Dataset Operations(aka DataFrame Operations)"></a>Untyped Dataset Operations(aka DataFrame Operations)</h3><p>在Scala、Java、Python和R语言中，DataFrames针对不同的语言提供不同的结构化数据操作。正如上面提到的，在Spark2.0中，在Scala和Java的API中，DataFrames是以Dataset<row>来表述的。这些操作也被称为“无类型转换”，与强类型转换的Scala/Java Dataset的类型形成对比。<br>这里，我们展示了使用Dataset进行结构化数据处理的基本示例：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// col("...") is preferable to df.col("...")</span></div><div class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.apache.spark.sql.functions.col;</div><div class="line"></div><div class="line"><span class="comment">// Print the schema in a tree format</span></div><div class="line">df.printSchema();</div><div class="line"><span class="comment">// root</span></div><div class="line"><span class="comment">// |-- age: long (nullable = true)</span></div><div class="line"><span class="comment">// |-- name: string (nullable = true)</span></div><div class="line"></div><div class="line"><span class="comment">// Select only the "name" column</span></div><div class="line">df.select(<span class="string">"name"</span>).show();</div><div class="line"><span class="comment">// +-------+</span></div><div class="line"><span class="comment">// |   name|</span></div><div class="line"><span class="comment">// +-------+</span></div><div class="line"><span class="comment">// |Michael|</span></div><div class="line"><span class="comment">// |   Andy|</span></div><div class="line"><span class="comment">// | Justin|</span></div><div class="line"><span class="comment">// +-------+</span></div><div class="line"></div><div class="line"><span class="comment">// Select everybody, but increment the age by 1</span></div><div class="line">df.select(col(<span class="string">"name"</span>), col(<span class="string">"age"</span>).plus(<span class="number">1</span>)).show();</div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"><span class="comment">// |   name|(age + 1)|</span></div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"><span class="comment">// |Michael|     null|</span></div><div class="line"><span class="comment">// |   Andy|       31|</span></div><div class="line"><span class="comment">// | Justin|       20|</span></div><div class="line"><span class="comment">// +-------+---------+</span></div><div class="line"></div><div class="line"><span class="comment">// Select people older than 21</span></div><div class="line">df.filter(col(<span class="string">"age"</span>).gt(<span class="number">21</span>)).show();</div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// |age|name|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// | 30|Andy|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"></div><div class="line"><span class="comment">// Count people by age</span></div><div class="line">df.groupBy(<span class="string">"age"</span>).count().show();</div><div class="line"><span class="comment">// +----+-----+</span></div><div class="line"><span class="comment">// | age|count|</span></div><div class="line"><span class="comment">// +----+-----+</span></div><div class="line"><span class="comment">// |  19|    1|</span></div><div class="line"><span class="comment">// |null|    1|</span></div><div class="line"><span class="comment">// |  30|    1|</span></div><div class="line"><span class="comment">// +----+-----+</span></div></pre></td></tr></table></figure></row></p>
-<p>完整的样例代码，查看Spark库的examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java。<br>在Dataset上能够执行的操作类型列表，可以查看<a href="http://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/Dataset.html" title="API Document" target="_blank" rel="external">API Document</a>。<br>除了简单的列引用和计算外，Dataset还有一个丰富的函数库，包括字符串的操作、日期的计算以及常用的数学操作等。完整的列表可以在<a href="http://spark.apache.org/docs/latest/api/java/org/apache/spark/sql/functions.html" title="DataFrame Function Reference" target="_blank" rel="external">DataFrame Function Reference</a>找到。</p>
-<h3 id="Running-SQL-Queries-Programmatically"><a href="#Running-SQL-Queries-Programmatically" class="headerlink" title="Running SQL Queries Programmatically"></a>Running SQL Queries Programmatically</h3><p>SparkSession上的sql函数使application能够执行SQL查询，并返回一个Dataset<row>作为结果。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">import org.apache.spark.sql.Dataset;</div><div class="line">import org.apache.spark.sql.Row;</div><div class="line"></div><div class="line">// Register the DataFrame as a SQL temporary view</div><div class="line">df.createOrReplaceTempView(&quot;people&quot;);</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; sqlDF = spark.sql(&quot;SELECT * FROM people&quot;);</div><div class="line">sqlDF.show();</div><div class="line">// +----+-------+</div><div class="line">// | age|   name|</div><div class="line">// +----+-------+</div><div class="line">// |null|Michael|</div><div class="line">// |  30|   Andy|</div><div class="line">// |  19| Justin|</div><div class="line">// +----+-------+</div></pre></td></tr></table></figure></row></p>
-<p>完整的代码，请查看Spark库中的 examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java 。</p>
-<h3 id="Global-Temporary-View"><a href="#Global-Temporary-View" class="headerlink" title="Global Temporary View"></a>Global Temporary View</h3><p>在Spark SQL中，临时视图是session范围的，将会伴随着创建它的那个session的终止而消失。如果你想要跨session共享一个临时视图，并让它存活到application终止，你可以创建一个全局临时视图。全局视图与一个名为‘global_temp’的由系统保护的数据库进行绑定，我们必须使用这个特殊的名字来引用它，如：SELECT * FROM global_temp.view1。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Register the DataFrame as a global temporary view</span></div><div class="line">df.createGlobalTempView(<span class="string">"people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Global temporary view is tied to a system preserved database `global_temp`</span></div><div class="line">spark.sql(<span class="string">"SELECT * FROM global_temp.people"</span>).show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"></div><div class="line"><span class="comment">// Global temporary view is cross-session</span></div><div class="line">spark.newSession().sql(<span class="string">"SELECT * FROM global_temp.people"</span>).show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看“examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java”。</p>
-<h3 id="Creating-Datasets"><a href="#Creating-Datasets" class="headerlink" title="Creating Datasets"></a>Creating Datasets</h3><p>Dataset与RDD类似，不同的是它没有使用Java序列化或Kryo，它们使用了一个特殊的<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.Encoder" title="Encoder" target="_blank" rel="external">Encoder</a>来序列化对象，以便这些对象的处理或跨网络传输。虽然encoder和标准序列化器都能够将一个对象转换为字节，encoder是动态编码产生的，并且使用一种格式来允许Spark执行很多操作(filtering， sorting 和 hashing)，而不需要讲字节反编译为对象。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.Arrays;</div><div class="line"><span class="keyword">import</span> java.util.Collections;</div><div class="line"><span class="keyword">import</span> java.io.Serializable;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.MapFunction;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoder;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoders;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> String name;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> age;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> name;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</div><div class="line">    <span class="keyword">this</span>.name = name;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getAge</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> age;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(<span class="keyword">int</span> age)</span> </span>&#123;</div><div class="line">    <span class="keyword">this</span>.age = age;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Create an instance of a Bean class</span></div><div class="line">Person person = <span class="keyword">new</span> Person();</div><div class="line">person.setName(<span class="string">"Andy"</span>);</div><div class="line">person.setAge(<span class="number">32</span>);</div><div class="line"></div><div class="line"><span class="comment">// Encoders are created for Java beans</span></div><div class="line">Encoder&lt;Person&gt; personEncoder = Encoders.bean(Person.class);</div><div class="line">Dataset&lt;Person&gt; javaBeanDS = spark.createDataset(</div><div class="line">  Collections.singletonList(person),</div><div class="line">  personEncoder</div><div class="line">);</div><div class="line">javaBeanDS.show();</div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// |age|name|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"><span class="comment">// | 32|Andy|</span></div><div class="line"><span class="comment">// +---+----+</span></div><div class="line"></div><div class="line"><span class="comment">// Encoders for most common types are provided in class Encoders</span></div><div class="line">Encoder&lt;Integer&gt; integerEncoder = Encoders.INT();</div><div class="line">Dataset&lt;Integer&gt; primitiveDS = spark.createDataset(Arrays.asList(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>), integerEncoder);</div><div class="line">Dataset&lt;Integer&gt; transformedDS = primitiveDS.map(</div><div class="line">    (MapFunction&lt;Integer, Integer&gt;) value -&gt; value + <span class="number">1</span>,</div><div class="line">    integerEncoder);</div><div class="line">transformedDS.collect(); <span class="comment">// Returns [2, 3, 4]</span></div><div class="line"></div><div class="line"><span class="comment">// DataFrames can be converted to a Dataset by providing a class. Mapping based on name</span></div><div class="line">String path = <span class="string">"examples/src/main/resources/people.json"</span>;</div><div class="line">Dataset&lt;Person&gt; peopleDS = spark.read().json(path).as(personEncoder);</div><div class="line">peopleDS.show();</div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// | age|   name|</span></div><div class="line"><span class="comment">// +----+-------+</span></div><div class="line"><span class="comment">// |null|Michael|</span></div><div class="line"><span class="comment">// |  30|   Andy|</span></div><div class="line"><span class="comment">// |  19| Justin|</span></div><div class="line"><span class="comment">// +----+-------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的示例，请查看 examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java 。</p>
-<h3 id="Interoperating-with-RDDs"><a href="#Interoperating-with-RDDs" class="headerlink" title="Interoperating with RDDs"></a>Interoperating with RDDs</h3><p>Spark SQL支持两种不同方法来将存在的RDD转换为Dataset。第一种方法是使用反射来推导包含特殊类型对象的RDD的模式。这种反射的方法代码更加简单，而且如果在你写Spark application时已经知道了模式时，工作的会很好。<br>第二种方法是通过一个程序接口来创建Dataset，这个程序接口允许你构建一个模式，并且将它应用到一个已经存在的RDD上。但是这个方法比较冗长，它允许你只有在运行时才知道列和列类型时来构造Dataset。</p>
-<h4 id="Inferring-the-Schema-Using-Reflection"><a href="#Inferring-the-Schema-Using-Reflection" class="headerlink" title="Inferring the Schema Using Reflection"></a>Inferring the Schema Using Reflection</h4><p>Spark SQL支持自动将一个JavaBean的RDD转换为一个DataFrame。BeanInfo使用反射机制获得，定义了表的模式。当前，Spark SQL不支持那些包含了Map类型字段的JavaBean，但是对于嵌套的JavaBean以及嵌套了List或Array类型的字段给予了充分的支持。你可以通过创建一个实现了Serializable接口以及为所有字段生成getter和setter方法的类来创建一个JavaBean。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaRDD;</div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.Function;</div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.MapFunction;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoder;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoders;</div><div class="line"></div><div class="line"><span class="comment">// Create an RDD of Person objects from a text file</span></div><div class="line">JavaRDD&lt;Person&gt; peopleRDD = spark.read()</div><div class="line">  .textFile(<span class="string">"examples/src/main/resources/people.txt"</span>)</div><div class="line">  .javaRDD()</div><div class="line">  .map(line -&gt; &#123;</div><div class="line">    String[] parts = line.split(<span class="string">","</span>);</div><div class="line">    Person person = <span class="keyword">new</span> Person();</div><div class="line">    person.setName(parts[<span class="number">0</span>]);</div><div class="line">    person.setAge(Integer.parseInt(parts[<span class="number">1</span>].trim()));</div><div class="line">    <span class="keyword">return</span> person;</div><div class="line">  &#125;);</div><div class="line"></div><div class="line"><span class="comment">// Apply a schema to an RDD of JavaBeans to get a DataFrame</span></div><div class="line">Dataset&lt;Row&gt; peopleDF = spark.createDataFrame(peopleRDD, Person.class);</div><div class="line"><span class="comment">// Register the DataFrame as a temporary view</span></div><div class="line">peopleDF.createOrReplaceTempView(<span class="string">"people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// SQL statements can be run by using the sql methods provided by spark</span></div><div class="line">Dataset&lt;Row&gt; teenagersDF = spark.sql(<span class="string">"SELECT name FROM people WHERE age BETWEEN 13 AND 19"</span>);</div><div class="line"></div><div class="line"><span class="comment">// The columns of a row in the result can be accessed by field index</span></div><div class="line">Encoder&lt;String&gt; stringEncoder = Encoders.STRING();</div><div class="line">Dataset&lt;String&gt; teenagerNamesByIndexDF = teenagersDF.map(</div><div class="line">    (MapFunction&lt;Row, String&gt;) row -&gt; <span class="string">"Name: "</span> + row.getString(<span class="number">0</span>),</div><div class="line">    stringEncoder);</div><div class="line">teenagerNamesByIndexDF.show();</div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |       value|</span></div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |Name: Justin|</span></div><div class="line"><span class="comment">// +------------+</span></div><div class="line"></div><div class="line"><span class="comment">// or by field name</span></div><div class="line">Dataset&lt;String&gt; teenagerNamesByFieldDF = teenagersDF.map(</div><div class="line">    (MapFunction&lt;Row, String&gt;) row -&gt; <span class="string">"Name: "</span> + row.&lt;String&gt;getAs(<span class="string">"name"</span>),</div><div class="line">    stringEncoder);</div><div class="line">teenagerNamesByFieldDF.show();</div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |       value|</span></div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |Name: Justin|</span></div><div class="line"><span class="comment">// +------------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看 examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java 。</p>
-<h4 id="Programmatically-Specifying-the-Schema"><a href="#Programmatically-Specifying-the-Schema" class="headerlink" title="Programmatically Specifying the Schema"></a>Programmatically Specifying the Schema</h4><p>当JavaBean无法提前定义时（例如，记录的结构被编码为一个字符串，或者一个文本数据集将被解析，但是其中的字段可能根据不同的用户而不一样），Dataset<row>能够通过三个步骤来创建。</row></p>
-<blockquote>
-<p>1、根据原生的RDD创建一个RDD<row>。<br>2、创建一个与第一步骤RDD中Row结构匹配的StructType来描述的模式。<br>3、通过由SparkSession提供的createDataFrame方法，将这个模式应用到RDD<row>。</row></row></p>
-</blockquote>
-<p>例如：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.JavaRDD;</div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.Function;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.DataTypes;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.StructField;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.StructType;</div><div class="line"></div><div class="line"><span class="comment">// Create an RDD</span></div><div class="line">JavaRDD&lt;String&gt; peopleRDD = spark.sparkContext()</div><div class="line">  .textFile(<span class="string">"examples/src/main/resources/people.txt"</span>, <span class="number">1</span>)</div><div class="line">  .toJavaRDD();</div><div class="line"></div><div class="line"><span class="comment">// The schema is encoded in a string</span></div><div class="line">String schemaString = <span class="string">"name age"</span>;</div><div class="line"></div><div class="line"><span class="comment">// Generate the schema based on the string of schema</span></div><div class="line">List&lt;StructField&gt; fields = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span> (String fieldName : schemaString.split(<span class="string">" "</span>)) &#123;</div><div class="line">  StructField field = DataTypes.createStructField(fieldName, DataTypes.StringType, <span class="keyword">true</span>);</div><div class="line">  fields.add(field);</div><div class="line">&#125;</div><div class="line">StructType schema = DataTypes.createStructType(fields);</div><div class="line"></div><div class="line"><span class="comment">// Convert records of the RDD (people) to Rows</span></div><div class="line">JavaRDD&lt;Row&gt; rowRDD = peopleRDD.map((Function&lt;String, Row&gt;) record -&gt; &#123;</div><div class="line">  String[] attributes = record.split(<span class="string">","</span>);</div><div class="line">  <span class="keyword">return</span> RowFactory.create(attributes[<span class="number">0</span>], attributes[<span class="number">1</span>].trim());</div><div class="line">&#125;);</div><div class="line"></div><div class="line"><span class="comment">// Apply the schema to the RDD</span></div><div class="line">Dataset&lt;Row&gt; peopleDataFrame = spark.createDataFrame(rowRDD, schema);</div><div class="line"></div><div class="line"><span class="comment">// Creates a temporary view using the DataFrame</span></div><div class="line">peopleDataFrame.createOrReplaceTempView(<span class="string">"people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// SQL can be run over a temporary view created using DataFrames</span></div><div class="line">Dataset&lt;Row&gt; results = spark.sql(<span class="string">"SELECT name FROM people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// The results of SQL queries are DataFrames and support all the normal RDD operations</span></div><div class="line"><span class="comment">// The columns of a row in the result can be accessed by field index or by field name</span></div><div class="line">Dataset&lt;String&gt; namesDS = results.map(</div><div class="line">    (MapFunction&lt;Row, String&gt;) row -&gt; <span class="string">"Name: "</span> + row.getString(<span class="number">0</span>),</div><div class="line">    Encoders.STRING());</div><div class="line">namesDS.show();</div><div class="line"><span class="comment">// +-------------+</span></div><div class="line"><span class="comment">// |        value|</span></div><div class="line"><span class="comment">// +-------------+</span></div><div class="line"><span class="comment">// |Name: Michael|</span></div><div class="line"><span class="comment">// |   Name: Andy|</span></div><div class="line"><span class="comment">// | Name: Justin|</span></div><div class="line"><span class="comment">// +-------------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的示例，请查看 examples/src/main/java/org/apache/spark/examples/sql/JavaSparkSQLExample.java 。</p>
-<h3 id="Aggregations"><a href="#Aggregations" class="headerlink" title="Aggregations"></a>Aggregations</h3><p>内置的DataFrame函数提供了常用的聚合操作，如count()、countDistinct()、avg()、max()、min()等。然而这些函数是为了DataFrame设计的，Spark SQL同样由类型安全的版本，以便其中一些被用到Scala和Java的强类型Dataset。此外，Spark没有限制用户预定义聚合函数，可以自己来创建聚合函数。</p>
-<h4 id="Untyped-User-Defined-Aggregate-Functions"><a href="#Untyped-User-Defined-Aggregate-Functions" class="headerlink" title="Untyped User-Defined Aggregate Functions"></a>Untyped User-Defined Aggregate Functions</h4><p>用户要实现无类型聚合函数，则需要继承<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.expressions.UserDefinedAggregateFunction" title="UserDefinedAggregateFunction" target="_blank" rel="external">UserDefinedAggregateFunction</a>抽象类。例如，你一个用户自定义的平均数函数，看起来像这样：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.expressions.MutableAggregationBuffer;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.expressions.UserDefinedAggregateFunction;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.DataType;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.DataTypes;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.StructField;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.types.StructType;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAverage</span> <span class="keyword">extends</span> <span class="title">UserDefinedAggregateFunction</span> </span>&#123;</div><div class="line"></div><div class="line">  <span class="keyword">private</span> StructType inputSchema;</div><div class="line">  <span class="keyword">private</span> StructType bufferSchema;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="title">MyAverage</span><span class="params">()</span> </span>&#123;</div><div class="line">    List&lt;StructField&gt; inputFields = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    inputFields.add(DataTypes.createStructField(<span class="string">"inputColumn"</span>, DataTypes.LongType, <span class="keyword">true</span>));</div><div class="line">    inputSchema = DataTypes.createStructType(inputFields);</div><div class="line"></div><div class="line">    List&lt;StructField&gt; bufferFields = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line">    bufferFields.add(DataTypes.createStructField(<span class="string">"sum"</span>, DataTypes.LongType, <span class="keyword">true</span>));</div><div class="line">    bufferFields.add(DataTypes.createStructField(<span class="string">"count"</span>, DataTypes.LongType, <span class="keyword">true</span>));</div><div class="line">    bufferSchema = DataTypes.createStructType(bufferFields);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Data types of input arguments of this aggregate function</span></div><div class="line">  <span class="function"><span class="keyword">public</span> StructType <span class="title">inputSchema</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> inputSchema;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Data types of values in the aggregation buffer</span></div><div class="line">  <span class="function"><span class="keyword">public</span> StructType <span class="title">bufferSchema</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> bufferSchema;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// The data type of the returned value</span></div><div class="line">  <span class="function"><span class="keyword">public</span> DataType <span class="title">dataType</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> DataTypes.DoubleType;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Whether this function always returns the same output on the identical input</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">deterministic</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">true</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Initializes the given aggregation buffer. The buffer itself is a `Row` that in addition to</span></div><div class="line">  <span class="comment">// standard methods like retrieving a value at an index (e.g., get(), getBoolean()), provides</span></div><div class="line">  <span class="comment">// the opportunity to update its values. Note that arrays and maps inside the buffer are still</span></div><div class="line">  <span class="comment">// immutable.</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initialize</span><span class="params">(MutableAggregationBuffer buffer)</span> </span>&#123;</div><div class="line">    buffer.update(<span class="number">0</span>, <span class="number">0L</span>);</div><div class="line">    buffer.update(<span class="number">1</span>, <span class="number">0L</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Updates the given aggregation buffer `buffer` with new input data from `input`</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">update</span><span class="params">(MutableAggregationBuffer buffer, Row input)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (!input.isNullAt(<span class="number">0</span>)) &#123;</div><div class="line">      <span class="keyword">long</span> updatedSum = buffer.getLong(<span class="number">0</span>) + input.getLong(<span class="number">0</span>);</div><div class="line">      <span class="keyword">long</span> updatedCount = buffer.getLong(<span class="number">1</span>) + <span class="number">1</span>;</div><div class="line">      buffer.update(<span class="number">0</span>, updatedSum);</div><div class="line">      buffer.update(<span class="number">1</span>, updatedCount);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Merges two aggregation buffers and stores the updated buffer values back to `buffer1`</span></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">merge</span><span class="params">(MutableAggregationBuffer buffer1, Row buffer2)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> mergedSum = buffer1.getLong(<span class="number">0</span>) + buffer2.getLong(<span class="number">0</span>);</div><div class="line">    <span class="keyword">long</span> mergedCount = buffer1.getLong(<span class="number">1</span>) + buffer2.getLong(<span class="number">1</span>);</div><div class="line">    buffer1.update(<span class="number">0</span>, mergedSum);</div><div class="line">    buffer1.update(<span class="number">1</span>, mergedCount);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Calculates the final result</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Double <span class="title">evaluate</span><span class="params">(Row buffer)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> ((<span class="keyword">double</span>) buffer.getLong(<span class="number">0</span>)) / buffer.getLong(<span class="number">1</span>);</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Register the function to access it</span></div><div class="line">spark.udf().register(<span class="string">"myAverage"</span>, <span class="keyword">new</span> MyAverage());</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; df = spark.read().json(<span class="string">"examples/src/main/resources/employees.json"</span>);</div><div class="line">df.createOrReplaceTempView(<span class="string">"employees"</span>);</div><div class="line">df.show();</div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"><span class="comment">// |   name|salary|</span></div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"><span class="comment">// |Michael|  3000|</span></div><div class="line"><span class="comment">// |   Andy|  4500|</span></div><div class="line"><span class="comment">// | Justin|  3500|</span></div><div class="line"><span class="comment">// |  Berta|  4000|</span></div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"></div><div class="line">Dataset&lt;Row&gt; result = spark.sql(<span class="string">"SELECT myAverage(salary) as average_salary FROM employees"</span>);</div><div class="line">result.show();</div><div class="line"><span class="comment">// +--------------+</span></div><div class="line"><span class="comment">// |average_salary|</span></div><div class="line"><span class="comment">// +--------------+</span></div><div class="line"><span class="comment">// |        3750.0|</span></div><div class="line"><span class="comment">// +--------------+</span></div></pre></td></tr></table></figure></p>
-<p>查看完整示例，请参考 examples/src/main/java/org/apache/spark/examples/sql/JavaUserDefinedUntypedAggregation.java 。</p>
-<h4 id="Type-Safe-User-Defined-Aggregate-Functions"><a href="#Type-Safe-User-Defined-Aggregate-Functions" class="headerlink" title="Type-Safe User-Defined Aggregate Functions"></a>Type-Safe User-Defined Aggregate Functions</h4><p>强类型Dataset的用户自定义聚合围绕着<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.sql.expressions.Aggregator ‘Aggregator’" target="_blank" rel="external">Aggregator</a>抽象类来解决。例如，一个类型安全的用户自定义平均数看起来是这样：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.io.Serializable;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoder;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoders;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.TypedColumn;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.expressions.Aggregator;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Employee</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> String name;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">long</span> salary;</div><div class="line"></div><div class="line">  <span class="comment">// Constructors, getters, setters...</span></div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Average</span> <span class="keyword">implements</span> <span class="title">Serializable</span>  </span>&#123;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">long</span> sum;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">long</span> count;</div><div class="line"></div><div class="line">  <span class="comment">// Constructors, getters, setters...</span></div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">MyAverage</span> <span class="keyword">extends</span> <span class="title">Aggregator</span>&lt;<span class="title">Employee</span>, <span class="title">Average</span>, <span class="title">Double</span>&gt; </span>&#123;</div><div class="line">  <span class="comment">// A zero value for this aggregation. Should satisfy the property that any b + zero = b</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Average <span class="title">zero</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Average(<span class="number">0L</span>, <span class="number">0L</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Combine two values to produce a new value. For performance, the function may modify `buffer`</span></div><div class="line">  <span class="comment">// and return it instead of constructing a new object</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Average <span class="title">reduce</span><span class="params">(Average buffer, Employee employee)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> newSum = buffer.getSum() + employee.getSalary();</div><div class="line">    <span class="keyword">long</span> newCount = buffer.getCount() + <span class="number">1</span>;</div><div class="line">    buffer.setSum(newSum);</div><div class="line">    buffer.setCount(newCount);</div><div class="line">    <span class="keyword">return</span> buffer;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Merge two intermediate values</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Average <span class="title">merge</span><span class="params">(Average b1, Average b2)</span> </span>&#123;</div><div class="line">    <span class="keyword">long</span> mergedSum = b1.getSum() + b2.getSum();</div><div class="line">    <span class="keyword">long</span> mergedCount = b1.getCount() + b2.getCount();</div><div class="line">    b1.setSum(mergedSum);</div><div class="line">    b1.setCount(mergedCount);</div><div class="line">    <span class="keyword">return</span> b1;</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Transform the output of the reduction</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Double <span class="title">finish</span><span class="params">(Average reduction)</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> ((<span class="keyword">double</span>) reduction.getSum()) / reduction.getCount();</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Specifies the Encoder for the intermediate value type</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Encoder&lt;Average&gt; <span class="title">bufferEncoder</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> Encoders.bean(Average.class);</div><div class="line">  &#125;</div><div class="line">  <span class="comment">// Specifies the Encoder for the final output value type</span></div><div class="line">  <span class="function"><span class="keyword">public</span> Encoder&lt;Double&gt; <span class="title">outputEncoder</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> Encoders.DOUBLE();</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line">Encoder&lt;Employee&gt; employeeEncoder = Encoders.bean(Employee.class);</div><div class="line">String path = <span class="string">"examples/src/main/resources/employees.json"</span>;</div><div class="line">Dataset&lt;Employee&gt; ds = spark.read().json(path).as(employeeEncoder);</div><div class="line">ds.show();</div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"><span class="comment">// |   name|salary|</span></div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"><span class="comment">// |Michael|  3000|</span></div><div class="line"><span class="comment">// |   Andy|  4500|</span></div><div class="line"><span class="comment">// | Justin|  3500|</span></div><div class="line"><span class="comment">// |  Berta|  4000|</span></div><div class="line"><span class="comment">// +-------+------+</span></div><div class="line"></div><div class="line">MyAverage myAverage = <span class="keyword">new</span> MyAverage();</div><div class="line"><span class="comment">// Convert the function to a `TypedColumn` and give it a name</span></div><div class="line">TypedColumn&lt;Employee, Double&gt; averageSalary = myAverage.toColumn().name(<span class="string">"average_salary"</span>);</div><div class="line">Dataset&lt;Double&gt; result = ds.select(averageSalary);</div><div class="line">result.show();</div><div class="line"><span class="comment">// +--------------+</span></div><div class="line"><span class="comment">// |average_salary|</span></div><div class="line"><span class="comment">// +--------------+</span></div><div class="line"><span class="comment">// |        3750.0|</span></div><div class="line"><span class="comment">// +--------------+</span></div></pre></td></tr></table></figure></p>
-<p>完整的示例，请看 examples/src/main/java/org/apache/spark/examples/sql/JavaUserDefinedTypedAggregation.java 。</p>
-<h2 id="Data-Sources"><a href="#Data-Sources" class="headerlink" title="Data Sources"></a>Data Sources</h2><p>Spark SQL通过DataFrame接口支持多种数据源的操作。DataFrame能够使用关系转换进行操作，也可以被用来创建一个临时视图。将DataFrame注册为一个临时视图，将允许你在视图的数据上运行SQL查询。这一章节描述了使用Spark Data Sources加载和保存数据的一般方法，然后介绍内置数据源可用的详细参数。</p>
-<h3 id="Generic-Load-Save-Functions"><a href="#Generic-Load-Save-Functions" class="headerlink" title="Generic Load/Save Functions"></a>Generic Load/Save Functions</h3><p>最简单的格式，默认数据源（默认是parquet， 除非通过spark.sql.soiurces.default配置修改过）将被用于所有操作。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Dataset&lt;Row&gt; usersDF = spark.read().load(<span class="string">"examples/src/main/resources/users.parquet"</span>);</div><div class="line">usersDF.select(<span class="string">"name"</span>, <span class="string">"favorite_color"</span>).write().save(<span class="string">"namesAndFavColors.parquet"</span>);</div></pre></td></tr></table></figure></p>
-<p>查看完整示例，请参考 examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java 。</p>
-<h4 id="Manually-Specifying-Options"><a href="#Manually-Specifying-Options" class="headerlink" title="Manually Specifying Options"></a>Manually Specifying Options</h4><p>你还可以手动指定想要使用的数据源，以及传递给数据源任何额外的参数。数据源可以通过它的完整限定名（如：org.apache.spark.sql.parquet）来指定，但是对于内置的数据源，你也能够使用它的短名字（json、parquet、jdbc、orc、libsvm、csv、text）。从任何类型数据源加载的DataFrames，通过使用这个语句都可以转为其他类型。<br>要加载一个JSON文件，你可以使用：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Dataset&lt;Row&gt; peopleDF = spark.read().format(<span class="string">"json"</span>).load(<span class="string">"examples/src/main/resources/people.json"</span>);</div><div class="line">peopleDF.select(<span class="string">"name"</span>, <span class="string">"age"</span>).write().format(<span class="string">"parquet"</span>).save(<span class="string">"namesAndAges.parquet"</span>);</div></pre></td></tr></table></figure></p>
-<p>查看完整示例，请参考：xamples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。<br>要加载一个CSV文件，你可以使用：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">Dataset&lt;Row&gt; peopleDFCsv = spark.read().format(<span class="string">"csv"</span>)</div><div class="line">  .option(<span class="string">"sep"</span>, <span class="string">";"</span>)</div><div class="line">  .option(<span class="string">"inferSchema"</span>, <span class="string">"true"</span>)</div><div class="line">  .option(<span class="string">"header"</span>, <span class="string">"true"</span>)</div><div class="line">  .load(<span class="string">"examples/src/main/resources/people.csv"</span>);</div></pre></td></tr></table></figure></p>
-<p>查看完整示例，请参考：xamples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h4 id="Run-SQL-on-files-directly"><a href="#Run-SQL-on-files-directly" class="headerlink" title="Run SQL on files directly"></a>Run SQL on files directly</h4><p>除了使用read API加载文件到DataFrame然后查询它之外，你还可以使用SQL直接查询那个文件。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">Dataset&lt;Row&gt; sqlDF =</div><div class="line">  spark.sql(<span class="string">"SELECT * FROM parquet.`examples/src/main/resources/users.parquet`"</span>);</div></pre></td></tr></table></figure></p>
-<p>查看完整示例，请参考：xamples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h4 id="Save-Modes"><a href="#Save-Modes" class="headerlink" title="Save Modes"></a>Save Modes</h4><p>保存操作可以选择一种SaveMode，它指定了如何处理存在的数据。一件非常重要的事情是这些保存模式没有利用任何锁，并且它们不是原子操作。另外，当执行Overwrite模式时，已有的数据将会在写出新数据之前被删掉。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Scala/Java</th>
-<th style="text-align:left">Any Language</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">SaveMode.ErrorIfExists(default)</td>
-<td style="text-align:left">“error” or “errorifexists” (default)</td>
-<td style="text-align:left">当保存一个DataFrame到一个数据源时，如果数据已经存在，预计将抛出一个异常</td>
-</tr>
-<tr>
-<td style="text-align:left">SaveMode.Append</td>
-<td style="text-align:left">“append”</td>
-<td style="text-align:left">当保存一个DataFrame到一个数据源时，如果数据或表格已经存在，DataFrame的内容将被追加到已存在数据</td>
-</tr>
-<tr>
-<td style="text-align:left">SaveMode.Overwrite</td>
-<td style="text-align:left">“overwrite”</td>
-<td style="text-align:left">Overwrite模式意味着，当保存一个DataFrame到一个数据源时，如果数据或表格已经存在，已存在的数据将会被DataFrame的内容所覆盖</td>
-</tr>
-<tr>
-<td style="text-align:left">SaveMode.Ignore</td>
-<td style="text-align:left">“ignore”</td>
-<td style="text-align:left">Ignore模式意味着当保存一个DataFrame到一个数据源时，如果数据已经存在，保存操作将不会保存DataFrame的内容，并且不会修改已经存在的数据。这个操作类似 CREATE TABLE IF NOT EXISTS</td>
-</tr>
-</tbody>
-</table>
-<h4 id="Saving-to-Persistent-Tables"><a href="#Saving-to-Persistent-Tables" class="headerlink" title="Saving to Persistent Tables"></a>Saving to Persistent Tables</h4><p>使用saveAsTable命令，DataFrames也可以作为持久化表被保存到Hive metastore中。注意，使用这个功能不需要现有Hive的部署。Spark将会为你创建一个默认的本地Hive metastore(使用Derby)。与createOrReplaceTempView命令不同，saveAsTable将显示DataFrame的内容并创建一个指向Hive metastore中数据的指针。持久化表将在你的Spark程序重启之后持续存在，只要你维持你的连接在相同的metastore。通过在SparkSession上调用table方法（并传递表的名字），就能根据持久化表创建对应的DataFrame。<br>对于基于文件的数据源，如：text、parquet、json等。通过path选项，你可以指定一个自定义表路径，如:df.write.option(“path”, “/some/path”).saveAsTable(“t”)。当这个表被删除，自定义表路径将不会被移除，并且表数据依然存在。如果没有指定自定义表路径，Spark将会把数据写到仓库目录下的默认表路径。当这个表被删除时，默认表路径也会一并被删除。<br>从Spark2.1开始，持久化数据源表格在Hive metastore中有独立的元数据。这样做又一些优点：</p>
-<blockquote>
-<p>因为metastore只返回查询所需的partition，因此表上的首次查询就不需要查找所有的aprtition。<br>Hive DDL（如ALTER TABLE PARTITION … SET LOCATION），对于使用Datasource APi来创建表都是可用的。</p>
-</blockquote>
-<p>注意，当创建外部数据源表时（那些带有path选项的），分区信息默认是不会被收集的。要同步分区信息到metastore中，你可以执行MSCK REPAIR TABLE。</p>
-<h4 id="Bucketing-Sorting-and-Partitioning"><a href="#Bucketing-Sorting-and-Partitioning" class="headerlink" title="Bucketing, Sorting and Partitioning"></a>Bucketing, Sorting and Partitioning</h4><p>对于基于文件的数据源，还可以对输出进行分组并排序或分组并分区。分组并排序只对持久化表适用：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">peopleDF.write().bucketBy(<span class="number">42</span>, <span class="string">"name"</span>).sortBy(<span class="string">"age"</span>).saveAsTable(<span class="string">"people_bucketed"</span>);</div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。<br>当使用Dataset API时，partitioning能够和save以及saveAsTable一起使用。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">usersDF</div><div class="line">  .write()</div><div class="line">  .partitionBy(<span class="string">"favorite_color"</span>)</div><div class="line">  .format(<span class="string">"parquet"</span>)</div><div class="line">  .save(<span class="string">"namesPartByColor.parquet"</span>);</div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。<br>可以对单个表使用partitioning和bucketing：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">peopleDF</div><div class="line">  .write()</div><div class="line">  .partitionBy(<span class="string">"favorite_color"</span>)</div><div class="line">  .bucketBy(<span class="number">42</span>, <span class="string">"name"</span>)</div><div class="line">  .saveAsTable(<span class="string">"people_partitioned_bucketed"</span>);</div></pre></td></tr></table></figure></p>
-<p>完整的代码，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。<br>partitionBy创建了一个在<a href="http://spark.apache.org/docs/latest/sql-programming-guide.html#partition-discovery" title="Partition Discovery" target="_blank" rel="external">Partition Discovery</a>章节中描述的目录结构。因此，它对具有高基数的列的适用性有限。相比之下，BucketBy会跨固定数量的bucket来分布部署数据，and can be used when a number of unique values is unbounded.（！！！无法理解）</p>
-<h3 id="Parquet-Files"><a href="#Parquet-Files" class="headerlink" title="Parquet Files"></a>Parquet Files</h3><p>Parquet时一种列式文件格式，它被很多其他数据处理系统所支持。Spark SQL对Parquet文件提供了读写支持，并能够自动保护原始数据的模式。当写Parquet文件时，为了兼容的原因，所有列被自动转换为nullable。</p>
-<h4 id="Loading-Data-Programmatically"><a href="#Loading-Data-Programmatically" class="headerlink" title="Loading Data Programmatically"></a>Loading Data Programmatically</h4><p>使用上面例子中的数据：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.MapFunction;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoders;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line">Dataset&lt;Row&gt; peopleDF = spark.read().json(<span class="string">"examples/src/main/resources/people.json"</span>);</div><div class="line"></div><div class="line"><span class="comment">// DataFrames can be saved as Parquet files, maintaining the schema information</span></div><div class="line">peopleDF.write().parquet(<span class="string">"people.parquet"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Read in the Parquet file created above.</span></div><div class="line"><span class="comment">// Parquet files are self-describing so the schema is preserved</span></div><div class="line"><span class="comment">// The result of loading a parquet file is also a DataFrame</span></div><div class="line">Dataset&lt;Row&gt; parquetFileDF = spark.read().parquet(<span class="string">"people.parquet"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Parquet files can also be used to create a temporary view and then used in SQL statements</span></div><div class="line">parquetFileDF.createOrReplaceTempView(<span class="string">"parquetFile"</span>);</div><div class="line">Dataset&lt;Row&gt; namesDF = spark.sql(<span class="string">"SELECT name FROM parquetFile WHERE age BETWEEN 13 AND 19"</span>);</div><div class="line">Dataset&lt;String&gt; namesDS = namesDF.map(</div><div class="line">    (MapFunction&lt;Row, String&gt;) row -&gt; <span class="string">"Name: "</span> + row.getString(<span class="number">0</span>),</div><div class="line">    Encoders.STRING());</div><div class="line">namesDS.show();</div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |       value|</span></div><div class="line"><span class="comment">// +------------+</span></div><div class="line"><span class="comment">// |Name: Justin|</span></div><div class="line"><span class="comment">// +------------+</span></div></pre></td></tr></table></figure></p>
-<p>完整示例，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h4 id="Partition-Discovery"><a href="#Partition-Discovery" class="headerlink" title="Partition Discovery"></a>Partition Discovery</h4><p>在像Hive这样的系统中，常用的优化方法时进行表分区。在分区表中，数据通常存储在不同的目录中，根据分区列的值，编码到每个分区目录的路径中。所有内置文件源（包括Text/CSV/JSON/ORC/Parquet）都能够自动发现并推断分区信息。例如，我们能够将我们之前使用的数据存储到如下目录结构的分区表中，这个分区表使用两个额外的字段gender和country来作为分区字段：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">path</div><div class="line">└── to</div><div class="line">    └── table</div><div class="line">        ├── gender=male</div><div class="line">        │   ├── ...</div><div class="line">        │   │</div><div class="line">        │   ├── country=US</div><div class="line">        │   │   └── data.parquet</div><div class="line">        │   ├── country=CN</div><div class="line">        │   │   └── data.parquet</div><div class="line">        │   └── ...</div><div class="line">        └── gender=female</div><div class="line">            ├── ...</div><div class="line">            │</div><div class="line">            ├── country=US</div><div class="line">            │   └── data.parquet</div><div class="line">            ├── country=CN</div><div class="line">            │   └── data.parquet</div><div class="line">            └── ...</div></pre></td></tr></table></figure></p>
-<p>通过将path/to/table传递给SparkSession.read.parquet或SparkSession.read.load，Spark SQL将自动从路径中获取分区信息。现在返回的DataFrame的模式变成：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">root</div><div class="line">|-- name: string (nullable = true)</div><div class="line">|-- age: long (nullable = true)</div><div class="line">|-- gender: string (nullable = true)</div><div class="line">|-- country: string (nullable = true)</div></pre></td></tr></table></figure></p>
-<p>注意，分区列的数据类型是自动推断的。当前支持数字数据类型、日期、时间戳和字符串类型。有些时候，用户可能不想自动推导分区列的数据类型。对于这种情况，自动类型推导能够通过配置项spark.sql.sources.partitionColumnTypeInference.enabled来配置，该配置默认值为True。当类型推导被禁用后，分区列将使用字符串类型。<br>从Spark1.6开始，分区发现默认只能查找给定路径下的。因此，对于上面的那个例子，如果用户传递path/to/table/gender=male给SparkSession.read.parquet或SparkSession.read.load，那么gender将不会被当成一个分区列。如果用户想要具体说明分区开始查找的基本目录，可以在数据源选项中设置basePath。例如，当数据目录为path/to/table/gender=male时，并且设置了basePath为path/to/table/，那么gender将会是一个分区列。</p>
-<h4 id="Schema-Merging"><a href="#Schema-Merging" class="headerlink" title="Schema Merging"></a>Schema Merging</h4><p>和ProtocolBuffer、Avro以及Thrift一样，Parquet也支持模式演化。用户可以先从一个简单的schema开始，然后根据需要逐渐增加更多的列。通过这种方式，用户可能最终会得到不同但相互兼容的多个Parquet文件。Parquet数据源能够自动发现这种情况，并合并这些文件的schemas。<br>因为合并schema是一个成本相当高的操作，而且在很多情况是不必要的，因此从1.5.0开始，该功能默认是关闭的。你可以通过以下来启用它：</p>
-<blockquote>
-<p>当你读区Parquet文件时，设置数据源选项 mergeSchema为true（下面的列子将展示）或者<br>设置全局SQL选项 spark.sql.parquet.mergeSchema为true。</p>
-</blockquote>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.io.Serializable;</div><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.Arrays;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Square</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> value;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> square;</div><div class="line"></div><div class="line">  <span class="comment">// Getters and setters...</span></div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Cube</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> value;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> cube;</div><div class="line"></div><div class="line">  <span class="comment">// Getters and setters...</span></div><div class="line"></div><div class="line">&#125;</div><div class="line"></div><div class="line">List&lt;Square&gt; squares = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> value = <span class="number">1</span>; value &lt;= <span class="number">5</span>; value++) &#123;</div><div class="line">  Square square = <span class="keyword">new</span> Square();</div><div class="line">  square.setValue(value);</div><div class="line">  square.setSquare(value * value);</div><div class="line">  squares.add(square);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Create a simple DataFrame, store into a partition directory</span></div><div class="line">Dataset&lt;Row&gt; squaresDF = spark.createDataFrame(squares, Square.class);</div><div class="line">squaresDF.write().parquet(<span class="string">"data/test_table/key=1"</span>);</div><div class="line"></div><div class="line">List&lt;Cube&gt; cubes = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> value = <span class="number">6</span>; value &lt;= <span class="number">10</span>; value++) &#123;</div><div class="line">  Cube cube = <span class="keyword">new</span> Cube();</div><div class="line">  cube.setValue(value);</div><div class="line">  cube.setCube(value * value * value);</div><div class="line">  cubes.add(cube);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// Create another DataFrame in a new partition directory,</span></div><div class="line"><span class="comment">// adding a new column and dropping an existing column</span></div><div class="line">Dataset&lt;Row&gt; cubesDF = spark.createDataFrame(cubes, Cube.class);</div><div class="line">cubesDF.write().parquet(<span class="string">"data/test_table/key=2"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Read the partitioned table</span></div><div class="line">Dataset&lt;Row&gt; mergedDF = spark.read().option(<span class="string">"mergeSchema"</span>, <span class="keyword">true</span>).parquet(<span class="string">"data/test_table"</span>);</div><div class="line">mergedDF.printSchema();</div><div class="line"></div><div class="line"><span class="comment">// The final schema consists of all 3 columns in the Parquet files together</span></div><div class="line"><span class="comment">// with the partitioning column appeared in the partition directory paths</span></div><div class="line"><span class="comment">// root</span></div><div class="line"><span class="comment">//  |-- value: int (nullable = true)</span></div><div class="line"><span class="comment">//  |-- square: int (nullable = true)</span></div><div class="line"><span class="comment">//  |-- cube: int (nullable = true)</span></div><div class="line"><span class="comment">//  |-- key: int (nullable = true)</span></div></pre></td></tr></table></figure>
-<p>完整示例，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h4 id="Hive-metastore-Parquet-table-conversion"><a href="#Hive-metastore-Parquet-table-conversion" class="headerlink" title="Hive metastore Parquet table conversion"></a>Hive metastore Parquet table conversion</h4><p>当我们向Hive metastore Parquet table写数据或从中读数据时，Spark SQL奖尝试使用自己的Parquet支持来代替Hive SerDe以获取更好的性能。这个行为通过spark.sql.hive.converMetastoreParquet来配置，并且默认为打开的。</p>
-<h5 id="Hive-Parquet-Schema-Reconciliation"><a href="#Hive-Parquet-Schema-Reconciliation" class="headerlink" title="Hive/Parquet Schema Reconciliation"></a>Hive/Parquet Schema Reconciliation</h5><p>从表schema处理的角度来看，Hive和Parquet有两个主要区别：</p>
-<blockquote>
-<p>1、Hive是不区分大小写的，而Parquet是区分大小写的。<br>2、Hive认为所有列nullable，而nullable在Parquet中很重要。</p>
-</blockquote>
-<p>因为上面的原因，当我们将一个Hive metastore Parquet table转换为一个Spark SQL Parquet table时，我们必须将Hive metastore schema与Parquet schema调整一致。调整的规则为：</p>
-<blockquote>
-<p>1、两个schema中相同名称的字段不管是否为空必须具有相同的数据类型。调整好的字段应当具有Parquet端的数据类型，因此nullable是具有意义的。<br>2、调整后的schema必须包含Hive metastore schema中定义的字段。<br>    1）只出现在Parquet schema中的字段将从调整后的schema中删掉。<br>    2）只出现在Hive metastore schema中的字段将被作为nullable字段添加到调整后的schema中。</p>
-</blockquote>
-<h5 id="Metadata-Refreshing"><a href="#Metadata-Refreshing" class="headerlink" title="Metadata Refreshing"></a>Metadata Refreshing</h5><p>Spark SQL为了更好的性能而缓存了Parquet metadata。当Hive metastore Parquet表转换启用时，那些被转换的表的metadata也会被缓存。如果这些表被Hive或其他外部工具更新了，你需要手动刷新它们以保证metadata的一致。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// spark is an existing SparkSession</span></div><div class="line">spark.catalog().refreshTable(<span class="string">"my_table"</span>);</div></pre></td></tr></table></figure></p>
-<h4 id="Configuration"><a href="#Configuration" class="headerlink" title="Configuration"></a>Configuration</h4><p>Parquet的配置可以通过两种方式完成，在SparkSession上使用setConf方法或使用SQL运行SET key=value。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Default</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">spark.sql.parquet.binaryAsString</td>
-<td style="text-align:left">false</td>
-<td style="text-align:left">一些其他产生Parquet的系统，主要是Impala、Hive以及老版本的Spark SQL，这些系统在写Parquet schema时不区分二进制数据和字符串。这个标记告诉Spark SQL为这些系统将二进制数据按照字符串来进行兼容。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.parquet.int96AsTimestamp</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">一些其他产生Parquet的系统，特别是Impala和Hive，它们使用INT96来存储时间戳。这个标记告诉Spark SQL将INT96按照时间戳来解析，以便为那些系统提供兼容。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.parquet.compressio.codec</td>
-<td style="text-align:left">snappy</td>
-<td style="text-align:left">设置写Parquet文件的压缩编码器。如果没有在表详情的选项/属性中指定”compression”或”parquet.compression”。根据优先级排序：compression &gt; parquet.compression &gt; spark.sql.parquet.compression.codec。该选项可以使用的值有：none、uncompressed、snappy、gzip或lzo。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.parquet.filterPushdown.</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">当设置为True时，启用Parquet过滤器的push-down优化。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.hive.converMetastoreParquet</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">当设置为false时，Spark SQL将对parquet table使用Hive SerDe，而不是使用内置支持。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.parquet.mergeSchema</td>
-<td style="text-align:left">false</td>
-<td style="text-align:left">当设置为true时，Parquet数据源合并从所有数据文件收集的schema，如果是false，将从摘要文件中挑选schema，如果没有摘要文件可用，则随机选择一个文件。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.optimizer.metadataOnly.</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">当设置为true时，启用metadata-only查询优化，这个优化使用表的metadata来产生分区列，而不是通过对表扫描。当所有扫描过的列示分区列，且查询操作有一个满足distinct语意的聚合操作时，适用。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="ORC-Files"><a href="#ORC-Files" class="headerlink" title="ORC Files"></a>ORC Files</h3><p>从Spark 2.3开始，Spark支持向量ORC reader，这个reader使用新的ORC文件格式来读取ORC文件。因此新增了如下配置。当spark.sql.orc.impl被设置为native且spark.sql.orc.enableVectorizedReader被设置为true时，向量读取器将用于读区原生的ORC表（这些表使用USING ORC语句创建）。对于Hive ORC serde表（使用USING HIVE OPTIONS），当spark.sql.hive.convertMetastoreOrc也被设置为true时，向量reader被使用。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Default</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">spark.sql.orc.impl</td>
-<td style="text-align:left">hive</td>
-<td style="text-align:left">ORC实现类的名字。可以是native和hive中的一个。native意味着对构建于Apache ORC 1.4.1上的原生ORC支持。hive意味着对Hive 1.2.1中的ORC库进行支持。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.slql.orc.enableVectorizedReader</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">在native实现中启用向量化orc编码。如果为false，一个新的非向量化ORC reader被用于native实现。对于hive实现，本项可以忽略。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="JSON-Datasets"><a href="#JSON-Datasets" class="headerlink" title="JSON Datasets"></a>JSON Datasets</h3><p>Spark SQL能够自动推导一个JSON dataset的schema并将它加载为一个Dataset<row>。这个转换能够在一个Dataset<string>上或一个JSON文件上使用SparkSession.read().json()来完成。<br>注意，提供的json文件不是一个典型的JSON文件。每一行必须是一个独立有效的JSON对象（其实这句话的意思就是，一个json数据必须独立一行，不能跨多行）。关于更多的信息，请查看<a href="http://jsonlines.org/" title="JSON Lines text format, also called newline-delimited JSON" target="_blank" rel="external">JSON Lines text format, also called newline-delimited JSON</a>.<br>要想解析多行JSON文件，需要设置multiLine选项为true。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"></div><div class="line"><span class="comment">// A JSON dataset is pointed to by path.</span></div><div class="line"><span class="comment">// The path can be either a single text file or a directory storing text files</span></div><div class="line">Dataset&lt;Row&gt; people = spark.read().json(<span class="string">"examples/src/main/resources/people.json"</span>);</div><div class="line"></div><div class="line"><span class="comment">// The inferred schema can be visualized using the printSchema() method</span></div><div class="line">people.printSchema();</div><div class="line"><span class="comment">// root</span></div><div class="line"><span class="comment">//  |-- age: long (nullable = true)</span></div><div class="line"><span class="comment">//  |-- name: string (nullable = true)</span></div><div class="line"></div><div class="line"><span class="comment">// Creates a temporary view using the DataFrame</span></div><div class="line">people.createOrReplaceTempView(<span class="string">"people"</span>);</div><div class="line"></div><div class="line"><span class="comment">// SQL statements can be run by using the sql methods provided by spark</span></div><div class="line">Dataset&lt;Row&gt; namesDF = spark.sql(<span class="string">"SELECT name FROM people WHERE age BETWEEN 13 AND 19"</span>);</div><div class="line">namesDF.show();</div><div class="line"><span class="comment">// +------+</span></div><div class="line"><span class="comment">// |  name|</span></div><div class="line"><span class="comment">// +------+</span></div><div class="line"><span class="comment">// |Justin|</span></div><div class="line"><span class="comment">// +------+</span></div><div class="line"></div><div class="line"><span class="comment">// Alternatively, a DataFrame can be created for a JSON dataset represented by</span></div><div class="line"><span class="comment">// a Dataset&lt;String&gt; storing one JSON object per string.</span></div><div class="line">List&lt;String&gt; jsonData = Arrays.asList(</div><div class="line">        <span class="string">"&#123;\"name\":\"Yin\",\"address\":&#123;\"city\":\"Columbus\",\"state\":\"Ohio\"&#125;&#125;"</span>);</div><div class="line">Dataset&lt;String&gt; anotherPeopleDataset = spark.createDataset(jsonData, Encoders.STRING());</div><div class="line">Dataset&lt;Row&gt; anotherPeople = spark.read().json(anotherPeopleDataset);</div><div class="line">anotherPeople.show();</div><div class="line"><span class="comment">// +---------------+----+</span></div><div class="line"><span class="comment">// |        address|name|</span></div><div class="line"><span class="comment">// +---------------+----+</span></div><div class="line"><span class="comment">// |[Columbus,Ohio]| Yin|</span></div><div class="line"><span class="comment">// +---------------+----+</span></div></pre></td></tr></table></figure></string></row></p>
-<p>完整的示例，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h3 id="Hive-Tables"><a href="#Hive-Tables" class="headerlink" title="Hive Tables"></a>Hive Tables</h3><p>Spark SQL还支持对Apache Hive读写数据。然而，因为Hive有很多的依赖，而这些依赖默认没有包含在Spark的发布中。如果Hive的依赖能够在classpath中找到，Spark将自动加载它们。注意，这些Hive依赖也必须在所有worker节点上存在，因为它们需要访问Hive的序列化和反序列化库（SerDes）以便访问Hive上存储的数据。<br>Hive的配置是通过替换conf/目录下的hive-site.xml、core-site.xml（安全配置）和hdfs-sit.xml（HDFS配置）来完成的。<br>当使用Hive工作时，必须实例化支持Hive的SparkSession，包括连接到已有的Hive metastore、支持Hive serdes以及Hive自定义函数。即使没有Hive环境也能够启用Hive支持。当没有通过hive-site.xml进行配置时，context自动在当前目录创建metastore_db，并创建一个由spark.sql.warehouse.dir配置指定的目录，默认目录在Spark application启动的当前目录中的spark-warehouse。注意hive-site.xml中的hive.metastore.warehouse.dir属性在Spark2.0.0中废弃了，取而代之是使用spark.sql.warehouse.dir来指定数据库在仓库中的位置。你可以需要为启动Spark appliction的用户开放写权限。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.io.File;</div><div class="line"><span class="keyword">import</span> java.io.Serializable;</div><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"></div><div class="line"><span class="keyword">import</span> org.apache.spark.api.java.function.MapFunction;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Dataset;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Encoders;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.Row;</div><div class="line"><span class="keyword">import</span> org.apache.spark.sql.SparkSession;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Record</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</div><div class="line">  <span class="keyword">private</span> <span class="keyword">int</span> key;</div><div class="line">  <span class="keyword">private</span> String value;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">int</span> <span class="title">getKey</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> key;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setKey</span><span class="params">(<span class="keyword">int</span> key)</span> </span>&#123;</div><div class="line">    <span class="keyword">this</span>.key = key;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> String <span class="title">getValue</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">return</span> value;</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setValue</span><span class="params">(String value)</span> </span>&#123;</div><div class="line">    <span class="keyword">this</span>.value = value;</div><div class="line">  &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="comment">// warehouseLocation points to the default location for managed databases and tables</span></div><div class="line">String warehouseLocation = <span class="keyword">new</span> File(<span class="string">"spark-warehouse"</span>).getAbsolutePath();</div><div class="line">SparkSession spark = SparkSession</div><div class="line">  .builder()</div><div class="line">  .appName(<span class="string">"Java Spark Hive Example"</span>)</div><div class="line">  .config(<span class="string">"spark.sql.warehouse.dir"</span>, warehouseLocation)</div><div class="line">  .enableHiveSupport()</div><div class="line">  .getOrCreate();</div><div class="line"></div><div class="line">spark.sql(<span class="string">"CREATE TABLE IF NOT EXISTS src (key INT, value STRING) USING hive"</span>);</div><div class="line">spark.sql(<span class="string">"LOAD DATA LOCAL INPATH 'examples/src/main/resources/kv1.txt' INTO TABLE src"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Queries are expressed in HiveQL</span></div><div class="line">spark.sql(<span class="string">"SELECT * FROM src"</span>).show();</div><div class="line"><span class="comment">// +---+-------+</span></div><div class="line"><span class="comment">// |key|  value|</span></div><div class="line"><span class="comment">// +---+-------+</span></div><div class="line"><span class="comment">// |238|val_238|</span></div><div class="line"><span class="comment">// | 86| val_86|</span></div><div class="line"><span class="comment">// |311|val_311|</span></div><div class="line"><span class="comment">// ...</span></div><div class="line"></div><div class="line"><span class="comment">// Aggregation queries are also supported.</span></div><div class="line">spark.sql(<span class="string">"SELECT COUNT(*) FROM src"</span>).show();</div><div class="line"><span class="comment">// +--------+</span></div><div class="line"><span class="comment">// |count(1)|</span></div><div class="line"><span class="comment">// +--------+</span></div><div class="line"><span class="comment">// |    500 |</span></div><div class="line"><span class="comment">// +--------+</span></div><div class="line"></div><div class="line"><span class="comment">// The results of SQL queries are themselves DataFrames and support all normal functions.</span></div><div class="line">Dataset&lt;Row&gt; sqlDF = spark.sql(<span class="string">"SELECT key, value FROM src WHERE key &lt; 10 ORDER BY key"</span>);</div><div class="line"></div><div class="line"><span class="comment">// The items in DataFrames are of type Row, which lets you to access each column by ordinal.</span></div><div class="line">Dataset&lt;String&gt; stringsDS = sqlDF.map(</div><div class="line">    (MapFunction&lt;Row, String&gt;) row -&gt; <span class="string">"Key: "</span> + row.get(<span class="number">0</span>) + <span class="string">", Value: "</span> + row.get(<span class="number">1</span>),</div><div class="line">    Encoders.STRING());</div><div class="line">stringsDS.show();</div><div class="line"><span class="comment">// +--------------------+</span></div><div class="line"><span class="comment">// |               value|</span></div><div class="line"><span class="comment">// +--------------------+</span></div><div class="line"><span class="comment">// |Key: 0, Value: val_0|</span></div><div class="line"><span class="comment">// |Key: 0, Value: val_0|</span></div><div class="line"><span class="comment">// |Key: 0, Value: val_0|</span></div><div class="line"><span class="comment">// ...</span></div><div class="line"></div><div class="line"><span class="comment">// You can also use DataFrames to create temporary views within a SparkSession.</span></div><div class="line">List&lt;Record&gt; records = <span class="keyword">new</span> ArrayList&lt;&gt;();</div><div class="line"><span class="keyword">for</span> (<span class="keyword">int</span> key = <span class="number">1</span>; key &lt; <span class="number">100</span>; key++) &#123;</div><div class="line">  Record record = <span class="keyword">new</span> Record();</div><div class="line">  record.setKey(key);</div><div class="line">  record.setValue(<span class="string">"val_"</span> + key);</div><div class="line">  records.add(record);</div><div class="line">&#125;</div><div class="line">Dataset&lt;Row&gt; recordsDF = spark.createDataFrame(records, Record.class);</div><div class="line">recordsDF.createOrReplaceTempView(<span class="string">"records"</span>);</div><div class="line"></div><div class="line"><span class="comment">// Queries can then join DataFrames data with data stored in Hive.</span></div><div class="line">spark.sql(<span class="string">"SELECT * FROM records r JOIN src s ON r.key = s.key"</span>).show();</div><div class="line"><span class="comment">// +---+------+---+------+</span></div><div class="line"><span class="comment">// |key| value|key| value|</span></div><div class="line"><span class="comment">// +---+------+---+------+</span></div><div class="line"><span class="comment">// |  2| val_2|  2| val_2|</span></div><div class="line"><span class="comment">// |  2| val_2|  2| val_2|</span></div><div class="line"><span class="comment">// |  4| val_4|  4| val_4|</span></div><div class="line"><span class="comment">// ...</span></div></pre></td></tr></table></figure></p>
-<p>完整示例，请查看：examples/src/main/java/org/apache/spark/examples/sql/hive/JavaSparkHiveExample.java。</p>
-<h4 id="Specifying-storage-format-for-Hive-table"><a href="#Specifying-storage-format-for-Hive-table" class="headerlink" title="Specifying storage format for Hive table"></a>Specifying storage format for Hive table</h4><p>当你创建一个Hive表时，你需要指定这个表应该如何从文件系统读写数据，例如”input format”和”output format”。你还需要定义这个表应该如何将data反序列化为row，或者如何将row序列化为data，如”serde”。下面的选项可以被用来指定存储格式（”serde”、”input format”、”output format”），如：CREATE TABLE src(id int) USING hive OPTIONS(fileFormat ‘parquet’)。默认情况下，我们将以简单文本的格式读取table。值得注意的是，在创建table的时候，存储handler还不被支持，你可以在Hive端使用存储handler来创建一个table，然后使用Spark SQL来读区它。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">fileFormat</td>
-<td style="text-align:left">用来说明文件格式的存储格式包，包括”serde”、”input format”和”output format”。当前我们支持6中文件格式：sequencefile、rcfile、orc、parquet、textfile和avro。</td>
-</tr>
-<tr>
-<td style="text-align:left">inputFormat\outputFormat</td>
-<td style="text-align:left">这两个选项用来指定”InputFormat“和”OutputFormat“类的名字，例如：org.apache.hadoop.hive.qllio.orc.OrcInputFormat。这两个选项应该成对出现，如果你设置了”fileFormat”选项，那么你不能分别指定它们。</td>
-</tr>
-<tr>
-<td style="text-align:left">serde</td>
-<td style="text-align:left">这个选项指定了一个serde类。当设置了‘fileFormat’选项时，如果给定的‘fileFormat’已经包含了serde信息，那么不要设置这个选项。目前，“sequencefile”、“textfile”和“rcfile”不包含serde信息，因此你可以为这3种文件格式设置此选项。</td>
-</tr>
-<tr>
-<td style="text-align:left">fieldDelim, escapeDelim, collectionDelim, mapkeyDelim, lineDelim</td>
-<td style="text-align:left">这个选项只能被用于”textfile”的文件格式。它们定义了文件的换行符。</td>
-</tr>
-</tbody>
-</table>
-<p>其他属性使用OPTIONS进行定义，将作为Hive serde属性来考虑。</p>
-<h4 id="Interacting-with-Different-Versions-of-Hive-Metastore"><a href="#Interacting-with-Different-Versions-of-Hive-Metastore" class="headerlink" title="Interacting with Different Versions of Hive Metastore"></a>Interacting with Different Versions of Hive Metastore</h4><p>Spark SQL的Hive支持的最重要部分是与Hive metastore的交互，它使Spark SQL能够访问Hive表中的metadata。从Spark 1.4.0开始，使用下面描述的配置，Spark有一个独立的包用来访问不同版本的Hive metadata。注意，无论要去访问的metastore的Hive是什么版本，在Spark SQL内部将针对Hive 1.2.1进行编译，并使用这些类作为内部执行（serdes、UDFs、UDAFs等）。<br>下面的选项能够被用来配置获取metadata的Hive的版本：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Default</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">spark.sql.hive.metastore.version</td>
-<td style="text-align:left">1.2.1</td>
-<td style="text-align:left">Hive metadata的版本。可用的选项从0.12.0到1.2.1</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.hive.metastore.jars</td>
-<td style="text-align:left">builtin</td>
-<td style="text-align:left">被用于实例化HiveMetastoreClient的jar的位置。这个属性有三个选项：<br>1）builtin： 使用Hive 1.2.1，当-Phive被启用时，它与Spark assembly绑定。当这个选择了这个选项，spark.sql.hive.metastore.version必须是1.2.1或为定义。<br> 2) maven：从Maven库中下载指定版本的Hive jars。这个配置对于生产环境通常不推荐。<br> 3）JVM的标准classpath格式。这个classpath必须包含了Hive和它的依赖，以及对应的版本的Hadoop。这些jar只需要存在于driver上，但是如果你实在yarn资源管理器的集群上，那么你必须确保它们和你的application一起被打包。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.hive.metastore. sharedPrefixes</td>
-<td style="text-align:left">com.mysql.jdbc,org.postgresql, com.microsoft.sqlserver,oracla.jdbc</td>
-<td style="text-align:left">那些需要使用类加载器加载的用于在Spark SQL和指定版本的Hive之间共享的类前缀，类前缀是一个逗号分隔的列表。一个需要被共享的类就是JDBC driver，它需要访问metastore。其他需要共享的类是那些需要与已经共享类交互的类。例如，由log4j使用的自定义appender。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.hive.metastore. barrierPrefixes</td>
-<td style="text-align:left">(empty)</td>
-<td style="text-align:left">Spark SQL所连接的每个版本的Hive都应明确加载的类的前缀，列表以逗号分隔。例如，通常需要被共享的Hive UDFs在一个前缀中被声明（如，org.apache.spark.*）</td>
-</tr>
-</tbody>
-</table>
-<h3 id="JDBC-To-Other-Databases"><a href="#JDBC-To-Other-Databases" class="headerlink" title="JDBC To Other Databases"></a>JDBC To Other Databases</h3><p>Spark SQL还有一个数据源，可以使用JDBC从其他数据库读取数据。这个功能比使用<a href="http://spark.apache.org/docs/latest/api/scala/index.html#org.apache.spark.rdd.JdbcRDD" title="jdbcRDD" target="_blank" rel="external">jdbcRDD</a>更加受欢迎。这是因为结果是作为一个DataFrame被返回，这样很容易的使用Spark SQL进行处理或与其他数据源相连接。JDBC数据源在Java或Python中使用起来也很容易，因为它不需要用户提供一个ClassTag。（注意，这不同于Spark SQL JDBC Server，Spark SQL JDBC Server允许其他application使用Spark SQL运行查询）<br>你需要在spark classpath中添加对应数据库的JDBC driver。例如，要从Spark shell连接到postgres，你应该运行如下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">bin/spark-shell --driver-class-path postgresql-9.4.1207.jar --jars postgresql-9.4.1207.jar</div></pre></td></tr></table></figure></p>
-<p>使用Data Source API，远程数据库中的表可以被加载为一个DataFrame或Spark SQL临时视图。用户可以在数据源选项中指定JDBC的连接属性。连接通畅需要提供user和password属性，来登陆数据源。除了连接属性外，Spark还支持如下的选项，这些选项忽略大小写：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">url</td>
-<td style="text-align:left">进行连接的JDBC URL。特定数据源的连接属性可能会在URL中设置。如：jdbc:postgresql://localhost/test?user=fred&amp;password=secret。</td>
-</tr>
-<tr>
-<td style="text-align:left">dbtable</td>
-<td style="text-align:left">要读取的JDBC表。注意，在SQL查询中的From子句中有效的任何东西，都能使用。例如，你可以在括号中使用子查询来代替全表。</td>
-</tr>
-<tr>
-<td style="text-align:left">driver</td>
-<td style="text-align:left">连接URL的JDBC driver的类名。</td>
-</tr>
-<tr>
-<td style="text-align:left">partitionColumn, lowerBound, upperBound</td>
-<td style="text-align:left">这些选项中的一个被指定，那么所有的都必须被指定。此外，numPartitions必须被指定。它们描述了多个worker并行读取表数据时，应该如何分区。partitionColumn必须是表中的数值列。注意，lowerBound和upperBound仅仅用来决定分区的幅度，而不是过滤表中的行。因此表中的所有行都将被分区并返回。这个选项只能被用于读取。</td>
-</tr>
-<tr>
-<td style="text-align:left">numPartitions</td>
-<td style="text-align:left">并行读写表的最大分区数。这也确定了JDBC连接的最大并发。如果写的分区数量超过了这个限制，我们可以在写数据之前调用coalesce(numPartitions)来减少它。</td>
-</tr>
-<tr>
-<td style="text-align:left">fetchsize</td>
-<td style="text-align:left">JDBC的提取大小，它确定了每次通信能够取得多少行。它能够帮助提升那些默认fetch size低的JDBC dirver的性能（比如，Orache的fetch size为10）。这个选项只能用于读操作。</td>
-</tr>
-<tr>
-<td style="text-align:left">batch</td>
-<td style="text-align:left">JDBC的batch大小，它确定了每次通信能够插入多少行。这能够帮助提升JDBC dirver的性能。这个选项只能用于写操作。默认值为1000。</td>
-</tr>
-<tr>
-<td style="text-align:left">isolationLevel</td>
-<td style="text-align:left">事务的隔离级别，应用于当前连接。它可以是：NONE\READ_COMMITTED\ READ_UNCOMMITTED\REPEATABLE_READ\SERIALIZABLE中的一个，通过JDBC连接对象来定义标准事务的隔离级别，默认为READ_UNCOMMITTED。这个选项只能用于写操作。请参考java.sql.Connection文档。</td>
-</tr>
-<tr>
-<td style="text-align:left">sessionInitStatement</td>
-<td style="text-align:left">session初始化声明。在到远程数据库的session被打开之后，开始读取数据之前，这个选项执行一个自定义语句（PL/SQL块）。使用这个来实现session的初始化代码。例如：option(“色上司哦那I逆天S塔特闷它”， “”“BEGIN execute immediate ‘alter session set “_serial_direct_read”=true’; END; “””)</td>
-</tr>
-<tr>
-<td style="text-align:left">truncate</td>
-<td style="text-align:left">这是一个与JDBC writer相关操作。当启用了SaveMode.Overwrite，这个选项控制删除已存在的表，而不是先drop表然后再创建表。这个更加有效率，并且避免了表的metadata被删除。然而在某些情况下，它无法工作，如新数据有不同的schema。该选项默认值为false。这个选项只用于写操作。</td>
-</tr>
-<tr>
-<td style="text-align:left">createTableOptions</td>
-<td style="text-align:left">这是一个与JDBC writer相关的操作。如果设置，该选项允许在创建表的时候设置特定数据库表和分区的选项（如，CREATE TABLE T(name string) ENGINE=InnoDB）。这个选项只能被用于写操作。</td>
-</tr>
-<tr>
-<td style="text-align:left">createTableColumnTypes</td>
-<td style="text-align:left">当创建表时，用来代替默认的数据库列类型。数据类型信息使用与CREATE TABLE columns语句（如：”name CHAR(64), comments VARCHAR(1024)”）相同的格式被指定。被指定的数据类型应该是有效的spark sql数据类型。本选项只能用于写操作。</td>
-</tr>
-<tr>
-<td style="text-align:left">customSchema</td>
-<td style="text-align:left">自定义schema用于从JDBC连接中读取数据。例如，”id DECIMAL(38, 0), name STRING”。你也可以指定部分字段，其他的时候默认类型映射。例如：”id DECIMAL(38, 0)”。列名称应该与JDBC表的相关列名称一致。用户可以指定Spark SQL的相关数据类型，而不是使用默认的。这个选项只能被用于读操作。</td>
-</tr>
-</tbody>
-</table>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// Note: JDBC loading and saving can be achieved via either the load/save or jdbc methods</span></div><div class="line"><span class="comment">// Loading data from a JDBC source</span></div><div class="line">Dataset&lt;Row&gt; jdbcDF = spark.read()</div><div class="line">  .format(<span class="string">"jdbc"</span>)</div><div class="line">  .option(<span class="string">"url"</span>, <span class="string">"jdbc:postgresql:dbserver"</span>)</div><div class="line">  .option(<span class="string">"dbtable"</span>, <span class="string">"schema.tablename"</span>)</div><div class="line">  .option(<span class="string">"user"</span>, <span class="string">"username"</span>)</div><div class="line">  .option(<span class="string">"password"</span>, <span class="string">"password"</span>)</div><div class="line">  .load();</div><div class="line"></div><div class="line">Properties connectionProperties = <span class="keyword">new</span> Properties();</div><div class="line">connectionProperties.put(<span class="string">"user"</span>, <span class="string">"username"</span>);</div><div class="line">connectionProperties.put(<span class="string">"password"</span>, <span class="string">"password"</span>);</div><div class="line">Dataset&lt;Row&gt; jdbcDF2 = spark.read()</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div><div class="line"></div><div class="line"><span class="comment">// Saving data to a JDBC source</span></div><div class="line">jdbcDF.write()</div><div class="line">  .format(<span class="string">"jdbc"</span>)</div><div class="line">  .option(<span class="string">"url"</span>, <span class="string">"jdbc:postgresql:dbserver"</span>)</div><div class="line">  .option(<span class="string">"dbtable"</span>, <span class="string">"schema.tablename"</span>)</div><div class="line">  .option(<span class="string">"user"</span>, <span class="string">"username"</span>)</div><div class="line">  .option(<span class="string">"password"</span>, <span class="string">"password"</span>)</div><div class="line">  .save();</div><div class="line"></div><div class="line">jdbcDF2.write()</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div><div class="line"></div><div class="line"><span class="comment">// Specifying create table column data types on write</span></div><div class="line">jdbcDF.write()</div><div class="line">  .option(<span class="string">"createTableColumnTypes"</span>, <span class="string">"name CHAR(64), comments VARCHAR(1024)"</span>)</div><div class="line">  .jdbc(<span class="string">"jdbc:postgresql:dbserver"</span>, <span class="string">"schema.tablename"</span>, connectionProperties);</div></pre></td></tr></table></figure>
-<p>完整示例代码，请查看：examples/src/main/java/org/apache/spark/examples/sql/JavaSQLDataSourceExample.java。</p>
-<h3 id="Troubleshooting"><a href="#Troubleshooting" class="headerlink" title="Troubleshooting"></a>Troubleshooting</h3><blockquote>
-<p>1、JDBC dirver类对于client session和所有executor的主类加载器是可访问的。这是因为Java的DriverManager会做一个安全检查，当DriverManager要打开一个连接时，检查结果会忽略所有主类加载器无法访问的driver。一个简便的方法是修改所有worker节点的compute_classpath.sh来包含你的driver JAR。<br>2、一些数据库，如H2，需要将所有名字转换为大写。你需要在Spark SQL中使用大写来引用那些名字。</p>
-</blockquote>
-<h2 id="Performance-Tuning"><a href="#Performance-Tuning" class="headerlink" title="Performance Tuning"></a>Performance Tuning</h2><p>通过将数据缓存到内存或开启一些创新选项，一些工作量是可以优化提升性能的。</p>
-<h3 id="Caching-Data-In-Memory"><a href="#Caching-Data-In-Memory" class="headerlink" title="Caching Data In Memory"></a>Caching Data In Memory</h3><p>通过调用spark.catalog.cacheTable(“tableName”)或dataFrame.cache()，Spark能够使用内存中列式格式来缓存表。Spark SQL将扫描需要的列，并自动调整压缩，以达到最小的内存使用和GC压力。你可以使用spark.catalog.uncacheTable(“tableName”)，将table从内存中移除。<br>配置内存缓存可以通过两种方式来实现：在SparkSession上调用setConf方法，或者使用SQL来执行SET key=value命令。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Default</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">spark.sql. inMemoryColumnarStorage.compressed</td>
-<td style="text-align:left">true</td>
-<td style="text-align:left">当设置为true的时候，Spark SQL将基于数据的统计自动为每一列选择一种压缩编码器。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql. imMemoryColumnarStorage.batchSize</td>
-<td style="text-align:left">10000</td>
-<td style="text-align:left">控制列式缓存的批量大小。较大的批量size会影响内存会提高内存的利用率和压缩，但是会产生内存溢出的风险。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="Other-Configuration-Options"><a href="#Other-Configuration-Options" class="headerlink" title="Other Configuration Options"></a>Other Configuration Options</h3><p>下面的选项也能够被用来提高查询的效率。随着Spark的优化，这些选项在未来可能会被废弃。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Property Name</th>
-<th style="text-align:left">Default</th>
-<th style="text-align:left">Meaning</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">spark.sql.files.maxPartitionbytes</td>
-<td style="text-align:left">134217728 (128 MB)</td>
-<td style="text-align:left">读取文件时，单个分区的最大字节数。</td>
-</tr>
-<tr>
-<td style="text-align:left">saprk.sql.files.openCostInBytes</td>
-<td style="text-align:left">4194304 (4 MB)</td>
-<td style="text-align:left">打开一个文件的成本，通过在同一时间能够扫描的字节数来测量。当推送多个文件到一个partition时非常有用。提高这个值会更好，这样写小文件的partition要比写大文件的partition更加快（写小文件的partitin优先调度）。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.broadcastTimeout</td>
-<td style="text-align:left">300</td>
-<td style="text-align:left">broadcast连接的等待时间，以秒为单位。</td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.broadcastJoinThreshold</td>
-<td style="text-align:left">10485760 (10 MB)</td>
-<td style="text-align:left">当执行join操作时，为那些需要广播到所有worker节点的表设置最大字节数。通过设置这个值为-1，广播操作可以被禁用。注意，当前的统计只支持那些运行了ANALYZE TABLE <tablename> COMPUTE STATISTICS命令的Hive Metastore表。</tablename></td>
-</tr>
-<tr>
-<td style="text-align:left">spark.sql.shuffle.partitions</td>
-<td style="text-align:left">200</td>
-<td style="text-align:left">当为join或aggregation操作而混洗数据时，用来配置使用partitions的数量。</td>
-</tr>
-</tbody>
-</table>
-<h3 id="Broadcast-Hint-for-SQL-Queries"><a href="#Broadcast-Hint-for-SQL-Queries" class="headerlink" title="Broadcast Hint for SQL Queries"></a>Broadcast Hint for SQL Queries</h3><p>BROADCAST hint指导Spark在使用其他表或视图join指定表时，如何广播指定表。在Spark决定join方法时，broadcast hash join被优先考虑，即使统计高于spark.sql.autoBroadcastJoinThreshold的配置。当join两边都被指定了，Spark广播具有较低统计的那边。注意Spark不保证BHJ（broadcast hash join）总是被选择，因为不是所有的情况都支持BHJ。当broadcast nested loop join被选择时，我们仍然最重提示。<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> <span class="keyword">static</span> org.apache.spark.sql.functions.broadcast;</div><div class="line">broadcast(spark.table(<span class="string">"src"</span>)).join(spark.table(<span class="string">"records"</span>), <span class="string">"key"</span>).show();</div></pre></td></tr></table></figure></p>
-<h2 id="Distributed-SQL-Engine"><a href="#Distributed-SQL-Engine" class="headerlink" title="Distributed SQL Engine"></a>Distributed SQL Engine</h2><p>使用Spark SQL的JDBC/ODBC或command-line interface，Spark SQL也能够具有分布式查询引擎的行为。在这种模式中，终端用户或application能够直接与Spark SQL交互来运行SQL查询，而不需要写任何的代码。</p>
-<h3 id="Running-the-Thrift-JDBC-ODBC-server"><a href="#Running-the-Thrift-JDBC-ODBC-server" class="headerlink" title="Running the Thrift JDBC/ODBC server"></a>Running the Thrift JDBC/ODBC server</h3><p>Thrift JDBC/ODBC server实现了相当于Hive 1.2.1中的HiveServer2。你可以使用Spark或Hive1.2.1的beeline脚本来测试JDBC server。<br>要启动JDBC/ODBC server，在Spark目录中运行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./sbin/start-thriftserver.sh</div></pre></td></tr></table></figure></p>
-<p>这个脚本接受所有bin/spark-submit命令的行的参数，并增加了一个–hiveconf选项用来指定Hive属性。你可以执行 ./sbin/start-thriftserver.sh –help来获取完整的可用属性列表。默认，这个server监听的是本地的10000端口。要想重写这个丢昂扣，你可以修改环境变量：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">export HIVE_SERVER2_THRIFT_PORT=&lt;listening-port&gt;</div><div class="line">export HIVE_SERVER2_THRIFT_BIND_HOST=&lt;listening-host&gt;</div><div class="line">./sbin/start-thriftserver.sh \</div><div class="line">  --master &lt;master-uri&gt; \</div><div class="line">  ...</div></pre></td></tr></table></figure></p>
-<p>或者修改系统属性：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">./sbin/start-thriftserver.sh \</div><div class="line">  --hiveconf hive.server2.thrift.port=&lt;listening-port&gt; \</div><div class="line">  --hiveconf hive.server2.thrift.bind.host=&lt;listening-host&gt; \</div><div class="line">  --master &lt;master-uri&gt;</div><div class="line">  ...</div></pre></td></tr></table></figure></p>
-<p>现在，你可以使用beeline来测试Thrift JDBC/ODBC server：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/beeline</div></pre></td></tr></table></figure></p>
-<p>在beeline中连接JDBC/ODBC server可以使用：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">beeline&gt; !connect jdbc:hive2://localhost:10000</div></pre></td></tr></table></figure></p>
-<p>beeline将会询问你用户名和密码。在非安全模式中，输入你机器的用户名和空白的密码。对于安全模式，请遵循<a href="https://cwiki.apache.org/confluence/display/Hive/HiveServer2+Clients" title="beeline documentation" target="_blank" rel="external">beeline documentation</a>的指导。</p>
-<p>通过替换conf/中hive-site.xml、core-site.mxl和hdfs-site.xml来完成Hive的配置。</p>
-<p>你可能还需要使用Hive提供的beeline脚本。</p>
-<p>Thrift JDBC server还支持通过HTTP协议发送thrift RPC messages。要启用HTTP模式，可以如下修改系统属性，或者修改conf中的hive-site.xml：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">hive.server2.transport.mode - Set this to value: http</div><div class="line">hive.server2.thrift.http.port - HTTP port number to listen on; default is 10001</div><div class="line">hive.server2.http.endpoint - HTTP endpoint; default is cliservice</div></pre></td></tr></table></figure></p>
-<p>要进行测试，使用beeline以http模式连接到JDBC/ODBC server：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">beeline&gt; !connect jdbc:hive2://&lt;host&gt;:&lt;port&gt;/&lt;database&gt;?hive.server2.transport.mode=http;hive.server2.thrift.http.path=&lt;http_endpoint&gt;</div></pre></td></tr></table></figure></p>
-<h4 id="Running-the-Spark-SQL-CLI"><a href="#Running-the-Spark-SQL-CLI" class="headerlink" title="Running the Spark SQL CLI"></a>Running the Spark SQL CLI</h4><p>Spark SQL CLI是一个方便的工具用来在本地模式中运行Hive metastore服务并执行来自命令的查询输入。注意，Spark SQL CLI不能与Thrift JDBC server通信，<br>要启动Spark SQL  CLI，在Spark目录中运行如下脚本：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-sql</div></pre></td></tr></table></figure></p>
-<p>通过替换conf/中hive-site.xml、core-site.mxl和hdfs-site.xml来完成Hive的配置。</p>
-<h2 id="Reference"><a href="#Reference" class="headerlink" title="Reference"></a>Reference</h2><h3 id="Data-Types"><a href="#Data-Types" class="headerlink" title="Data Types"></a>Data Types</h3><p>Spark SQL和DataFrame支持如下数据类型：</p>
-<blockquote>
-<p>1、Numeric types<br>        ByteType：声明一个一个字节的有符号的整型。数值范围从-128到127。<br>        ShortType：声明一个两字节的有符号的整型。数值范围从-32768到32767。<br>        IntegerType：声明一个四字节的有符号的整型。数值范围从-2147483648到2147483647。<br>        LongType：声明一个八个字节的有符号的整型。数值范围从-9223372036854775808到9223372036854775807。<br>        FloatType：声明一个四字节的单精度浮点数值。<br>        DoubleType：声明一个八字节的双精度浮点数。<br>        DecimlType：声明一个任意精度的有符号的十进制数值。内部由java.math.BigDecimal支持。一个DecimlType由一个任意精度的不能整型值和一个32位的整型组成。<br>2、Strubg type<br>        声明一个字符串值。<br>3、Binary type<br>        BinaryType：声明一个字节序列值。<br>4、Boolean type<br>        BooleanType：声明一个boolean值。<br>5、Datetime type<br>        TimestampType：声明一个由year、month、day、hour、minute和second字段的值组成。<br>        DateType：声明一个由year、month和day字段的值组成。<br>6、Complex types<br>        ArrayType(elementType, containsNull)：声明一个elementType类型序列。containsNull用来检测ArrayType中是否包含null的值。<br>        MapType(keyType, valueType, valueContainsNull)：由一组key-value对组成。key的数据类型由KeyType来描述，value的数据类型由valueType来描述。对于MapType的一个值，keys不允许为null。valueContainsNull<br>        被用来检测MapTypte的values中是否包含null值。<br>        StructType(fields)：StructFields(fields)序列。<br>                StructField(name, datatype, nullable): StructType类型的字段。字段的名称通过name指定。字段的数据类型通过datatype来指定。nullable用来决定这个fields的values是否可以有null。</p>
-</blockquote>
-<p>Spark SQL的所有数据类型都位于org.apache.spark.sql.types包中。要访问或创建一种数据类型，请使用org.apache.spark.sql.types.DataTypes中提供的接口方法。</p>
-<table>
-<thead>
-<tr>
-<th style="text-align:left">Data type</th>
-<th style="text-align:left">Value type in Java</th>
-<th style="text-align:left">API to access or create a data type</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align:left">ByteType</td>
-<td style="text-align:left">byte or Byte</td>
-<td style="text-align:left">DataTypes.ByteType</td>
-</tr>
-<tr>
-<td style="text-align:left">ShortType</td>
-<td style="text-align:left">short or Short</td>
-<td style="text-align:left">DataTypes.ShortType</td>
-</tr>
-<tr>
-<td style="text-align:left">IntegerType</td>
-<td style="text-align:left">int or Integer</td>
-<td style="text-align:left">DataTypes.IntegerType</td>
-</tr>
-<tr>
-<td style="text-align:left">LongType</td>
-<td style="text-align:left">long or Long</td>
-<td style="text-align:left">DataTypes.LongType</td>
-</tr>
-<tr>
-<td style="text-align:left">FloatType</td>
-<td style="text-align:left">float or Float</td>
-<td style="text-align:left">DataTypes.FloatType</td>
-</tr>
-<tr>
-<td style="text-align:left">DoubleType</td>
-<td style="text-align:left">double or Double</td>
-<td style="text-align:left">DataTypes.DoubleType</td>
-</tr>
-<tr>
-<td style="text-align:left">DecimalType</td>
-<td style="text-align:left">java.math.BigDecimal</td>
-<td style="text-align:left">DataTypes.createDecimalType() DataTypes.createDecimalType(precision, scale)</td>
-</tr>
-<tr>
-<td style="text-align:left">StringType</td>
-<td style="text-align:left">String</td>
-<td style="text-align:left">DataTypes.StringType</td>
-</tr>
-<tr>
-<td style="text-align:left">BinaryType</td>
-<td style="text-align:left">byte[]</td>
-<td style="text-align:left">DataTypes.BinaryType</td>
-</tr>
-<tr>
-<td style="text-align:left">BooleanType</td>
-<td style="text-align:left">boolean or Boolean</td>
-<td style="text-align:left">DataTypes.BooleanType</td>
-</tr>
-<tr>
-<td style="text-align:left">TimestampType</td>
-<td style="text-align:left">java.sql.Timestamp</td>
-<td style="text-align:left">DataTypes.TimestampType</td>
-</tr>
-<tr>
-<td style="text-align:left">DateType</td>
-<td style="text-align:left">java.sql.Date</td>
-<td style="text-align:left">DateTypes.DateType</td>
-</tr>
-<tr>
-<td style="text-align:left">ArrayType</td>
-<td style="text-align:left">java.util.List</td>
-<td style="text-align:left">DataTypes.createArrayType(elementType) 注意：containsNull的值为true。</td>
-</tr>
-<tr>
-<td style="text-align:left">MapType</td>
-<td style="text-align:left">java.util.Map</td>
-<td style="text-align:left">DataTypes.createMapType(keyType, valueType) 注意，valueContainsNull的值将为true</td>
-</tr>
-<tr>
-<td style="text-align:left">StructType</td>
-<td style="text-align:left">org.apache.spark.sql.Row</td>
-<td style="text-align:left">DataTypes.createStructType(fields)</td>
-</tr>
-<tr>
-<td style="text-align:left">StructField</td>
-<td style="text-align:left">The value type in Java of the data type of this field</td>
-<td style="text-align:left">DataTypes.createStructField(name, dataType, nullable)</td>
-</tr>
-</tbody>
-</table>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -4731,7 +4350,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">55</span>
+              <span class="site-state-item-count">56</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -4748,7 +4367,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-count">25</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

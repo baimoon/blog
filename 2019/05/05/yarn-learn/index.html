@@ -1,0 +1,710 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="yarn," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="本文用来记录自己读书的一些笔记
+YARN 组件的功能概述YARN集群主要分为三个部分：ResourceManager、NodeManager和ApplicationMaster。其中ResourceManager的重要组成部分为调度器和ApplicationMaster。
+ResourceManager作为独立的进程运行在专有的机器上，负责集群中所有应用程序的资源分配。它可以为用户提供公平的、基于">
+<meta property="og:type" content="article">
+<meta property="og:title" content="yarn-learn">
+<meta property="og:url" content="http://baimoon.github.io/2019/05/05/yarn-learn/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="本文用来记录自己读书的一些笔记
+YARN 组件的功能概述YARN集群主要分为三个部分：ResourceManager、NodeManager和ApplicationMaster。其中ResourceManager的重要组成部分为调度器和ApplicationMaster。
+ResourceManager作为独立的进程运行在专有的机器上，负责集群中所有应用程序的资源分配。它可以为用户提供公平的、基于">
+<meta property="og:updated_time" content="2019-05-10T02:20:01.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="yarn-learn">
+<meta name="twitter:description" content="本文用来记录自己读书的一些笔记
+YARN 组件的功能概述YARN集群主要分为三个部分：ResourceManager、NodeManager和ApplicationMaster。其中ResourceManager的重要组成部分为调度器和ApplicationMaster。
+ResourceManager作为独立的进程运行在专有的机器上，负责集群中所有应用程序的资源分配。它可以为用户提供公平的、基于">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2019/05/05/yarn-learn/"/>
+
+  <title> yarn-learn | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                yarn-learn
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-05-05T21:39:19+08:00" content="2019-05-05">
+              2019-05-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/yarn/" itemprop="url" rel="index">
+                    <span itemprop="name">yarn</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本文用来记录自己读书的一些笔记</p>
+<h1 id="YARN-组件的功能概述"><a href="#YARN-组件的功能概述" class="headerlink" title="YARN 组件的功能概述"></a>YARN 组件的功能概述</h1><p>YARN集群主要分为三个部分：ResourceManager、NodeManager和ApplicationMaster。其中ResourceManager的重要组成部分为调度器和ApplicationMaster。</p>
+<p>ResourceManager作为独立的进程运行在专有的机器上，负责集群中所有应用程序的资源分配。它可以为用户提供公平的、基于容量的、本地化的资源调度。在Yarn资源的分配单位为Container，它是一组内存和cpu核数的组合（目前只有内存和cpu）。RsoueceManager和运行在每个节点上的NodeManager会进行交互以便执行和跟踪资源的分配。基于可扩展性需求，ResourceManager和NodeManager之间通过心跳进行通信。NodeManager负责本地可用资源的监控，故障报告以及Container生命周期的管理（启动或终止任务）。<br>用户将Application提交给ResourceManager，被ResourceManager接受的Applcation会被传递给Scheduler并允许其运行。一旦Scheduler有足够的资源可以满足需求，Application的状态就会从Accepted转为Running。ResourceManager会为ApplicationMaster分配一个Container，ApplicationMaster通常被称为“Container0”.<br>ApplicationMaster是每个用户作业的主进程，负责管理作业的生命周期，包括动态的增加或减少Container，管理执行流程，处理故障和计算偏差，以及执行其他的本地优化。<br>ApplicationMaster可以运行以任何编程语言实现的用户程序。通常，ApplicationMaster需要利用多台服务器的处理能力来完成一个作业，因此ApplicationMaster会向ResourceManager进行资源请求。这些资源会包含本地化优势和Container的容量（内存和cpu）。ResourceManager根据可用资源和调度策略来为每个Application分配资源。当一个Container被分配给一个ApplicationMaster时，ResourceManager为该资源生成一个租约，ApplicationMaster通过心跳会得到该租约。基于令牌的机制，保证了ApplicationMaster在NodeManager上使用Container的可靠性。Container在运行过程中，会通过特定协议与ApplicationMaster通信，来报告状态和健康信息，以及接受框架的特定指令（杀掉任务等）。通过这种方式，Yarn提供了对Container的监控和生命周期管理的基础框架，而应用程序特定语义由每个框架独立管理。</p>
+<h2 id="ResourceManager"><a href="#ResourceManager" class="headerlink" title="ResourceManager"></a>ResourceManager</h2><p>ResourceManager是集群所有资源的仲裁者。它的主要职责就是调度，即在竞争的应用程序之间分配系统中的可用资源，但是它不关心每个应用程序的状态。调度器只处理应用程序的整体资源分配，不关心局部优化和内部流程。ResouceManager不负责的职能，它没有跟踪应用程序的执行流程，没有任务容错能力。</p>
+<h2 id="Yarn调度器"><a href="#Yarn调度器" class="headerlink" title="Yarn调度器"></a>Yarn调度器</h2><p>Yarn有一个可插拔的调度器组件，根据不同的使用场景和用户需求，管理员可以选择不同的调度策略，目前支持FIFO、Capacity和Fair。具体使用哪种调度器可以在yarn-default.xml中设置。</p>
+<h3 id="FIFO"><a href="#FIFO" class="headerlink" title="FIFO"></a>FIFO</h3><p>先进先出调度器，它不考虑作业的优先级和范围。FIFO比较适合低负载集群，当使用大型共享集群时，它的功能不佳。</p>
+<h3 id="Capacity"><a href="#Capacity" class="headerlink" title="Capacity"></a>Capacity</h3><p>Capacity调度器允许多个组安全的共享一个大规模Hadoop集群。要使用Capacity调度器，管理员使用总槽位容量的预定值配置一个或多个队列。这种分配保证了每个队列的最小使用量。管理员为每个队列的可用资源容量配置软限制和可选的硬限制。每个队列有严格的ACL，用来控制那些用户可以向那些队列提交作业。同时也有措施来保证无法查看或修改其他用户的应用程序。<br>Capacity调度器允许共享集群，同时给每个用户或组一定的最小容量保证。这些最小值在不需要时可以放弃，超出的容量将会给予那些最饥饿的队列，饥饿程度用运行中或已用的队列容量来衡量。<br>队列的定义和属性可以由管理员以安全的方式，在运行期间修改，以尽量减少对用户的干扰。管理员可以在运行期间添加额外的队列。管理不能在运行期间删除已有队列，但是可以在运行期间停止队列，以确保现有application运行完毕后不会再有新的应用程序被提交。<br>当工作负载可预见的情况下，Capacity调度器效果最好，有助于分配最小容量。在每个队列内部，使用层次化的FIFO来调度多个Application，类似于在独立的FIFO调度器中使用的方式。</p>
+<h3 id="Fair调度器"><a href="#Fair调度器" class="headerlink" title="Fair调度器"></a>Fair调度器</h3><p>Fair调度器是将资源公平分配给应用的方法，使得所有应用在平均情况下随着时间得到相等的份额。<br>在Fair调度模型中，每个Application都属于某一个队列。Yarn Container的分配是选择使用了最少资源的队列，在这个队列中，再选择使用最少资源的应用程序。默认情况下，所有的用户共享一个名为“default”的队列。应用程序可以在提交时指定想要添加的队列。另外，也可以将Fair调度器配置成根据请求中包含的用户名来分配队列。Fair调度器还支持许多功能，如队列的权重、最小份额、最大份额以及队列内FIFO策略，但基本原则就是尽可能平均共享资源。<br>Fair调度器也支持抢占的概念，从而可以从ApplicationMaster那里要回Container，并且根据配置和应用程序的设计，抢占和随后的资源分配可以是友好的或者强制的。<br>除了提供平均共享，Fair调度器还允许保证队列的最小份额，确保某些用户、组或者生产应用程序总能够得到足够的资源。当队列中有等待的Application时，它至少能够得到最小份额的资源。Fair调度器可以通过配置文件限制每个用户和每个对了中运行Application的数量。<br>Fair调度器允许Container请求一定量的内存资源。为了避免多个较小内存Application饿死一个较大内存应用，引入了“reserved Container”，如果由于内存不足，一个Applicaiton不能立即使用一个Container，可以将其保留给其他应用程序，这样，其他应用程序不能使用这个Container，直到它被释放。被保留的Container会等待其他本地Container被释放，然后使用这些额外的容量来完成这个作业。一个保留的Container只允许在一个节点上，并且一个节点只允许一个保留的Container。<br>Fair调度器也支持层次化队列，队列可以嵌套在其他队列中，每个队列将它的资源再以一种公平的调度方式分配给它的子队列。</p>
+<h2 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h2><p>Container是单个节点上一组资源（内存、CPU等）的集合。单个NodeManager上可以有多个Container，Container由NodeManager监控，由ResourceManager调度。<br>每个Application都是从ApplicationMaster开始，而且这个ApplicationMaster本身也是一个Container（Container0）。启动后，ApplicationMaster会向ResourceManager请求更多的Container，在运行期间，可以动态的请求或释放Continer。</p>
+<h2 id="NodeManager"><a href="#NodeManager" class="headerlink" title="NodeManager"></a>NodeManager</h2><p>NodeManager的职责包括：与ResourceManager保持通信、管理Container的生命周期、监控每个Container的资源使用、跟踪节点健康状态、管理日志和不同应用程序的附属服务。<br>NodeManager启动时会向ResourceManager进行注册，然后发送包含自身状态的心跳，并等待来自ResourceManager的指令。<br>Contianer使用一个Container启动上下文来描述，这个描述包含环境变量、在远程存储上的依赖、安全令牌、NodeManager服务的載荷以及创建进程的必要命令。在验证了Container租约之后，NodeManager为Container配置环境，包括根据资源限制初始化它的监控。NodeManager可以杀死由ResourceManager指定的Container，或者资源超出限制的Container。</p>
+<h2 id="ApplicationMaster"><a href="#ApplicationMaster" class="headerlink" title="ApplicationMaster"></a>ApplicationMaster</h2><p>ApplicationMaster是协调集群中应用程序执行的进程。每个Application都有自己独特的ApplicationMaster，负责与ResourceManager申请资源，并与NodeManager协同工作来执行和监控任务。<br>ApplicationMaster启动后，后周期性向ResourceManager发送心跳来报告自己的健康以及更新它资源需求。在建好需求模型后，ApplicationMaster在发送给ResourceManager的心跳中封装了它的偏好和限制。在随后的心跳应答中，ApplicationMaster会收到集群中特定节点上绑定了一定资源的container租约。根据Resourcemanager发来的租约，ApplicationMaster可以更新它的执行计划以适应资源的过剩或不足。Container可以在Application运行期间被申请或释放。</p>
+<h2 id="YARN资源模型"><a href="#YARN资源模型" class="headerlink" title="YARN资源模型"></a>YARN资源模型</h2><p>YARN资源分配模型提供了更大的灵活性，解决了静态分配的低效率问题。每个Container都有一些非静态资源，这些资源目前支持内存和CPU，还可以支持带宽GPU等。</p>
+<h3 id="客户端资源请求"><a href="#客户端资源请求" class="headerlink" title="客户端资源请求"></a>客户端资源请求</h3><p>Yarn应用程序是从客户端资源请求开始的。客户端先通知ResourceManager要提交一个Application，ResourceManager在应答中给出一个ApplicationID以及有助于客户端请求资源的集群容量信息。</p>
+<h3 id="ApplicationMaster分配Container"><a href="#ApplicationMaster分配Container" class="headerlink" title="ApplicationMaster分配Container"></a>ApplicationMaster分配Container</h3><p>在得到ResourceManager的应答后，客户端使用“Application Submission Context”（包含ApplicationID、用户名、队列以及其他启动ApplicationMaster所需的信息）发送请求给ResourceManager，同时也会将“Container Launch Context”发送给ResourceManager。Container Launch Context中描述了资源需求（内存和CPU）、作业文件、安全令牌以及在节点上启动ApplicationMaster所需的其他信息。<br>ResourceManager收到“Application Submission Context”后，为ApplicationMaster调度一个可用的Container（Container0），然后启动ApplicationMaster，启动ApplicationMaster之后，ResourceManager会告诉ApplicationMaster当前的资源报告。<br>基于可用资源报告，ApplicationMaster会请求一定的Container。ResourceManager根据资源调度策略，尽可能最优（如本地优势）的分配Container，并作为资源请求的应答发送给ApplicationMaster。<br>在作业的执行过程中，ApplicationMaster会向ResourceManager发送心跳信息。ApplicationMaster还可以将申请和释放Container的信息包含在心跳中。当作业结束时会向RsourceManager发送完成信息并退出。</p>
+<h3 id="ApplicationMaster与Container管理器的通信"><a href="#ApplicationMaster与Container管理器的通信" class="headerlink" title="ApplicationMaster与Container管理器的通信"></a>ApplicationMaster与Container管理器的通信</h3><p>在这个阶段，ResourceManager已经将启动NodeManager的控制权交给了ApplicationMaster。ApplicationMaster将单独联系NodeManager并提供Container Launch Context（包含依赖文件、安全令牌以及启动进程所需的命令）。启动Container时，所有数据文件、可执行文件以及必要的依赖文件都会拷贝到节点的本地存储上，依赖文件可以被相同节点上相同Application的Container共享。<br>一旦启动Container，ApplicationMaster会检查它们的状态，ResourceManager不参与Application的执行，只处理调度以及监控其他资源。Container可以被ResourceManager给Kill掉，当Container被Kill掉之后，NodeManager会清理它的本地工作目录。如果是Applicaiton完成，ResourceManager会通知NodeManager聚合日志病清理Container专用的文件。</p>
+<h2 id="管理Application的依赖文件"><a href="#管理Application的依赖文件" class="headerlink" title="管理Application的依赖文件"></a>管理Application的依赖文件</h2><p>当启动一个Container时，ApplicationMaster可以指定该Container所需文件，因此，这些文件会被本地化处理，而Yarn负责本地化处理的所有操作。</p>
+<h3 id="LocalResource的定义"><a href="#LocalResource的定义" class="headerlink" title="LocalResource的定义"></a>LocalResource的定义</h3><p>这部分包含两个操作</p>
+<blockquote>
+<p>Localization：拷贝/下载远程资源到本地文件系统的过程。<br>LocalResource：LocalResource代表运行Container所需的本地资源。NodeManager负责在启动Container之前将这些资源本地化。<br>LocalCache：NodeManager维护和管理所有已下载文件的几种本地缓存，这些资源基于最初拷贝该文件时使用的远程URL作为唯一标识。</p>
+</blockquote>
+<p>对于每种资源，应用程序都可以指定下面的信息：</p>
+<blockquote>
+<p>URL：待下载的LocalResource的远程地址。<br>Size：LocalResource的大小，以byte为单位。<br>Creation timestamp：资源在远程文件系统上创建的时间。<br>LocalResourceType：NodeManager本地化的资源类型，包括FILE、ARCHIVE和PATTERN。<br>Patten：用于从存档文件中提取条目的样式（只对PATTERN类型适用）。<br>LocalResourceVisibility：指定NodeManager本地化资源的可见性，包括：PUBLIC、PRIVATE和APPLICATION。</p>
+</blockquote>
+<h3 id="LocalResource时间戳"><a href="#LocalResource时间戳" class="headerlink" title="LocalResource时间戳"></a>LocalResource时间戳</h3><p>NodeManager在下载资源文件之前，会检查这些文件有没有被修改过，这个检查可以确保LocalResource的一致性–应用程序在整个运行期间使用相同的文件内容。<br>一旦文件从远程位置拷贝到NodeManager的本地磁盘，它失去了除了URL之外所有与原始文件的联系，不再对远程文件的修改进行跟踪。为了避免不一致的问题，Yarn会让依赖于被修改的远程文件的Container失败。<br>ApplicationMaster在一个节点上启动Container时，会向NodeManager指定资源的时间戳。</p>
+<h3 id="LocalResource类型"><a href="#LocalResource类型" class="headerlink" title="LocalResource类型"></a>LocalResource类型</h3><blockquote>
+<p>FILE：一个普通文件，文本或二进制文件。<br>ARCHIVE：压缩文件，会被NodeManager自动解压缩。目前可以识别jar、tar、tar.gz以及zip。<br>PATTERN：ARCHIVE和FILE类型的组合。目前只有JAR文件支持PATTERN类型。</p>
+</blockquote>
+<h3 id="LocalResource的可见性"><a href="#LocalResource的可见性" class="headerlink" title="LocalResource的可见性"></a>LocalResource的可见性</h3><p>由LocalResource-Visibility指定，LocalResource有三种可见性：</p>
+<h4 id="PUBLIC"><a href="#PUBLIC" class="headerlink" title="PUBLIC"></a>PUBLIC</h4><p>标记为PUBLIC的LocalResource可以被任何用户的Container访问。这些文件被拷贝到公共的LocalCache，之后本地上任何Container都可以直接从这个公共的LocalCache中读取文件，在LocalCache被清除之前，都不需要再次下载文件。</p>
+<h4 id="PRIVATE"><a href="#PRIVATE" class="headerlink" title="PRIVATE"></a>PRIVATE</h4><p>使用PRIVATE标记的LocalResource可以被节点上同一用户的应用程序共享。这些LocalResource被复制到特定用户的私有缓存中。由同一个用户的不同应用程序的所有Container都可以访问这些文件。</p>
+<h4 id="APPLICATION"><a href="#APPLICATION" class="headerlink" title="APPLICATION"></a>APPLICATION</h4><p>使用APPLICATION标记的资源可以被同一节点上相同Application的Container所共享。这些LocalResource被复制到应用程序专有的LocalCache。</p>
+<h3 id="LocalResource的生命周期"><a href="#LocalResource的生命周期" class="headerlink" title="LocalResource的生命周期"></a>LocalResource的生命周期</h3><p>不同类型的LocalResource具有不同的生命周期：</p>
+<blockquote>
+<p>PUBLIC LocalResource 在Container或者应用程序结束时都不会被删除，但是在磁盘容量紧张时会删除。这个阈值可以通过yarn.nodemanager.localizer.cache.target-size-mb来指定。<br>PRIVATE LocalResource 与PUBLIC LocalResource的生命周期相同。<br>APPLICATION LocalResource会在应用程序结束后立即被删除。</p>
+</blockquote>
+<p>注意：APPLICATION LocalResource生命周期是以Application来界定，而不是ApplicationAttempt。</p>
+<h1 id="Apache-Hadoop-YARN的管理"><a href="#Apache-Hadoop-YARN的管理" class="headerlink" title="Apache Hadoop YARN的管理"></a>Apache Hadoop YARN的管理</h1><h2 id="基本的Yarn管理"><a href="#基本的Yarn管理" class="headerlink" title="基本的Yarn管理"></a>基本的Yarn管理</h2><p>Yarn环境的基本配置文件如下：</p>
+<blockquote>
+<p>core-default.xml 系统范围的配置<br>hdfs-default.xml 分布式文件系统的配置<br>mapred-default.xml YARN的MapReduce框架配置<br>yarn-default.xml YARN的配置</p>
+</blockquote>
+<h3 id="YARN的管理工具"><a href="#YARN的管理工具" class="headerlink" title="YARN的管理工具"></a>YARN的管理工具</h3><p>Yarn有一些内置管理功能，通过yarn rmadmin -help 命令行命令可以查看具体的命令说明。</p>
+<h3 id="增加或关闭YARN节点"><a href="#增加或关闭YARN节点" class="headerlink" title="增加或关闭YARN节点"></a>增加或关闭YARN节点</h3><p>有两个文件决定了哪些节点属于集群内，哪些节点数据不属于集群内：yarn.resourcemanager.nodes.include-path和yarn.resourcemanager.nodes.exclude-path。当这两个文件修改之后，可以通过下面的命令行命令来刷新ResourceManager，对节点进行容纳或踢出。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshNodes</div></pre></td></tr></table></figure></p>
+<p>执行刷新命令需要管理员权限，管理员是通过ResourceManager上配置项 yarn.admin.acl 来指定的。</p>
+<h3 id="Capacity调度器的配置"><a href="#Capacity调度器的配置" class="headerlink" title="Capacity调度器的配置"></a>Capacity调度器的配置</h3><p>调度器的详细配置会在稍后介绍，这里我们介绍重新配置和添加队列。<br>要重新配置或添加队列，可以使用前面提到的confidence-haddoop2.sh或者直接编辑$Hadoop_conf_dir/etc/hadoop/capacity-scheduler.xml来实现。修改后，执行如下命令行命令来进行刷新：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshQueues</div></pre></td></tr></table></figure></p>
+<p>注意不能够删除队列，只能增加或重新配置队列。</p>
+<h3 id="YRAN的Web代理"><a href="#YRAN的Web代理" class="headerlink" title="YRAN的Web代理"></a>YRAN的Web代理</h3><p>默认情况下，代理是作为ResourceManager的一部分运行的，但是也可以通过配置项 yarn.web-proxy.address 来使其独立运行。配置项默认为空，表示在ResourceManager运行。独立运行时，通过 yarn.web-proxy.principal 和 yarn.web-proxy.keytab 两个配置项可以控制使用 Kerberos 进行安全认证。</p>
+<h3 id="使用-JobHistoryServer"><a href="#使用-JobHistoryServer" class="headerlink" title="使用 JobHistoryServer"></a>使用 JobHistoryServer</h3><p>。。。</p>
+<h3 id="更新用户到用户组的映射关系"><a href="#更新用户到用户组的映射关系" class="headerlink" title="更新用户到用户组的映射关系"></a>更新用户到用户组的映射关系</h3><p>配置项 hadoop.security.group.mapping 决定了 ResourceManager 中使用的用户与用户组的映射关系的定义类。默认为org.apache.hadoop.security.ShellBasedUnixGroupsMapping，如果用户想要实现自己的类，需要实现org.apache.hadoop.security.GroupMappingServiceProvider接口。如果修改了映射关系，则需要使用下面的命令来更新ResourceManager：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshUserToGroupMapping</div></pre></td></tr></table></figure></p>
+<h3 id="更新超级用户代理群映射关系"><a href="#更新超级用户代理群映射关系" class="headerlink" title="更新超级用户代理群映射关系"></a>更新超级用户代理群映射关系</h3><p>通过配置 hadoop.proxyuser.&lt; proxy-user-name &gt;.groups ，可以让用户$proxy-user-name 成为具有特殊权限的用户，它可以模拟配置值中的任意用户。配置项 hadoop.proxyuser.&lt; proxy-user-name &gt;.hosts 的配置值为逗号分隔的主机列表，只有配置在这里的这些主机，才可以使用前面的 $proxy-user-name 来模拟所配置的用户。如果修改这两个配置，则需要使用下面的命令行命令来更新ResourceManager：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshSuperUserGroupsConfiguration</div></pre></td></tr></table></figure></p>
+<p>$proxy-user-name用户在模拟其他用户时，自己必须使用Kerberos认证。</p>
+<h3 id="更新ResourceManager管理的ACL"><a href="#更新ResourceManager管理的ACL" class="headerlink" title="更新ResourceManager管理的ACL"></a>更新ResourceManager管理的ACL</h3><p>配置项 yarn.admin.acl 指定了谁是YRAN集群的管理员。管理员可以更新队列、管理节点列表、用户-群组映射、管理列表本身以及服务级别的ACL。还可以查看任何用户的Application、访问所有的Web界面、调用任何Web服务，以及杀掉任何队列中的Application。<br>这个配置项的值是一个用逗号分隔的用户列表和一个用逗号分隔的用户组列表，用户列表和用户组列表使用空格分隔，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">user1,user2 group1,group2</div></pre></td></tr></table></figure></p>
+<p>当这个配置项变更后，管理员需要使用下面的命令行命令来刷新ResourceManager<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshAdminAcls</div></pre></td></tr></table></figure></p>
+<h3 id="重新加载服务级授权策略文件"><a href="#重新加载服务级授权策略文件" class="headerlink" title="重新加载服务级授权策略文件"></a>重新加载服务级授权策略文件</h3><p>管理员可以使用下面的命令行命令来重新加载授权策略文件：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn rmadmin -refreshServiceACL</div></pre></td></tr></table></figure></p>
+<h3 id="管理YARN作业"><a href="#管理YARN作业" class="headerlink" title="管理YARN作业"></a>管理YARN作业</h3><p>Yarn的作业可以通过 yarn application 命令来管理。可以使用的子命令有：kill、list、status、appTypes和help。如<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn application -list</div></pre></td></tr></table></figure></p>
+<p>各个子命令的作用，通过名字我们也可以看出来。</p>
+<h3 id="设置Container的内存"><a href="#设置Container的内存" class="headerlink" title="设置Container的内存"></a>设置Container的内存</h3><p>通过 yarn-site.xml 中的三个重要的配置，可以控制Container的内存：</p>
+<blockquote>
+<p>yarn.nodemanager.resource.memory-mb 指定了NodeManager可以给Container使用的内存总量（机器上可以用来给Container分配的最大内存）。<br>yarn.scheduler.minimum-allocation-mb 是ResourceManager允许分配给Container的最小内存。如果请求的Container的内存值小于这个值，则使用这个值，默认为1024MB。<br>yarn.scheduler.maximum-allocation-mb 是ResourceManager允许分配给Container的最大内存，默认为8192MB。</p>
+</blockquote>
+<h3 id="设置Container核数"><a href="#设置Container核数" class="headerlink" title="设置Container核数"></a>设置Container核数</h3><p>通过 yarn-site.xml中的配置，我们可以控制Container的核数：</p>
+<blockquote>
+<p>yarn.scheduler.minimum-allocation-vcores 指定了Container使用的最小core数。<br>yarn.scheduler.maximum-allocation-vcores 指定了Container使用的最大core数。<br>yarn.nodemanager.resource.cpu-vcores 指定了节点上可以用来给Container分配的总core数。</p>
+</blockquote>
+<h3 id="用户日志管理"><a href="#用户日志管理" class="headerlink" title="用户日志管理"></a>用户日志管理</h3><p>在应用完成后，Yarn通过NodeManager提供的将日志安全的移动到HDFS上的功能，解决了日志管理问题。</p>
+<h4 id="Yarn上的日志聚合"><a href="#Yarn上的日志聚合" class="headerlink" title="Yarn上的日志聚合"></a>Yarn上的日志聚合</h4><p>有了Yarn，对于同一个应用的所有Container的日志，可以聚合并写到指定文件系统的指定目录中的一个单独文件中。用户可以通过命令行工具、web用户界面或直接从文件系统来访问这些日志。 在MapReduce的JobHistoryServer中运行着一个AggregatedLogDeletionService服务，会周期性的删除聚合日志。</p>
+<h4 id="Web用户界面"><a href="#Web用户界面" class="headerlink" title="Web用户界面"></a>Web用户界面</h4><p>在应用运行期间，用户可以通过ApplicationMaster的用户界面看到日志，它将用户重定向到NodeManager的用户界面。一旦Application运行结束，完整的信息就交由JobHistoryServer管理。</p>
+<h4 id="命令行访问"><a href="#命令行访问" class="headerlink" title="命令行访问"></a>命令行访问</h4><p>用户还可以使用命令行工具来与日志进行交互。可以运行下面的命令来查看可用命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs</div></pre></td></tr></table></figure></p>
+<p>命令的格式为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs -applicationId &lt; application ID &gt; [Options]</div></pre></td></tr></table></figure></p>
+<p>常用的选项有：-appOwner、-containerId、-nodeAddress，例如下面的命令可以打印出整个Application的全部日志：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yarn logs -applicationId XXXXXXX</div></pre></td></tr></table></figure></p>
+<p>使用命令行工具的优点是可以通过Shell工具来帮助处理日志信息。</p>
+<h4 id="日志的管理和配置"><a href="#日志的管理和配置" class="headerlink" title="日志的管理和配置"></a>日志的管理和配置</h4><p>yarn.nodemanager.log-dirs 决定了在Container运行时，它的日志在节点上保存的位置。应用的本地化日志目录在{yarn.nodemanager.log-dirs}/application<em>${applicationId}下。各个Container的日志目录位于{yarn.nodemanager.log-dirs}/application</em>${applicationId}/container_{$containerId}子目录中。<br>yarn.log-aggregation-enable 指定了是否开启日志聚合功能。如果关闭了，NodeManager会本地化保存日志，不会进行聚合操作。</p>
+<p>如果开启了日志聚合功能，那么下面的配置也将生效：</p>
+<blockquote>
+<p>yarn.nodemanager.remote-app-log-dir：指定了NodeManager将在哪里聚合日志。<br>yarn.nodemanager.remote-app-log-dir-suffix：将在${yarn.nodemanager.remote-app-log-dir}/${user}下创建远程日志的后缀。默认为log。<br>yarn.log-aggregation.retain-seconds：删除聚合日志的延迟，将在这个时长之后删除日志。如果为负数则表示不删除。<br>yarn.log-aggregation.retain-check-interval-seconds：定义检查日志删除的周期，如果为0或负数，那么将会按照聚合日志保留时间的十分之一来计算。<br>yarn.log.server.url：Application完成后，NodeManager用来将Web用户界面重定向的URL。</p>
+</blockquote>
+<p>如果关闭了日志聚合功能，那么下面的配置将生效：</p>
+<blockquote>
+<p>yarn.nodemanager.log.retain-seconds：日志聚合功能关闭的情况下，各个节点上保留用户日志的时长（单位：秒）。<br>yarn.nodemanager.log.deletion-threads-count：日志聚合功能关闭情况下，NodeManager用于清理日志所启动的线程数量。</p>
+</blockquote>
+<h4 id="日志权限"><a href="#日志权限" class="headerlink" title="日志权限"></a>日志权限</h4><p>远程日志目录需要其所有者是${NMUser}，权限为1777，并且目录和组属于${NMGroup}。每个Application级的目录都是770。</p>
+<h1 id="Apache-Hadoop-YARN的架构指南"><a href="#Apache-Hadoop-YARN的架构指南" class="headerlink" title="Apache Hadoop YARN的架构指南"></a>Apache Hadoop YARN的架构指南</h1><p>Yarn将它的功能分为两层：资源管理平台和程序调度执行。ResourceManager只是简单地基于应用程序的请求做中心的资源配置，而不关心应用程序是如何使用这些资源的。它把这个职责委托给了ApplicationMaster，由ApplicationMaster来协调单个应用程序从ResourceManager请求来的资源的逻辑执行，产生应用程序自己的具体的工作计划，ApplicationMaster利用接收到的资源，协调这个具体计划的执行。</p>
+<h2 id="概述"><a href="#概述" class="headerlink" title="概述"></a>概述</h2><p>ApplicationMaster和响应的Container一起组成了一个YARN的应用程序。ResourceManager提供应用程序的调度。每个应用程序由一个ApplicationMaster管理，以Container的相识请求每个任务的计算资源。Container由ResourceManager调度，在NodeManager上运行。</p>
+<h2 id="ResourceManager-1"><a href="#ResourceManager-1" class="headerlink" title="ResourceManager"></a>ResourceManager</h2><p>ResourceManager和如下的组件一起工作：</p>
+<blockquote>
+<p>每个节点上的NodeManager： 从ResourceManager中获取指令，管理单个节点上可用资源，并接收ApplicationMaster的资源请求。<br>每个应用程序的ApplicationMaster： ApplicationMaster向ResourceManager申请资源并和NodeManager一起工作，启动、监控和停止Container。</p>
+</blockquote>
+<h3 id="ResourceManager组件概述"><a href="#ResourceManager组件概述" class="headerlink" title="ResourceManager组件概述"></a>ResourceManager组件概述</h3><p>ResourceManager会向客户端、NodeManager、ApplicationMaster和其他内部核心组件提供服务。</p>
+<h3 id="客户端与ResourceManager交互"><a href="#客户端与ResourceManager交互" class="headerlink" title="客户端与ResourceManager交互"></a>客户端与ResourceManager交互</h3><h1 id="YARN-的HA"><a href="#YARN-的HA" class="headerlink" title="YARN 的HA"></a>YARN 的HA</h1><p>参考地址：<a href="https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html" target="_blank" rel="external">https://hadoop.apache.org/docs/r2.7.1/hadoop-yarn/hadoop-yarn-site/ResourceManagerHA.html</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/yarn/" rel="tag">#yarn</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2019/04/23/spark-2-11-BlockManager/" rel="next" title="spark-2-11-BlockManager">
+                <i class="fa fa-chevron-left"></i> spark-2-11-BlockManager
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">56</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#YARN-组件的功能概述"><span class="nav-number">1.</span> <span class="nav-text">YARN 组件的功能概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceManager"><span class="nav-number">1.1.</span> <span class="nav-text">ResourceManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Yarn调度器"><span class="nav-number">1.2.</span> <span class="nav-text">Yarn调度器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#FIFO"><span class="nav-number">1.2.1.</span> <span class="nav-text">FIFO</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Capacity"><span class="nav-number">1.2.2.</span> <span class="nav-text">Capacity</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fair调度器"><span class="nav-number">1.2.3.</span> <span class="nav-text">Fair调度器</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Container"><span class="nav-number">1.3.</span> <span class="nav-text">Container</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#NodeManager"><span class="nav-number">1.4.</span> <span class="nav-text">NodeManager</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ApplicationMaster"><span class="nav-number">1.5.</span> <span class="nav-text">ApplicationMaster</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#YARN资源模型"><span class="nav-number">1.6.</span> <span class="nav-text">YARN资源模型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端资源请求"><span class="nav-number">1.6.1.</span> <span class="nav-text">客户端资源请求</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ApplicationMaster分配Container"><span class="nav-number">1.6.2.</span> <span class="nav-text">ApplicationMaster分配Container</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ApplicationMaster与Container管理器的通信"><span class="nav-number">1.6.3.</span> <span class="nav-text">ApplicationMaster与Container管理器的通信</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管理Application的依赖文件"><span class="nav-number">1.7.</span> <span class="nav-text">管理Application的依赖文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalResource的定义"><span class="nav-number">1.7.1.</span> <span class="nav-text">LocalResource的定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalResource时间戳"><span class="nav-number">1.7.2.</span> <span class="nav-text">LocalResource时间戳</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalResource类型"><span class="nav-number">1.7.3.</span> <span class="nav-text">LocalResource类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalResource的可见性"><span class="nav-number">1.7.4.</span> <span class="nav-text">LocalResource的可见性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#PUBLIC"><span class="nav-number">1.7.4.1.</span> <span class="nav-text">PUBLIC</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#PRIVATE"><span class="nav-number">1.7.4.2.</span> <span class="nav-text">PRIVATE</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#APPLICATION"><span class="nav-number">1.7.4.3.</span> <span class="nav-text">APPLICATION</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#LocalResource的生命周期"><span class="nav-number">1.7.5.</span> <span class="nav-text">LocalResource的生命周期</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Apache-Hadoop-YARN的管理"><span class="nav-number">2.</span> <span class="nav-text">Apache Hadoop YARN的管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本的Yarn管理"><span class="nav-number">2.1.</span> <span class="nav-text">基本的Yarn管理</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#YARN的管理工具"><span class="nav-number">2.1.1.</span> <span class="nav-text">YARN的管理工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#增加或关闭YARN节点"><span class="nav-number">2.1.2.</span> <span class="nav-text">增加或关闭YARN节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Capacity调度器的配置"><span class="nav-number">2.1.3.</span> <span class="nav-text">Capacity调度器的配置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YRAN的Web代理"><span class="nav-number">2.1.4.</span> <span class="nav-text">YRAN的Web代理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使用-JobHistoryServer"><span class="nav-number">2.1.5.</span> <span class="nav-text">使用 JobHistoryServer</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新用户到用户组的映射关系"><span class="nav-number">2.1.6.</span> <span class="nav-text">更新用户到用户组的映射关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新超级用户代理群映射关系"><span class="nav-number">2.1.7.</span> <span class="nav-text">更新超级用户代理群映射关系</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#更新ResourceManager管理的ACL"><span class="nav-number">2.1.8.</span> <span class="nav-text">更新ResourceManager管理的ACL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#重新加载服务级授权策略文件"><span class="nav-number">2.1.9.</span> <span class="nav-text">重新加载服务级授权策略文件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#管理YARN作业"><span class="nav-number">2.1.10.</span> <span class="nav-text">管理YARN作业</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置Container的内存"><span class="nav-number">2.1.11.</span> <span class="nav-text">设置Container的内存</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置Container核数"><span class="nav-number">2.1.12.</span> <span class="nav-text">设置Container核数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#用户日志管理"><span class="nav-number">2.1.13.</span> <span class="nav-text">用户日志管理</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Yarn上的日志聚合"><span class="nav-number">2.1.13.1.</span> <span class="nav-text">Yarn上的日志聚合</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Web用户界面"><span class="nav-number">2.1.13.2.</span> <span class="nav-text">Web用户界面</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#命令行访问"><span class="nav-number">2.1.13.3.</span> <span class="nav-text">命令行访问</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#日志的管理和配置"><span class="nav-number">2.1.13.4.</span> <span class="nav-text">日志的管理和配置</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#日志权限"><span class="nav-number">2.1.13.5.</span> <span class="nav-text">日志权限</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Apache-Hadoop-YARN的架构指南"><span class="nav-number">3.</span> <span class="nav-text">Apache Hadoop YARN的架构指南</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#概述"><span class="nav-number">3.1.</span> <span class="nav-text">概述</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ResourceManager-1"><span class="nav-number">3.2.</span> <span class="nav-text">ResourceManager</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ResourceManager组件概述"><span class="nav-number">3.2.1.</span> <span class="nav-text">ResourceManager组件概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#客户端与ResourceManager交互"><span class="nav-number">3.2.2.</span> <span class="nav-text">客户端与ResourceManager交互</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#YARN-的HA"><span class="nav-number">4.</span> <span class="nav-text">YARN 的HA</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
