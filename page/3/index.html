@@ -248,6 +248,353 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/" itemprop="url">
+                  scikit image - a crash course on NumPy for images
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-19T12:43:26+08:00" content="2016-12-19">
+              2016-12-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/图像处理/" itemprop="url" rel="index">
+                    <span itemprop="name">图像处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文用来学习scikit-image的官方文档的<a href="http://scikit-image.org/docs/stable/user_guide/numpy_images.html" title="a crash course on NumPy for images">a crash course on NumPy for images</a>，<a href="http://scikit-image.org/docs/stable/user_guide/numpy_images.html" title="a crash course on NumPy for images">原链接</a></p>
+<h1 id="A-crash-course-on-NumPy-for-images"><a href="#A-crash-course-on-NumPy-for-images" class="headerlink" title="A crash course on NumPy for images"></a>A crash course on NumPy for images</h1><p>scikit-image是以NumPy数组的方式来操作图像。因此图像很大一部分的操作将是使用NumPy：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> skimage <span class="keyword">import</span> data</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera = data.camera()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>type(camera)</div><div class="line">&lt;type <span class="string">'numpy.ndarray'</span>&gt;</div></pre></td></tr></table></figure></p>
+<p>检索图像的几何以及像素数：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.shape</div><div class="line">(<span class="number">512</span>, <span class="number">512</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.size</div><div class="line"><span class="number">262144</span></div></pre></td></tr></table></figure></p>
+<p>检索关于灰度值的统计信息：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.min(), camera.max()</div><div class="line">(<span class="number">0</span>, <span class="number">255</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.mean()</div><div class="line"><span class="number">118.31400299072266</span></div></pre></td></tr></table></figure></p>
+<p>代表图片的NumPy数组可以是浮点数类型的不同整数。查看<a href="http://scikit-image.org/docs/stable/user_guide/data_types.html#data-types" title="Image data type and what the mean">Image data type and what the mean</a>获取关于这些类型的更多信息，以及scikit-image如何处理它们。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/12/16/scikitImage-gettingStarted/" itemprop="url">
+                  scikit image - getting started
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-16T16:42:31+08:00" content="2016-12-16">
+              2016-12-16
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/图像处理/" itemprop="url" rel="index">
+                    <span itemprop="name">图像处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文用来学习scikit-image的官方文档的入门手册，<a href="http://scikit-image.org/docs/stable/user_guide/getting_started.html" title="Getting started" target="_blank" rel="external">原链接</a></p>
+<h1 id="Getting-started"><a href="#Getting-started" class="headerlink" title="Getting started"></a>Getting started</h1><p>scikit-image是一个图像处理的Python包，它使用numpy数组来工作。这个包作为skimage被引入：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> skimage</div></pre></td></tr></table></figure></p>
+<p>skimage的大多数函数将在子模块中找到：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> skimage <span class="keyword">import</span> data</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera = data.camera()</div></pre></td></tr></table></figure></p>
+<p>一个包含子模块和函数的web页面可以在<a href="http://scikit-image.org/docs/stable/api/api.html" title="API Reference" target="_blank" rel="external">API reference</a>中找到。<br>在scikit-image中，图片相当于一个NumPy数组，例如，一个2-D的数组表示了一个灰度的2-D图片<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>type(camera)</div><div class="line">&lt;type <span class="string">'numpy.ndarray'</span>&gt;</div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="comment"># An image with 512 rows and 512 columns</span></div><div class="line"><span class="meta">&gt;&gt;&gt; </span>camera.shape</div><div class="line">(<span class="number">512</span>, <span class="number">512</span>)</div></pre></td></tr></table></figure></p>
+<p>skimage.data模块提供了一组返回示例图片的函数，这些图片可以用来快速学习scikit-image的函数：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span>coins = data.coins()</div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> skimage <span class="keyword">import</span> filters</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>threshold_value = filters.threshold_otsu(coins)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>threshold_value</div><div class="line"><span class="number">107</span></div></pre></td></tr></table></figure></p>
+<p>当然，还可以使用skimage.io.imread()从图片文件来加载自己的图片信息，加载后的图片也是作为一个NumPy数组：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">import</span> os</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>filename = os.path.join(skimage.data_dir, <span class="string">'moon.png'</span>)</div><div class="line"><span class="meta">&gt;&gt;&gt; </span><span class="keyword">from</span> skimage <span class="keyword">import</span> io</div><div class="line"><span class="meta">&gt;&gt;&gt; </span>moon = io.imread(filename)</div></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/11/10/log4j/" itemprop="url">
+                  Log4j Architecture
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-11-10T15:25:48+08:00" content="2016-11-10">
+              2016-11-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/Logging/" itemprop="url" rel="index">
+                    <span itemprop="name">Logging</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要是针对Log4j的2.x版本的文档的，<a href="http://logging.apache.org/log4j/2.x/" title="Log4j">链接</a></p>
+<h1 id="Architecture"><a href="#Architecture" class="headerlink" title="Architecture"></a>Architecture</h1><h2 id="Main-Components"><a href="#Main-Components" class="headerlink" title="Main Components"></a>Main Components</h2><p>Log4j使用的类下面图表中展示。<br><img src="http://oaavtz33a.bkt.clouddn.com/Log4jClasses.jpg" alt="Log4j Classes" title="class Log4j Classes"><br>使用Log4j的applications讲需要使用一个特定的名称向LogManager请求一个Logger。LogManager会定位到适当的LoggerContext，然后从LoggerContext中获取Logger。如果Logger必须被创建，它将与包含了如下内容的LoggerConfig进行关联：1）与Logger相同名称的LoggerConfig；b）父级package的名称的LoggerConfig；3）根级LoggerConfig。LoggerConfig对象根据配置中Logger的声明进行创建。LoggerConfig与日志事件的实际输出源联系在一起。</p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/11/10/log4j/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/11/10/log4j-configuration/" itemprop="url">
                   Log4j Configuration
                 </a>
@@ -1537,10 +1884,11 @@
       
         
           <p>该文记录了自己常用的unix的命令</p>
-<h1 id="awk的使用"><a href="#awk的使用" class="headerlink" title="awk的使用"></a>awk的使用</h1><h2 id="用例"><a href="#用例" class="headerlink" title="用例"></a>用例</h2><h3 id="计算文件中某列的总和"><a href="#计算文件中某列的总和" class="headerlink" title="计算文件中某列的总和"></a>计算文件中某列的总和</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ vim test.log</div><div class="line">a 1</div><div class="line">b 3</div><div class="line">c 5</div><div class="line">d 6</div><div class="line"></div><div class="line">$ cat test.log | awk &apos;&#123;a = a + $2&#125; END &#123;print a&#125;&apos;</div><div class="line">15</div></pre></td></tr></table></figure>
+<h1 id="awk的使用"><a href="#awk的使用" class="headerlink" title="awk的使用"></a>awk的使用</h1><h2 id="语法"><a href="#语法" class="headerlink" title="语法"></a>语法</h2><h2 id="用例"><a href="#用例" class="headerlink" title="用例"></a>用例</h2><h3 id="计算文件中某列的总和"><a href="#计算文件中某列的总和" class="headerlink" title="计算文件中某列的总和"></a>计算文件中某列的总和</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">$ vim test.log</div><div class="line">a 1</div><div class="line">b 3</div><div class="line">c 5</div><div class="line">d 6</div><div class="line"></div><div class="line">$ cat test.log | awk &apos;&#123;a = a + $2&#125; END &#123;print a&#125;&apos;</div><div class="line">15</div></pre></td></tr></table></figure>
 <h3 id="使用awk对字符串进行拆分"><a href="#使用awk对字符串进行拆分" class="headerlink" title="使用awk对字符串进行拆分"></a>使用awk对字符串进行拆分</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">cat 1103kick.log | awk <span class="string">'&#123;split($0, a, "\""); print a[2]&#125;'</span> <span class="comment"># 按照"拆分，然后输出第2个数据</span></div></pre></td></tr></table></figure>
 <h3 id="在awk中打印单引号"><a href="#在awk中打印单引号" class="headerlink" title="在awk中打印单引号"></a>在awk中打印单引号</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">test.log</div><div class="line">287901341</div><div class="line">285315045</div><div class="line">288588058</div><div class="line">283098937</div><div class="line">287076722</div><div class="line">284529273</div><div class="line"></div><div class="line">head test.log | awk &apos;&#123;print &quot;mv &quot; &quot;&apos;\&apos;&apos;&quot; $1 &quot;&apos;\&apos;&apos;&quot;&#125;&apos;</div><div class="line">mv &apos;287901341&apos;</div><div class="line">mv &apos;285315045&apos;</div><div class="line">mv &apos;288588058&apos;</div><div class="line">mv &apos;283098937&apos;</div><div class="line">mv &apos;287076722&apos;</div><div class="line">mv &apos;284529273&apos;</div></pre></td></tr></table></figure>
 <h3 id="AWK中使用判断"><a href="#AWK中使用判断" class="headerlink" title="AWK中使用判断"></a>AWK中使用判断</h3><p>在AWK中是可以使用if判断语句的，if(判断条件) 执行语句; else if (判断条件) 执行语句; else 执行语句。<br>下面的例子，判断文件夹中的所有文件，如果文件的大小为0，则打印该文件的文件名。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ls -l | awk -F &apos; &apos; &apos;if($4 == 0) print $10&apos;</div></pre></td></tr></table></figure></p>
+<h3 id="逻辑操作"><a href="#逻辑操作" class="headerlink" title="逻辑操作"></a>逻辑操作</h3><p>在使用AWK中使用if进行条件判断是，可以使用逻辑操作符进行组合判断，支持的逻辑操作符有：&amp;&amp;、||。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ll -t | awk &apos;&#123;if(($6==&quot;Jan&quot; || $6==&quot;Feb&quot; || $6==&quot;Mar&quot; || $6==&quot;Apr&quot; || $6=&quot;May&quot;) &amp;&amp; $8==&quot;2019&quot;)&#123;print $9&#125;&#125;&apos;</div></pre></td></tr></table></figure></p>
           <div class="post-more-link text-center">
             <a class="btn" href="/blog/2016/07/27/unix-commonCommand/#more" rel="contents">
               阅读全文 &raquo;
@@ -2194,7 +2542,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">56</span>
+              <span class="site-state-item-count">59</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2202,7 +2550,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">20</span>
+                <span class="site-state-item-count">21</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2211,7 +2559,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">25</span>
+                <span class="site-state-item-count">26</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

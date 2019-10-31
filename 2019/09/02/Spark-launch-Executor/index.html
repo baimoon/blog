@@ -1,0 +1,630 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="启动开始在Yarn调度模式中，Executor的启动是从YarnAllocator的runAllocatedContainers方法开始的。以下是这个方法的定义：12345678910111213141516171819202122232425262728293031323334353637383940414243/*** Launches executors in the allocated c">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark-launch-Executor">
+<meta property="og:url" content="http://baimoon.github.io/2019/09/02/Spark-launch-Executor/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="启动开始在Yarn调度模式中，Executor的启动是从YarnAllocator的runAllocatedContainers方法开始的。以下是这个方法的定义：12345678910111213141516171819202122232425262728293031323334353637383940414243/*** Launches executors in the allocated c">
+<meta property="og:updated_time" content="2019-09-05T07:44:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark-launch-Executor">
+<meta name="twitter:description" content="启动开始在Yarn调度模式中，Executor的启动是从YarnAllocator的runAllocatedContainers方法开始的。以下是这个方法的定义：12345678910111213141516171819202122232425262728293031323334353637383940414243/*** Launches executors in the allocated c">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2019/09/02/Spark-launch-Executor/"/>
+
+  <title> Spark-launch-Executor | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark-launch-Executor
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-09-02T23:09:29+08:00" content="2019-09-02">
+              2019-09-02
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="启动开始"><a href="#启动开始" class="headerlink" title="启动开始"></a>启动开始</h2><p>在Yarn调度模式中，Executor的启动是从YarnAllocator的runAllocatedContainers方法开始的。<br>以下是这个方法的定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/**</span></div><div class="line">* Launches executors in the allocated containers.</div><div class="line">*/</div><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">runAllocatedContainers</span></span>(containersToUse: <span class="type">ArrayBuffer</span>[<span class="type">Container</span>]): <span class="type">Unit</span> = &#123;</div><div class="line">  <span class="keyword">for</span> (container &lt;- containersToUse) &#123;</div><div class="line">    ... 此处是记录各种状态</div><div class="line"></div><div class="line">    <span class="keyword">if</span> (numExecutorsRunning.get &lt; targetNumExecutors) &#123;</div><div class="line">      numExecutorsStarting.incrementAndGet()</div><div class="line">      <span class="keyword">if</span> (launchContainers) &#123;</div><div class="line">        launcherPool.execute(<span class="keyword">new</span> <span class="type">Runnable</span> &#123;</div><div class="line">          <span class="keyword">override</span> <span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(): <span class="type">Unit</span> = &#123;</div><div class="line">            <span class="keyword">try</span> &#123;</div><div class="line">              <span class="keyword">new</span> <span class="type">ExecutorRunnable</span>(</div><div class="line">                <span class="type">Some</span>(container),</div><div class="line">                conf,</div><div class="line">                sparkConf,</div><div class="line">                driverUrl,</div><div class="line">                executorId,</div><div class="line">                executorHostname,</div><div class="line">                executorMemory,</div><div class="line">                executorCores,</div><div class="line">                appAttemptId.getApplicationId.toString,</div><div class="line">                securityMgr,</div><div class="line">                localResources</div><div class="line">              ).run()</div><div class="line">              updateInternalState()</div><div class="line">            &#125; <span class="keyword">catch</span> &#123;</div><div class="line">              ... 异常的处理</div><div class="line">            &#125;</div><div class="line">          &#125;</div><div class="line">        &#125;)</div><div class="line">      &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// For test only</span></div><div class="line">        updateInternalState()</div><div class="line">      &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">      logInfo((<span class="string">"Skip launching executorRunnable as runnning Excecutors count: %d "</span> +</div><div class="line">        <span class="string">"reached target Executors count: %d."</span>).format(</div><div class="line">        numExecutorsRunning.get, targetNumExecutors))</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>此处的执行逻辑是，循环要使用的container信息，如果当前运行的Executor个数小于想要启动（目标）的Executor个数（启动中的不算），那么就让launcherPool启动一个ExecutorRunnable。</p>
+<h2 id="ExecutorRunnable的定义"><a href="#ExecutorRunnable的定义" class="headerlink" title="ExecutorRunnable的定义"></a>ExecutorRunnable的定义</h2><p>这里需要看一下ExecutorRunnable的定义：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span>[yarn] <span class="class"><span class="keyword">class</span> <span class="title">ExecutorRunnable</span>(<span class="params"></span></span></div><div class="line">    container: <span class="type">Option</span>[<span class="type">Container</span>],</div><div class="line">    conf: <span class="type">YarnConfiguration</span>,</div><div class="line">    sparkConf: <span class="type">SparkConf</span>,</div><div class="line">    masterAddress: <span class="type">String</span>,</div><div class="line">    executorId: <span class="type">String</span>,</div><div class="line">    hostname: <span class="type">String</span>,</div><div class="line">    executorMemory: <span class="type">Int</span>,</div><div class="line">    executorCores: <span class="type">Int</span>,</div><div class="line">    appId: <span class="type">String</span>,</div><div class="line">    securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">    localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]) <span class="keyword">extends</span> <span class="title">Logging</span></div></pre></td></tr></table></figure>
+<p>在ExecutorRunnable的定义中，它需要如下参数：Container、YarnConfiguration、SparkConf、Master地址、executor的id、hostname、executor内存大小、executor的cpu核数、application的id、SecurityManager和本地资源信息。</p>
+<h2 id="Runnable的参数确定"><a href="#Runnable的参数确定" class="headerlink" title="Runnable的参数确定"></a>Runnable的参数确定</h2><p>这里先看一下YarnAllocator传递的哪些参数</p>
+<h3 id="Container"><a href="#Container" class="headerlink" title="Container"></a>Container</h3><p>container 来自containersToUse集合中，containerToUse是如下得到的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> allocateResponse = amClient.allocate(progressIndicator)</div><div class="line"><span class="keyword">val</span> allocatedContainers = allocateResponse.getAllocatedContainers()</div></pre></td></tr></table></figure></p>
+<p>也就是说是通过AMRMClient调用AM的服务后分配的。</p>
+<h3 id="YarnConfiguration"><a href="#YarnConfiguration" class="headerlink" title="YarnConfiguration"></a>YarnConfiguration</h3><p>YarnConfiguration是来自于YarnAllocator的构造参数：</p>
+<p>其中第三个参数conf就是YarnConfiguration，这个conf是来自YarnRMClient的register方法：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">register</span></span>(</div><div class="line">      driverUrl: <span class="type">String</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      conf: <span class="type">YarnConfiguration</span>,</div><div class="line">      sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      uiHistoryAddress: <span class="type">String</span>,</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>,</div><div class="line">      localResources: <span class="type">Map</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]</div><div class="line">    ): <span class="type">YarnAllocator</span> = &#123;</div><div class="line">    ... <span class="comment">// 省略其他操作</span></div><div class="line">    <span class="keyword">new</span> <span class="type">YarnAllocator</span>(driverUrl, driverRef, conf, sparkConf, amClient, getAttemptId(), securityMgr,</div><div class="line">      localResources, <span class="keyword">new</span> <span class="type">SparkRackResolver</span>())</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>而register方法是在ApplicationMaster的registerAM方法中调用的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="function"><span class="keyword">def</span> <span class="title">registerAM</span></span>(</div><div class="line">      _sparkConf: <span class="type">SparkConf</span>,</div><div class="line">      _rpcEnv: <span class="type">RpcEnv</span>,</div><div class="line">      driverRef: <span class="type">RpcEndpointRef</span>,</div><div class="line">      uiAddress: <span class="type">Option</span>[<span class="type">String</span>],</div><div class="line">      securityMgr: <span class="type">SecurityManager</span>) = &#123;</div><div class="line"></div><div class="line"></div><div class="line">    allocator = client.register(driverUrl,</div><div class="line">      driverRef,</div><div class="line">      yarnConf,</div><div class="line">      _sparkConf,</div><div class="line">      uiAddress,</div><div class="line">      historyAddress,</div><div class="line">      securityMgr,</div><div class="line">      localResources)</div><div class="line">  &#125;</div></pre></td></tr></table></figure></p>
+<p>yarnConf是在ApplicationMaster中定义的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">val</span> sparkConf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</div><div class="line"><span class="keyword">private</span> <span class="keyword">val</span> yarnConf: <span class="type">YarnConfiguration</span> = <span class="type">SparkHadoopUtil</span>.get.newConfiguration(sparkConf)</div></pre></td></tr></table></figure></p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">newConfiguration</span></span>(conf: <span class="type">SparkConf</span>): <span class="type">Configuration</span> = &#123;</div><div class="line">	<span class="keyword">val</span> hadoopConf = <span class="keyword">new</span> <span class="type">Configuration</span>()</div><div class="line">	appendS3AndSparkHadoopConfigurations(conf, hadoopConf)</div><div class="line">	hadoopConf</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">appendS3AndSparkHadoopConfigurations</span></span>(conf: <span class="type">SparkConf</span>, hadoopConf: <span class="type">Configuration</span>): <span class="type">Unit</span> = &#123;</div><div class="line">	<span class="comment">// Note: this null check is around more than just access to the "conf" object to maintain</span></div><div class="line">	<span class="comment">// the behavior of the old implementation of this code, for backwards compatibility.</span></div><div class="line">	<span class="keyword">if</span> (conf != <span class="literal">null</span>) &#123;</div><div class="line">	  <span class="comment">// Explicitly check for S3 environment variables</span></div><div class="line">	  <span class="keyword">val</span> keyId = <span class="type">System</span>.getenv(<span class="string">"AWS_ACCESS_KEY_ID"</span>)</div><div class="line">	  <span class="keyword">val</span> accessKey = <span class="type">System</span>.getenv(<span class="string">"AWS_SECRET_ACCESS_KEY"</span>)</div><div class="line">	  <span class="keyword">if</span> (keyId != <span class="literal">null</span> &amp;&amp; accessKey != <span class="literal">null</span>) &#123;</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3.awsAccessKeyId"</span>, keyId)</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3n.awsAccessKeyId"</span>, keyId)</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3a.access.key"</span>, keyId)</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3.awsSecretAccessKey"</span>, accessKey)</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3n.awsSecretAccessKey"</span>, accessKey)</div><div class="line">	    hadoopConf.set(<span class="string">"fs.s3a.secret.key"</span>, accessKey)</div><div class="line"></div><div class="line">	    <span class="keyword">val</span> sessionToken = <span class="type">System</span>.getenv(<span class="string">"AWS_SESSION_TOKEN"</span>)</div><div class="line">	    <span class="keyword">if</span> (sessionToken != <span class="literal">null</span>) &#123;</div><div class="line">	      hadoopConf.set(<span class="string">"fs.s3a.session.token"</span>, sessionToken)</div><div class="line">	    &#125;</div><div class="line">	  &#125;</div><div class="line">	  <span class="comment">// Copy any "spark.hadoop.foo=bar" system properties into conf as "foo=bar"</span></div><div class="line">	  conf.getAll.foreach &#123; <span class="keyword">case</span> (key, value) =&gt;</div><div class="line">	    <span class="keyword">if</span> (key.startsWith(<span class="string">"spark.hadoop."</span>)) &#123;</div><div class="line">	      hadoopConf.set(key.substring(<span class="string">"spark.hadoop."</span>.length), value)</div><div class="line">	    &#125;</div><div class="line">	  &#125;</div><div class="line">	  <span class="keyword">val</span> bufferSize = conf.get(<span class="string">"spark.buffer.size"</span>, <span class="string">"65536"</span>)</div><div class="line">	  hadoopConf.set(<span class="string">"io.file.buffer.size"</span>, bufferSize)</div><div class="line">	&#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>所以，从代码可以看出，yarnConf其实是一个“org.apache.hadoop.conf.Configuration”，它包含三部分内容：1、上面的S3的属性。2、Spark配置中以“spark.hadoop.”开头的配置。3、特定的“io.file.buffer.size”属性。</p>
+<h3 id="SparkConf"><a href="#SparkConf" class="headerlink" title="SparkConf"></a>SparkConf</h3><p>ExecutorRunnable需要的第三个参数是SparkConf。这个参数也是来自YarnAllocator的构造方法，和YarnConfiguration一样是从YarnRMClient的register方法的参数那里得到的。继续向上找，这个参数是来自ApplicationMaster的registerAM方法，对于registerAM方法，有两个地方调用，而这两个方法传递的SparkConf也是不一样的：driver启动和Executor启动。对于driver启动和Executor的启动，区别是是否是集群模式（isClusterModel），这两个方法只会执行一种：如果是集群模式（isClusterModel==true），则driver启动，否则Executor启动。</p>
+<h4 id="driver启动"><a href="#driver启动" class="headerlink" title="driver启动"></a>driver启动</h4><p>如果是集群模式（isClusterModel == true），就会调用runDriver方法，在runDriver方法中会调用registerAM方法。这里的SparkConf是从SparkContext中得到的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> sc = <span class="type">ThreadUtils</span>.awaitResult(sparkContextPromise.future, <span class="type">Duration</span>(totalWaitTime, <span class="type">TimeUnit</span>.<span class="type">MILLISECONDS</span>))</div><div class="line">...</div><div class="line">registerAM(sc.getConf, rpcEnv, driverRef, sc.ui.map(_.webUrl), securityMgr)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>对于driver的方式的SparkContext的获取需要之后详细了解。</p>
+<h4 id="Executor启动"><a href="#Executor启动" class="headerlink" title="Executor启动"></a>Executor启动</h4><p>如果是非集群模式（isClusterModel==false），就会调用runExecutorLauncher方法，在这个方法中会调用registerAM。这里传递的SparkConf就比较直观了，就是在ApplicationMaster类中实例化的SparkConf：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">val</span> sparkConf = <span class="keyword">new</span> <span class="type">SparkConf</span>()</div></pre></td></tr></table></figure></p>
+<h3 id="masterAddress"><a href="#masterAddress" class="headerlink" title="masterAddress"></a>masterAddress</h3><p>ExecutorRunnable的第四个参数是masterAddress，一个字符串类型参数。但是在yarnAllocator的runAllocatedContainers方法中生成ExecutorRunnable时传递的是“driverUrl”，这个“driverUrl”是来自YarnAllocator的构造方法的“driverUrl”，是来自ApplicationMaster的registerAM方法中生成的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> driverUrl = <span class="type">RpcEndpointAddress</span>(_sparkConf.get(<span class="string">"spark.driver.host"</span>), _sparkConf.get(<span class="string">"spark.driver.port"</span>).toInt, <span class="type">CoarseGrainedSchedulerBackend</span>.<span class="type">ENDPOINT_NAME</span>).toString</div></pre></td></tr></table></figure></p>
+<p>这里的_sparkConf是registerAM方法的参数，和上面的（第三个参数）SparkConf来源一致。</p>
+<h3 id="executorId"><a href="#executorId" class="headerlink" title="executorId"></a>executorId</h3><p>ExecutorRunnable的第五个参数是executorId，一个字符串类型的参数。executorId虽然是字符串类型，其实就是一个数字：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">executorIdCounter += <span class="number">1</span></div><div class="line"><span class="keyword">val</span> executorId = executorIdCounter.toString</div></pre></td></tr></table></figure></p>
+<p>而executorIdCounter是从driver那里拿到的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">var</span> executorIdCounter: <span class="type">Int</span> = driverRef.askSync[<span class="type">Int</span>](<span class="type">RetrieveLastAllocatedExecutorId</span>)</div></pre></td></tr></table></figure></p>
+<h3 id="hostname"><a href="#hostname" class="headerlink" title="hostname"></a>hostname</h3><p>ExecutorRunnable的第六个参数是hostname，一个字符串类型的参数。实际上它代表的是executor的hostname，在YarnAllocator的runAllocatedContainers方法中生成：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> executorHostname = container.getNodeId.getHost</div></pre></td></tr></table></figure></p>
+<h3 id="executorMemory"><a href="#executorMemory" class="headerlink" title="executorMemory"></a>executorMemory</h3><p>ExecutorRunnable的第七个参数是executorMemory，一个整型类型的参数。指定了Executor可以使用的内存大小（什么的内存？？？）。该值是通过参数进行配置的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="keyword">val</span> executorMemory = sparkConf.get(<span class="type">EXECUTOR_MEMORY</span>).toInt</div><div class="line"></div><div class="line"><span class="keyword">private</span>[spark] <span class="keyword">val</span> <span class="type">EXECUTOR_MEMORY</span> = <span class="type">ConfigBuilder</span>(<span class="string">"spark.executor.memory"</span>)</div><div class="line">    .bytesConf(<span class="type">ByteUnit</span>.<span class="type">MiB</span>)</div><div class="line">    .createWithDefaultString(<span class="string">"1g"</span>)</div></pre></td></tr></table></figure></p>
+<p>从spark.executor.memory中读取，默认值为1GB。</p>
+<h3 id="executorCores"><a href="#executorCores" class="headerlink" title="executorCores"></a>executorCores</h3><p>ExecutorRunnable的第八个参数是executorCores，一个整型参数。指定了Executor可以使用的cpu核数。该值是通过参数进行配置的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">protected</span> <span class="keyword">val</span> executorCores = sparkConf.get(<span class="type">EXECUTOR_CORES</span>)</div><div class="line"></div><div class="line"><span class="keyword">private</span>[spark] <span class="keyword">val</span> <span class="type">EXECUTOR_CORES</span> = <span class="type">ConfigBuilder</span>(<span class="string">"spark.executor.cores"</span>)</div><div class="line">    .intConf</div><div class="line">    .createWithDefault(<span class="number">1</span>)</div></pre></td></tr></table></figure></p>
+<p>从spark.executor.cores中读取，默认为1。该值会影响Executor中tasks的并发数。</p>
+<h3 id="appId"><a href="#appId" class="headerlink" title="appId"></a>appId</h3><p>ExecutorRunnable的第九个参数是appId，一个字符串类型参数。它是通过YarnAllocator的构造参数ApplicationAttemptId对象得到的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">appAttemptId.getApplicationId.toString</div></pre></td></tr></table></figure></p>
+<p>ApplicationAttemptId对象是在YarnRMClient中getAttemptId()方法得到的：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">getAttemptId</span></span>(): <span class="type">ApplicationAttemptId</span> = &#123;</div><div class="line">	<span class="type">YarnSparkHadoopUtil</span>.get.getContainerId.getApplicationAttemptId()</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h3 id="SecurityManager"><a href="#SecurityManager" class="headerlink" title="SecurityManager"></a>SecurityManager</h3><p>ExecutorRunnable的第十个参数是SecurityManager对象。它也是通过一系列的方法传递过来的，最开始是在runDriver和runExecutorLauncher，但是这里和SparkConf不一样，这两个方法使用的SecurityManager是一样的。<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (isClusterMode) &#123;</div><div class="line">	runDriver(securityMgr)</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">	runExecutorLauncher(securityMgr)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>这两个方法引用的是同一个SecurityManager：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">val</span> securityMgr = <span class="keyword">new</span> <span class="type">SecurityManager</span>(sparkConf)</div></pre></td></tr></table></figure></p>
+<h3 id="localResources"><a href="#localResources" class="headerlink" title="localResources"></a>localResources</h3><p>ExecutorRunnable的最后一个参数是localResources，是一个Map[String, LocalResource]类型集合。localResources在ApplicatinMaster类中进行定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">private</span> <span class="keyword">val</span> localResources = &#123;</div><div class="line">  <span class="keyword">val</span> resources = <span class="type">HashMap</span>[<span class="type">String</span>, <span class="type">LocalResource</span>]()</div><div class="line"></div><div class="line">  <span class="function"><span class="keyword">def</span> <span class="title">setupDistributedCache</span></span>(</div><div class="line">      file: <span class="type">String</span>,</div><div class="line">      rtype: <span class="type">LocalResourceType</span>,</div><div class="line">      timestamp: <span class="type">String</span>,</div><div class="line">      size: <span class="type">String</span>,</div><div class="line">      vis: <span class="type">String</span>): <span class="type">Unit</span> = &#123;</div><div class="line">    <span class="keyword">val</span> uri = <span class="keyword">new</span> <span class="type">URI</span>(file)</div><div class="line">    <span class="keyword">val</span> amJarRsrc = <span class="type">Records</span>.newRecord(classOf[<span class="type">LocalResource</span>])</div><div class="line">    amJarRsrc.setType(rtype)</div><div class="line">    amJarRsrc.setVisibility(<span class="type">LocalResourceVisibility</span>.valueOf(vis))</div><div class="line">    amJarRsrc.setResource(<span class="type">ConverterUtils</span>.getYarnUrlFromURI(uri))</div><div class="line">    amJarRsrc.setTimestamp(timestamp.toLong)</div><div class="line">    amJarRsrc.setSize(size.toLong)</div><div class="line"></div><div class="line">    <span class="keyword">val</span> fileName = <span class="type">Option</span>(uri.getFragment()).getOrElse(<span class="keyword">new</span> <span class="type">Path</span>(uri).getName())</div><div class="line">    resources(fileName) = amJarRsrc</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">val</span> distFiles = sparkConf.get(<span class="type">CACHED_FILES</span>)</div><div class="line">  <span class="keyword">val</span> fileSizes = sparkConf.get(<span class="type">CACHED_FILES_SIZES</span>)</div><div class="line">  <span class="keyword">val</span> timeStamps = sparkConf.get(<span class="type">CACHED_FILES_TIMESTAMPS</span>)</div><div class="line">  <span class="keyword">val</span> visibilities = sparkConf.get(<span class="type">CACHED_FILES_VISIBILITIES</span>)</div><div class="line">  <span class="keyword">val</span> resTypes = sparkConf.get(<span class="type">CACHED_FILES_TYPES</span>)</div><div class="line"></div><div class="line">  <span class="keyword">for</span> (i &lt;- <span class="number">0</span> to distFiles.size - <span class="number">1</span>) &#123;</div><div class="line">    <span class="keyword">val</span> resType = <span class="type">LocalResourceType</span>.valueOf(resTypes(i))</div><div class="line">    setupDistributedCache(distFiles(i), resType, timeStamps(i).toString, fileSizes(i).toString,</div><div class="line">    visibilities(i))</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  sparkConf.get(<span class="type">CACHED_CONF_ARCHIVE</span>).foreach &#123; path =&gt;</div><div class="line">    <span class="keyword">val</span> uri = <span class="keyword">new</span> <span class="type">URI</span>(path)</div><div class="line">    <span class="keyword">val</span> fs = <span class="type">FileSystem</span>.get(uri, yarnConf)</div><div class="line">    <span class="keyword">val</span> status = fs.getFileStatus(<span class="keyword">new</span> <span class="type">Path</span>(uri))</div><div class="line">    <span class="comment">// SPARK-16080: Make sure to use the correct name for the destination when distributing the</span></div><div class="line">    <span class="comment">// conf archive to executors.</span></div><div class="line">    <span class="keyword">val</span> destUri = <span class="keyword">new</span> <span class="type">URI</span>(uri.getScheme(), uri.getRawSchemeSpecificPart(),</div><div class="line">      <span class="type">Client</span>.<span class="type">LOCALIZED_CONF_DIR</span>)</div><div class="line">    setupDistributedCache(destUri.toString(), <span class="type">LocalResourceType</span>.<span class="type">ARCHIVE</span>,</div><div class="line">      status.getModificationTime().toString, status.getLen.toString,</div><div class="line">      <span class="type">LocalResourceVisibility</span>.<span class="type">PRIVATE</span>.name())</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="type">CACHE_CONFIGS</span>.foreach &#123; e =&gt;</div><div class="line">    sparkConf.remove(e)</div><div class="line">    sys.props.remove(e.key)</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  resources.toMap</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>localResources加载和缓存的数据我们之后在介绍，这里只是梳理各个参数的定义。</p>
+<h2 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h2><p>生成ExecutorRunnable，然后调用run方法，就可以启动一个Container（Executor）了。runAllocatedContainers方法中也是调用ExecutorRunnable的run方法来启动ExecutorRunnable的。ExecutorRunnable的run方法如下定义：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">run</span></span>(): <span class="type">Unit</span> = &#123;</div><div class="line">  logDebug(<span class="string">"Starting Executor Container"</span>)</div><div class="line">  nmClient = <span class="type">NMClient</span>.createNMClient()</div><div class="line">  nmClient.init(conf)</div><div class="line">  nmClient.start()</div><div class="line">  startContainer()</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在这个方法中，先是创建一个NMClient，用YarnConfiguration进行初始化，并启动。接着调用 startContainer方法启动Container。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2019/09/02/Executor/" rel="next" title="Executor">
+                <i class="fa fa-chevron-left"></i> Executor
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2019/10/31/hive-common-operation/" rel="prev" title="Hive Common Operation">
+                Hive Common Operation <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动开始"><span class="nav-number">1.</span> <span class="nav-text">启动开始</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ExecutorRunnable的定义"><span class="nav-number">2.</span> <span class="nav-text">ExecutorRunnable的定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Runnable的参数确定"><span class="nav-number">3.</span> <span class="nav-text">Runnable的参数确定</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Container"><span class="nav-number">3.1.</span> <span class="nav-text">Container</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#YarnConfiguration"><span class="nav-number">3.2.</span> <span class="nav-text">YarnConfiguration</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SparkConf"><span class="nav-number">3.3.</span> <span class="nav-text">SparkConf</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#driver启动"><span class="nav-number">3.3.1.</span> <span class="nav-text">driver启动</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Executor启动"><span class="nav-number">3.3.2.</span> <span class="nav-text">Executor启动</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#masterAddress"><span class="nav-number">3.4.</span> <span class="nav-text">masterAddress</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#executorId"><span class="nav-number">3.5.</span> <span class="nav-text">executorId</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#hostname"><span class="nav-number">3.6.</span> <span class="nav-text">hostname</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#executorMemory"><span class="nav-number">3.7.</span> <span class="nav-text">executorMemory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#executorCores"><span class="nav-number">3.8.</span> <span class="nav-text">executorCores</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#appId"><span class="nav-number">3.9.</span> <span class="nav-text">appId</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SecurityManager"><span class="nav-number">3.10.</span> <span class="nav-text">SecurityManager</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#localResources"><span class="nav-number">3.11.</span> <span class="nav-text">localResources</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动"><span class="nav-number">4.</span> <span class="nav-text">启动</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
