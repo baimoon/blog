@@ -248,6 +248,240 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2018/09/07/scal-study/" itemprop="url">
+                  Scala Study
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-07T14:29:54+08:00" content="2018-09-07">
+              2018-09-07
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文只是用来记录scala的一些语法信息</p>
+<h1 id="Scala-Option"><a href="#Scala-Option" class="headerlink" title="Scala Option"></a>Scala Option</h1><p>/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java_home</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2018/09/05/optparse-python/" itemprop="url">
+                  Python学习之optparse
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2018-09-05T11:30:34+08:00" content="2018-09-05">
+              2018-09-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="optparse"><a href="#optparse" class="headerlink" title="optparse"></a>optparse</h1><p>在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。</p>
+<h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><p>首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> optparse <span class="keyword">import</span> OptionParser</div><div class="line">parser = OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line"></div><div class="line">或</div><div class="line"></div><div class="line"><span class="keyword">import</span> optparse</div><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div></pre></td></tr></table></figure>
+<p>可以不写参数，参数用来指定帮助的显示信息，如果没有指定，则默认显示“usage: %prog [options]”。</p>
+<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">def __init__(self,</div><div class="line">             usage=None,</div><div class="line">             option_list=None,</div><div class="line">             option_class=Option,</div><div class="line">             version=None,</div><div class="line">             conflict_handler=&quot;error&quot;,</div><div class="line">             description=None,</div><div class="line">             formatter=None,</div><div class="line">             add_help_option=True,</div><div class="line">             prog=None,</div><div class="line">             epilog=None):</div><div class="line"></div><div class="line">作者：fuyoufang</div><div class="line">链接：https://www.jianshu.com/p/bec089061742</div><div class="line">來源：简书</div><div class="line">简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</div></pre></td></tr></table></figure>
+<h3 id="add-option函数"><a href="#add-option函数" class="headerlink" title="add_option函数"></a>add_option函数</h3><p>创建OptionParser对象之后，就可以使用add_option来定义命令行参数了<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parsser.add_option(...)</div></pre></td></tr></table></figure></p>
+<h4 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h4><p>add_option的前两参数分别为短参数名和长参数名。其中长参数名可以省略。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, dest=<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="dest"><a href="#dest" class="headerlink" title="dest"></a>dest</h4><p>定义程序内参数值的名字，之后通过这个名字来取参数的值。如果为空，则使用不加“-”的短参数名。</p>
+<h4 id="action"><a href="#action" class="headerlink" title="action"></a>action</h4><p>action是add_option的一个参数，用来指定解析到参数后的操作。默认值为“store”，表示将参数值保存到options对象中。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, action=<span class="string">"store"</span>, dest=<span class="string">"filename"</span>)</div><div class="line">(options, args) = parser.parse_args([<span class="string">"-f"</span>, <span class="string">"myfile.log"</span>])</div><div class="line"><span class="keyword">print</span> options.filename</div></pre></td></tr></table></figure></p>
+<p>其中action值的store还可以有其他两种类型：store_ture和store_false，用来处理不带参数值的参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-g"</span>, action=<span class="string">"store_true"</span>, dest=<span class="string">"isGoodUser"</span>)</div><div class="line">parser.add_option(<span class="string">"-s"</span>, action=<span class="string">"store_false"</span>, dest=<span class="string">"isGoodUser"</span>)</div></pre></td></tr></table></figure></p>
+<p>action可以使用的值出了store_true和store_false之外，还可以使用store、store_const、append、count、callback等。</p>
+<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>type是add_option方法的一个参数，用来指定参数值的类型，默认为String。还可以指定为“int”、“float”等<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-n"</span>, type=<span class="string">"int"</span>, dest=<span class="string">"num"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="default"><a href="#default" class="headerlink" title="default"></a>default</h4><p>通过add_option方法的default参数可以对命令行参数设置默认值。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, default=<span class="string">"test.log"</span>)</div></pre></td></tr></table></figure></p>
+<h4 id="help"><a href="#help" class="headerlink" title="help"></a>help</h4><p>用于指定参数在帮助程序中显示的信息，详细请见下方的“生成帮助”章节。</p>
+<h4 id="metavar"><a href="#metavar" class="headerlink" title="metavar"></a>metavar</h4><p>metavar配合help参数，用于帮助提醒用户该命令行所期待的参数，详细请见下方的“生成帮助”章节。</p>
+<h4 id="choices"><a href="#choices" class="headerlink" title="choices"></a>choices</h4><p>当type为choices时，需要设置此值。</p>
+<h4 id="const"><a href="#const" class="headerlink" title="const"></a>const</h4><p>指定一个常数，配合action为store_const和append_const时一起使用。</p>
+<h3 id="parse-args函数"><a href="#parse-args函数" class="headerlink" title="parse_args函数"></a>parse_args函数</h3><p>一旦定义好了所有的命令行参数，就可以调用parse_args()来解析命令行。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">(options, args) = parser.parse_args()</div></pre></td></tr></table></figure></p>
+<h4 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h4><p>你可以传递一个命令行参数列表给parse_args方法，否则默认使用sys.argv[:1]。<br>parse_args方法有两个返回值：</p>
+<blockquote>
+<p>options optpars.Values对象，保存了所有命令行的值。只要知道命令行参数名，就可以得到。<br>args 一个由 positional arguments组成的列表。</p>
+</blockquote>
+<h3 id="set-defaults函数"><a href="#set-defaults函数" class="headerlink" title="set_defaults函数"></a>set_defaults函数</h3><p>除了在add_option方法中使用default参数设置默认值，还可以使用set_default函数，来统一设置默认值。该方法应该在所有add_option函数之前调用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.set_default(filename=<span class="string">"test.log"</span>, isGoodUser=<span class="keyword">False</span>)</div></pre></td></tr></table></figure></p>
+<p>set_defaults函数，可以用来设置多个默认值。</p>
+<h3 id="has-option方法"><a href="#has-option方法" class="headerlink" title="has_option方法"></a>has_option方法</h3><p>用来检查是否有相应的选项<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.has_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h3 id="remove-option"><a href="#remove-option" class="headerlink" title="remove_option()"></a>remove_option()</h3><p>用来删除相应的选项。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.remove_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
+<h2 id="生成帮助"><a href="#生成帮助" class="headerlink" title="生成帮助"></a>生成帮助</h2><p>optparse的另一个方便的功能便是自动生成帮助，而你需要做的事情就是在调用add_option方法时指定help参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">parser.add_option(<span class="string">"-v"</span>, action=<span class="string">"store_true"</span>, metavar=<span class="string">"参数的期望值"</span>, help=<span class="string">"这是-v的参数的意义"</span>)</div></pre></td></tr></table></figure></p>
+<p>当optparse解析到-h或者–help时，就会调用parser.print_help()方法来打印帮助信息。</p>
+<h2 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h2><h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><p>在出现用户输入无效的、不完整的命令行参数而发生异常时，optparse可以自动检测并处理，比如参数值类型错误等。<br>用户也可以使用parser.error函数来手动抛出异常。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.parse_args()</div><div class="line"><span class="keyword">if</span> parser.isGooodUser:</div><div class="line">    parse.error(<span class="string">"this is an exception"</span>)</div></pre></td></tr></table></figure></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2018/09/04/ambari-resource/" itemprop="url">
                   Ambari Resource 01
                 </a>
@@ -3388,246 +3622,11 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2017/01/13/doubleArray-trie/" itemprop="url">
-                  Double-Array trie
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2017-01-13T16:01:54+08:00" content="2017-01-13">
-              2017-01-13
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/数据结构/" itemprop="url" rel="index">
-                    <span itemprop="name">数据结构</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文主要用来学习Double-Array trie的相关知识。</p>
-<p><a href="https://github.com/digitalstain/DoubleArrayTrie" title="Double-Array trie" target="_blank" rel="external">源码的github地址</a></p>
-<p>Double-Array trie是Trie结构的压缩形式，仅用两个数组来表示Trie，这个结构有效的结合数字搜索树(Digital Search Tree)检索时间高效的特点和链式表示的Trie空间结构紧凑的特点。双数组Trie的本质是一个确定有限状态自动机(DFA)，每个节点代表自动机的一个状态，根据不同的变量，进行状态转移，当到达结束状态或无法转移时，完成一次查询操作。在双数组所有键中，包含的字符之间的联系都是通过简单的数学加法运算表示的，不仅提高了检索速度，而且省去了链式结构中使用的大量指针，节省了存储空间。</p>
-<p>在了解Double-Array trie之前，我们先了解一下“确定有限状态自动机”。在数学理论中，确定有限状态自动机或确定有限自动机（deterministic finite automation, DFA）是一个能实现状态转移的自动机。对于一个给定的属于该自动机的状态和一个属于该自动机字母表的字符，它能够根据实现给定的函数转移到下一个状态。简单的说，就是当前状态根据一个公式和状态的确定值，能够到达另外一个状态，而且要到达的状态是确定的。如图：<br><a href="&quot;确定有限自动机&quot;">确定有限自动状态机</a><br>图中的每个字代表一个状态，并且每个状态都有一个固定的变量。</p>
-<p>在了解了确定优先状态自动机之后，我们来了解一下Double-Array trie。Double-Array trie的核心是使用两个整型数组base和check来分别存储状态以及前驱状态。说的简单一些，base用来存储状态，check用来验证。在状态的转移过程中，有如下公式：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">check[t]=s</div><div class="line">base[s]+c=t <span class="comment">//其中t和s是数组下标</span></div></pre></td></tr></table></figure></p>
-<p>上面的公式表示 base[s]的值 + 状态的变量 = t下标，check[t]的值 = s下标。</p>
-<p>举例来说明：</p>
-<p>在学习Douoble-Array trie和看DoubleArrayTrie源码的时候，参考了以下文章，在此表示感谢：<br><a href="http://www.hankcs.com/program/java/%E5%8F%8C%E6%95%B0%E7%BB%84trie%E6%A0%91doublearraytriejava%E5%AE%9E%E7%8E%B0.html" title="双数组Trie树(DoubleArrayTrie)Java实现" target="_blank" rel="external">双数组Trie树(DoubleArrayTrie)Java实现</a><br><a href="http://www.cnblogs.com/zhangchaoyang/articles/4508266.html" title="Double Array Trie" target="_blank" rel="external">Double Array Trie</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/12/30/JPinYin/" itemprop="url">
-                  JPinYin
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-12-30T16:28:15+08:00" content="2016-12-30">
-              2016-12-30
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/NLP/" itemprop="url" rel="index">
-                    <span itemprop="name">NLP</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文主要介绍JPinYin的使用和配置，<a href="https://github.com/stuxuhai/jpinyin" title="Jpinyin">github的地址</a>。</p>
-<h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><p>Jpinyin是一个开源的用于将汉字转换为拼音的java库。</p>
-<h2 id="主要特性"><a href="#主要特性" class="headerlink" title="主要特性"></a>主要特性</h2><p>1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。<br>2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为100毫秒。<br>3、支持多种拼音格式：Jpinyin支持多种拼音输出格式：带声调、不带声调、数字表示声调以及拼音首字母格式输出。<br>4、常见多音字识别：Jpinyin支持常见多音字的识别，其中包括词组、成语、地名等；<br>5、简繁体中文互转。<br>6、支持用户自定义字典。</p>
-<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;com.github.stuxuhai&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;jpinyin&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.1.8&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">String str = <span class="string">"你好世界"</span>;</div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_MARK); <span class="comment">// nǐ,hǎo,shì,jiè</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_NUMBER); <span class="comment">// ni3,hao3,shi4,jie4</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITHOUT_TONE); <span class="comment">// ni,hao,shi,jie</span></div><div class="line">PinyinHelper.getShortPinyin(str); <span class="comment">// nhsj</span></div><div class="line">PinyinHelper.addPinyinDict(<span class="string">"user.dict"</span>);  <span class="comment">// 添加用户自定义字典</span></div></pre></td></tr></table></figure>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/12/30/JPinYin/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/blog/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/blog/">1</a><span class="page-number current">2</span><a class="page-number" href="/blog/page/3/">3</a><a class="extend next" rel="next" href="/blog/page/3/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/blog/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/blog/">1</a><span class="page-number current">2</span><a class="page-number" href="/blog/page/3/">3</a><a class="page-number" href="/blog/page/4/">4</a><a class="extend next" rel="next" href="/blog/page/3/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -3668,7 +3667,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-count">61</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -3676,7 +3675,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-count">22</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -3685,7 +3684,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -3747,7 +3746,7 @@ Start and Stop" target="_blank" rel="external">Start and Stop</a><br>HDFS <a hre
         <div class="copyright" >
   
   &copy;  2016-07 - 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

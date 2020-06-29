@@ -248,6 +248,274 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2020/06/29/zookeeper/" itemprop="url">
+                  zookeeper
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2020-06-29T14:13:23+08:00" content="2020-06-29">
+              2020-06-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/zookeeper/" itemprop="url" rel="index">
+                    <span itemprop="name">zookeeper</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h1 id="ZooKeeper的基本使用"><a href="#ZooKeeper的基本使用" class="headerlink" title="ZooKeeper的基本使用"></a>ZooKeeper的基本使用</h1><h2 id="zookeeper的常用命令"><a href="#zookeeper的常用命令" class="headerlink" title="zookeeper的常用命令"></a>zookeeper的常用命令</h2><h3 id="递归删除节点-rmr"><a href="#递归删除节点-rmr" class="headerlink" title="递归删除节点 rmr"></a>递归删除节点 rmr</h3><p>使用rmr命令可以删除节点以及节点的子节点。</p>
+<p>查看节点的角色</p>
+<h2 id="zookeeper的四字母命令"><a href="#zookeeper的四字母命令" class="headerlink" title="zookeeper的四字母命令"></a>zookeeper的四字母命令</h2><table>
+<thead>
+<tr>
+<th>命令</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>conf</td>
+<td>输出相关服务的详细配置信息</td>
+</tr>
+<tr>
+<td>cons</td>
+<td>列出所有连接到Server的Client的完全的连接／会话的详细信息。包括“接受／发送”的包数量、会话id、操作延迟、最后的操作执行等信息</td>
+</tr>
+<tr>
+<td>dump</td>
+<td>列出未经处理的绘画和临时节点</td>
+</tr>
+<tr>
+<td>envi</td>
+<td>输出Server环境的详细信息</td>
+</tr>
+<tr>
+<td>reqs</td>
+<td>列出未经处理的请求</td>
+</tr>
+<tr>
+<td>ruok</td>
+<td>测试服务是否处于正确状态。如果正常，返回“imok”</td>
+</tr>
+<tr>
+<td>stat</td>
+<td>输出关于性能和连接的客户端的列表</td>
+</tr>
+<tr>
+<td>wchs</td>
+<td>列出Server的watch的详细信息</td>
+</tr>
+<tr>
+<td>wchc</td>
+<td>通过Session列出服务器watch的详细信息，他的输出是一个与watch相关的会话的列表</td>
+</tr>
+<tr>
+<td>wchp</td>
+<td>通过路径列出服务器watch的详细信息。它输出一个与Session相关的路径</td>
+</tr>
+</tbody>
+</table>
+<p>如何使用四字命令<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">echo conf | nc host port</div><div class="line"></div><div class="line">如：</div><div class="line">echo stat | nc zookeeper.com 2181</div></pre></td></tr></table></figure></p>
+<p>比如可以使用stat来查看当前server节点的连接信息，从而找出连接数太多的server。</p>
+<h1 id="Python-操作zookeeper"><a href="#Python-操作zookeeper" class="headerlink" title="Python 操作zookeeper"></a>Python 操作zookeeper</h1><p>首先需要安装 kazoo<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install kazoo</div></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">#!/usr/bin/python</div><div class="line"></div><div class="line">import sys</div><div class="line">from kazoo.client import KazooClient,KazooState</div><div class="line"></div><div class="line">zk = KazooClient(</div><div class="line">    hosts=&apos;hadoop2035.rz.momo.com:2182&apos;</div><div class="line">    ,timeout=10.0</div><div class="line">    )</div><div class="line">zk.start()</div><div class="line"></div><div class="line">path = &quot;/databridgemanager_mirror/dataDir/finished&quot;</div><div class="line">children = zk.get_children(path);</div><div class="line"></div><div class="line">zk.stop()</div><div class="line">zk.close()</div></pre></td></tr></table></figure>
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2019/12/05/kerberos/" itemprop="url">
+                  kerberos
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2019-12-05T12:16:15+08:00" content="2019-12-05">
+              2019-12-05
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>在Spark启用Kerberos之后，遇到了这个问题：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">19/12/05 11:57:49 ERROR TSaslTransport: SASL negotiation failure</div><div class="line">javax.security.sasl.SaslException: GSS initiate failed [Caused by GSSException: Failure unspecified at GSS-API level (Mechanism level: Encryption type AES256 CTS mode with HMAC SHA1-96 is not supported/enabled)]</div><div class="line">        at com.sun.security.sasl.gsskerb.GssKrb5Server.evaluateResponse(GssKrb5Server.java:199)</div><div class="line">        at org.apache.thrift.transport.TSaslTransport$SaslParticipant.evaluateChallengeOrResponse(TSaslTransport.java:539)</div><div class="line">        at org.apache.thrift.transport.TSaslTransport.open(TSaslTransport.java:283)</div><div class="line">        at org.apache.thrift.transport.TSaslServerTransport.open(TSaslServerTransport.java:41)</div><div class="line">        at org.apache.thrift.transport.TSaslServerTransport$Factory.getTransport(TSaslServerTransport.java:216)</div><div class="line">        at org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge$Server$TUGIAssumingTransportFactory$1.run(HadoopThriftAuthBridge.java:739)</div><div class="line">        at org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge$Server$TUGIAssumingTransportFactory$1.run(HadoopThriftAuthBridge.java:736)</div><div class="line">        at java.security.AccessController.doPrivileged(Native Method)</div><div class="line">        at javax.security.auth.Subject.doAs(Subject.java:360)</div><div class="line">        at org.apache.hadoop.security.UserGroupInformation.doAs(UserGroupInformation.java:1709)</div><div class="line">        at org.apache.hadoop.hive.thrift.HadoopThriftAuthBridge$Server$TUGIAssumingTransportFactory.getTransport(HadoopThriftAuthBridge.java:736)</div><div class="line">        at org.apache.thrift.server.TThreadPoolServer$WorkerProcess.run(TThreadPoolServer.java:269)</div><div class="line">        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)</div><div class="line">        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)</div><div class="line">        at java.lang.Thread.run(Thread.java:745)</div><div class="line">Caused by: GSSException: Failure unspecified at GSS-API level (Mechanism level: Encryption type AES256 CTS mode with HMAC SHA1-96 is not supported/enabled)</div><div class="line">        at sun.security.jgss.krb5.Krb5Context.acceptSecContext(Krb5Context.java:856)</div><div class="line">        at sun.security.jgss.GSSContextImpl.acceptSecContext(GSSContextImpl.java:342)</div><div class="line">        at sun.security.jgss.GSSContextImpl.acceptSecContext(GSSContextImpl.java:285)</div><div class="line">        at com.sun.security.sasl.gsskerb.GssKrb5Server.evaluateResponse(GssKrb5Server.java:167)</div><div class="line">        ... 14 more</div><div class="line">Caused by: KrbException: Encryption type AES256 CTS mode with HMAC SHA1-96 is not supported/enabled</div><div class="line">        at sun.security.krb5.EncryptionKey.findKey(EncryptionKey.java:522)</div><div class="line">        at sun.security.krb5.KrbApReq.authenticate(KrbApReq.java:273)</div><div class="line">        at sun.security.krb5.KrbApReq.&lt;init&gt;(KrbApReq.java:149)</div><div class="line">        at sun.security.jgss.krb5.InitSecContextToken.&lt;init&gt;(InitSecContextToken.java:108)</div><div class="line">        at sun.security.jgss.krb5.Krb5Context.acceptSecContext(Krb5Context.java:829)</div><div class="line">        ... 17 more</div></pre></td></tr></table></figure>
+<p>一脸懵逼，在网上查各种资料，找到如下解决方法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">locate &apos;jre/lib/security&apos; | grep &apos;lib/security$&apos;</div></pre></td></tr></table></figure></p>
+<p>会列出如下信息<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">/opt/jdk1.7.0_71/jre/lib/security</div><div class="line">/opt/jdk1.8.0_121/jre/lib/security</div><div class="line">/usr/lib/jvm/java-1.5.0-gcj-1.5.0.0/jre/lib/security</div><div class="line">/usr/lib/jvm/java-1.8.0-oracle-1.8.0.102.x86_64/jre/lib/security</div></pre></td></tr></table></figure></p>
+<p>根据自己使用的JDK版本，去到对应的目录，我使用的是1.8，因此去/opt/jdk1.8.0_121/jre/lib/security目录，如果不存在上面的目录，比较麻烦喽:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">$ cd /opt/jdk1.8.0_121/jre/lib/security</div><div class="line">$ ll</div><div class="line">-rw-r--r-- 1 user user  3890 Jul  6  2017 blacklist</div><div class="line">-rw-r--r-- 1 user user 93987 Aug 28  2017 cacerts</div><div class="line">-rw-r--r-- 1 user user   490 Jul  6  2017 cacerts.20160121</div><div class="line">-rw-r--r-- 1 user user 93987 Aug 28  2017 cacerts-bak</div><div class="line">-rw-r--r-- 1 user user   490 Jul  6  2017 cacerts.bak</div><div class="line">-rw-r--r-- 1 user user   158 Jul  6  2017 javafx.policy</div><div class="line">-rw-r--r-- 1 user user  2593 Jul  6  2017 java.policy</div><div class="line">-rw-r--r-- 1 user user 17838 Jul  6  2017 java.security</div><div class="line">-rw-r--r-- 1 user user    98 Jul  6  2017 javaws.policy</div><div class="line">-rw-r--r-- 1 user user  2500 Jul  6  2017 local_policy.jar</div><div class="line">-rw-r--r-- 1 user user     0 Jul  6  2017 trusted.libraries</div><div class="line">-rw-r--r-- 1 user user  2487 Jul  6  2017 US_export_policy.jar</div></pre></td></tr></table></figure></p>
+<p>注意其中的 local_policy.jar 和 US_export_policy.jar，需要使用正确的jar。就可以解决啦。</p>
+<p>对于没有上面目录的情况（没有试过，仅作为一种解决方法记录）：<br>则需要下载JCE.jar文件到目录：/opt/jdk1.8.0_121/jre/lib/security。<br>JCE.zip文件包括如下内容（1.7版本）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">$ ls -l UnlimitedJCEPolicy</div><div class="line">total 16</div><div class="line">-rw-rw-r-- 1 root root 2500 May 31  2011 local_policy.jar</div><div class="line">-rw-r--r-- 1 root root 7289 May 31  2011 README.txt</div><div class="line">-rw-rw-r-- 1 root root 2487 May 31  2011 US_export_policy.jar</div></pre></td></tr></table></figure></p>
+<p>然后就正常添加就可以了。</p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2019/10/31/hive-common-operation/" itemprop="url">
                   Hive Common Operation
                 </a>
@@ -3590,245 +3858,11 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/09/07/scal-study/" itemprop="url">
-                  Scala Study
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-09-07T14:29:54+08:00" content="2018-09-07">
-              2018-09-07
-            </time>
-          </span>
-
-          
-
-          
-            
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>本文只是用来记录scala的一些语法信息</p>
-<h1 id="Scala-Option"><a href="#Scala-Option" class="headerlink" title="Scala Option"></a>Scala Option</h1><p>/System/Library/Frameworks/JavaVM.framework/Versions/Current/Commands/java_home</p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2018/09/05/optparse-python/" itemprop="url">
-                  Python学习之optparse
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2018-09-05T11:30:34+08:00" content="2018-09-05">
-              2018-09-05
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/python/" itemprop="url" rel="index">
-                    <span itemprop="name">python</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <h1 id="optparse"><a href="#optparse" class="headerlink" title="optparse"></a>optparse</h1><p>在使用python进行命令开发的过程中，经常需要使用的就是命令行参数了，本章节介绍一个功能强大，易于使用的内建命令行参数处理模块optparse。</p>
-<h2 id="简单的使用"><a href="#简单的使用" class="headerlink" title="简单的使用"></a>简单的使用</h2><p>首先需要创建一个OptionParser对象，该类属于optparse模块，因此使用前需要导入。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> optparse <span class="keyword">import</span> OptionParser</div><div class="line">parser = OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line"></div><div class="line">或</div><div class="line"></div><div class="line"><span class="keyword">import</span> optparse</div><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div></pre></td></tr></table></figure>
-<p>可以不写参数，参数用来指定帮助的显示信息，如果没有指定，则默认显示“usage: %prog [options]”。</p>
-<h3 id="构造方法"><a href="#构造方法" class="headerlink" title="构造方法"></a>构造方法</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">def __init__(self,</div><div class="line">             usage=None,</div><div class="line">             option_list=None,</div><div class="line">             option_class=Option,</div><div class="line">             version=None,</div><div class="line">             conflict_handler=&quot;error&quot;,</div><div class="line">             description=None,</div><div class="line">             formatter=None,</div><div class="line">             add_help_option=True,</div><div class="line">             prog=None,</div><div class="line">             epilog=None):</div><div class="line"></div><div class="line">作者：fuyoufang</div><div class="line">链接：https://www.jianshu.com/p/bec089061742</div><div class="line">來源：简书</div><div class="line">简书著作权归作者所有，任何形式的转载都请联系作者获得授权并注明出处。</div></pre></td></tr></table></figure>
-<h3 id="add-option函数"><a href="#add-option函数" class="headerlink" title="add_option函数"></a>add_option函数</h3><p>创建OptionParser对象之后，就可以使用add_option来定义命令行参数了<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parsser.add_option(...)</div></pre></td></tr></table></figure></p>
-<h4 id="参数"><a href="#参数" class="headerlink" title="参数"></a>参数</h4><p>add_option的前两参数分别为短参数名和长参数名。其中长参数名可以省略。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, dest=<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
-<h4 id="dest"><a href="#dest" class="headerlink" title="dest"></a>dest</h4><p>定义程序内参数值的名字，之后通过这个名字来取参数的值。如果为空，则使用不加“-”的短参数名。</p>
-<h4 id="action"><a href="#action" class="headerlink" title="action"></a>action</h4><p>action是add_option的一个参数，用来指定解析到参数后的操作。默认值为“store”，表示将参数值保存到options对象中。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, action=<span class="string">"store"</span>, dest=<span class="string">"filename"</span>)</div><div class="line">(options, args) = parser.parse_args([<span class="string">"-f"</span>, <span class="string">"myfile.log"</span>])</div><div class="line"><span class="keyword">print</span> options.filename</div></pre></td></tr></table></figure></p>
-<p>其中action值的store还可以有其他两种类型：store_ture和store_false，用来处理不带参数值的参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-g"</span>, action=<span class="string">"store_true"</span>, dest=<span class="string">"isGoodUser"</span>)</div><div class="line">parser.add_option(<span class="string">"-s"</span>, action=<span class="string">"store_false"</span>, dest=<span class="string">"isGoodUser"</span>)</div></pre></td></tr></table></figure></p>
-<p>action可以使用的值出了store_true和store_false之外，还可以使用store、store_const、append、count、callback等。</p>
-<h4 id="type"><a href="#type" class="headerlink" title="type"></a>type</h4><p>type是add_option方法的一个参数，用来指定参数值的类型，默认为String。还可以指定为“int”、“float”等<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-n"</span>, type=<span class="string">"int"</span>, dest=<span class="string">"num"</span>)</div></pre></td></tr></table></figure></p>
-<h4 id="default"><a href="#default" class="headerlink" title="default"></a>default</h4><p>通过add_option方法的default参数可以对命令行参数设置默认值。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.add_option(<span class="string">"-f"</span>, <span class="string">"--file"</span>, default=<span class="string">"test.log"</span>)</div></pre></td></tr></table></figure></p>
-<h4 id="help"><a href="#help" class="headerlink" title="help"></a>help</h4><p>用于指定参数在帮助程序中显示的信息，详细请见下方的“生成帮助”章节。</p>
-<h4 id="metavar"><a href="#metavar" class="headerlink" title="metavar"></a>metavar</h4><p>metavar配合help参数，用于帮助提醒用户该命令行所期待的参数，详细请见下方的“生成帮助”章节。</p>
-<h4 id="choices"><a href="#choices" class="headerlink" title="choices"></a>choices</h4><p>当type为choices时，需要设置此值。</p>
-<h4 id="const"><a href="#const" class="headerlink" title="const"></a>const</h4><p>指定一个常数，配合action为store_const和append_const时一起使用。</p>
-<h3 id="parse-args函数"><a href="#parse-args函数" class="headerlink" title="parse_args函数"></a>parse_args函数</h3><p>一旦定义好了所有的命令行参数，就可以调用parse_args()来解析命令行。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">(options, args) = parser.parse_args()</div></pre></td></tr></table></figure></p>
-<h4 id="参数-1"><a href="#参数-1" class="headerlink" title="参数"></a>参数</h4><p>你可以传递一个命令行参数列表给parse_args方法，否则默认使用sys.argv[:1]。<br>parse_args方法有两个返回值：</p>
-<blockquote>
-<p>options optpars.Values对象，保存了所有命令行的值。只要知道命令行参数名，就可以得到。<br>args 一个由 positional arguments组成的列表。</p>
-</blockquote>
-<h3 id="set-defaults函数"><a href="#set-defaults函数" class="headerlink" title="set_defaults函数"></a>set_defaults函数</h3><p>除了在add_option方法中使用default参数设置默认值，还可以使用set_default函数，来统一设置默认值。该方法应该在所有add_option函数之前调用。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">parser.set_default(filename=<span class="string">"test.log"</span>, isGoodUser=<span class="keyword">False</span>)</div></pre></td></tr></table></figure></p>
-<p>set_defaults函数，可以用来设置多个默认值。</p>
-<h3 id="has-option方法"><a href="#has-option方法" class="headerlink" title="has_option方法"></a>has_option方法</h3><p>用来检查是否有相应的选项<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.has_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
-<h3 id="remove-option"><a href="#remove-option" class="headerlink" title="remove_option()"></a>remove_option()</h3><p>用来删除相应的选项。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">print</span> parser.remove_option(<span class="string">"fileName"</span>)</div></pre></td></tr></table></figure></p>
-<h2 id="生成帮助"><a href="#生成帮助" class="headerlink" title="生成帮助"></a>生成帮助</h2><p>optparse的另一个方便的功能便是自动生成帮助，而你需要做的事情就是在调用add_option方法时指定help参数。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">parser = optparse.OptionParser(usage=<span class="string">"usage: %prog action [options]"</span>,)</div><div class="line">parser.add_option(<span class="string">"-v"</span>, action=<span class="string">"store_true"</span>, metavar=<span class="string">"参数的期望值"</span>, help=<span class="string">"这是-v的参数的意义"</span>)</div></pre></td></tr></table></figure></p>
-<p>当optparse解析到-h或者–help时，就会调用parser.print_help()方法来打印帮助信息。</p>
-<h2 id="分组"><a href="#分组" class="headerlink" title="分组"></a>分组</h2><h2 id="异常处理"><a href="#异常处理" class="headerlink" title="异常处理"></a>异常处理</h2><p>在出现用户输入无效的、不完整的命令行参数而发生异常时，optparse可以自动检测并处理，比如参数值类型错误等。<br>用户也可以使用parser.error函数来手动抛出异常。<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">parser.parse_args()</div><div class="line"><span class="keyword">if</span> parser.isGooodUser:</div><div class="line">    parse.error(<span class="string">"this is an exception"</span>)</div></pre></td></tr></table></figure></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <span class="page-number current">1</span><a class="page-number" href="/blog/page/2/">2</a><a class="page-number" href="/blog/page/3/">3</a><a class="extend next" rel="next" href="/blog/page/2/"><i class="fa fa-angle-right"></i></a>
+    <span class="page-number current">1</span><a class="page-number" href="/blog/page/2/">2</a><span class="space">&hellip;</span><a class="page-number" href="/blog/page/4/">4</a><a class="extend next" rel="next" href="/blog/page/2/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -3869,7 +3903,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-count">61</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -3877,7 +3911,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-count">22</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -3886,7 +3920,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -3948,7 +3982,7 @@
         <div class="copyright" >
   
   &copy;  2016-07 - 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>

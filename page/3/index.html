@@ -248,6 +248,241 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2017/01/13/doubleArray-trie/" itemprop="url">
+                  Double-Array trie
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2017-01-13T16:01:54+08:00" content="2017-01-13">
+              2017-01-13
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/数据结构/" itemprop="url" rel="index">
+                    <span itemprop="name">数据结构</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>本文主要用来学习Double-Array trie的相关知识。</p>
+<p><a href="https://github.com/digitalstain/DoubleArrayTrie" title="Double-Array trie" target="_blank" rel="external">源码的github地址</a></p>
+<p>Double-Array trie是Trie结构的压缩形式，仅用两个数组来表示Trie，这个结构有效的结合数字搜索树(Digital Search Tree)检索时间高效的特点和链式表示的Trie空间结构紧凑的特点。双数组Trie的本质是一个确定有限状态自动机(DFA)，每个节点代表自动机的一个状态，根据不同的变量，进行状态转移，当到达结束状态或无法转移时，完成一次查询操作。在双数组所有键中，包含的字符之间的联系都是通过简单的数学加法运算表示的，不仅提高了检索速度，而且省去了链式结构中使用的大量指针，节省了存储空间。</p>
+<p>在了解Double-Array trie之前，我们先了解一下“确定有限状态自动机”。在数学理论中，确定有限状态自动机或确定有限自动机（deterministic finite automation, DFA）是一个能实现状态转移的自动机。对于一个给定的属于该自动机的状态和一个属于该自动机字母表的字符，它能够根据实现给定的函数转移到下一个状态。简单的说，就是当前状态根据一个公式和状态的确定值，能够到达另外一个状态，而且要到达的状态是确定的。如图：<br><a href="&quot;确定有限自动机&quot;">确定有限自动状态机</a><br>图中的每个字代表一个状态，并且每个状态都有一个固定的变量。</p>
+<p>在了解了确定优先状态自动机之后，我们来了解一下Double-Array trie。Double-Array trie的核心是使用两个整型数组base和check来分别存储状态以及前驱状态。说的简单一些，base用来存储状态，check用来验证。在状态的转移过程中，有如下公式：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">check[t]=s</div><div class="line">base[s]+c=t <span class="comment">//其中t和s是数组下标</span></div></pre></td></tr></table></figure></p>
+<p>上面的公式表示 base[s]的值 + 状态的变量 = t下标，check[t]的值 = s下标。</p>
+<p>举例来说明：</p>
+<p>在学习Douoble-Array trie和看DoubleArrayTrie源码的时候，参考了以下文章，在此表示感谢：<br><a href="http://www.hankcs.com/program/java/%E5%8F%8C%E6%95%B0%E7%BB%84trie%E6%A0%91doublearraytriejava%E5%AE%9E%E7%8E%B0.html" title="双数组Trie树(DoubleArrayTrie)Java实现" target="_blank" rel="external">双数组Trie树(DoubleArrayTrie)Java实现</a><br><a href="http://www.cnblogs.com/zhangchaoyang/articles/4508266.html" title="Double Array Trie" target="_blank" rel="external">Double Array Trie</a></p>
+
+          
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/12/30/JPinYin/" itemprop="url">
+                  JPinYin
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-12-30T16:28:15+08:00" content="2016-12-30">
+              2016-12-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/NLP/" itemprop="url" rel="index">
+                    <span itemprop="name">NLP</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文主要介绍JPinYin的使用和配置，<a href="https://github.com/stuxuhai/jpinyin" title="Jpinyin">github的地址</a>。</p>
+<h1 id="简单介绍"><a href="#简单介绍" class="headerlink" title="简单介绍"></a>简单介绍</h1><p>Jpinyin是一个开源的用于将汉字转换为拼音的java库。</p>
+<h2 id="主要特性"><a href="#主要特性" class="headerlink" title="主要特性"></a>主要特性</h2><p>1、准确、完善的字库：Unicode编码从4E00-9FA5范围及3007(〇)的20903个汉字中，除了46个异体字（不存在标准拼音）Jpinyin都能转换。<br>2、拼音转换速度快：经测试，转换Unicode编码范围的20902个汉字，Jpinyin耗时约为100毫秒。<br>3、支持多种拼音格式：Jpinyin支持多种拼音输出格式：带声调、不带声调、数字表示声调以及拼音首字母格式输出。<br>4、常见多音字识别：Jpinyin支持常见多音字的识别，其中包括词组、成语、地名等；<br>5、简繁体中文互转。<br>6、支持用户自定义字典。</p>
+<h2 id="Maven依赖"><a href="#Maven依赖" class="headerlink" title="Maven依赖"></a>Maven依赖</h2><figure class="highlight"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">   &lt;groupId&gt;com.github.stuxuhai&lt;/groupId&gt;</div><div class="line">   &lt;artifactId&gt;jpinyin&lt;/artifactId&gt;</div><div class="line">    &lt;version&gt;1.1.8&lt;/version&gt;</div><div class="line">&lt;/dependency&gt;</div></pre></td></tr></table></figure>
+<h2 id="用法"><a href="#用法" class="headerlink" title="用法"></a>用法</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">String str = <span class="string">"你好世界"</span>;</div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_MARK); <span class="comment">// nǐ,hǎo,shì,jiè</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITH_TONE_NUMBER); <span class="comment">// ni3,hao3,shi4,jie4</span></div><div class="line">PinyinHelper.convertToPinyinString(str, <span class="string">","</span>, PinyinFormat.WITHOUT_TONE); <span class="comment">// ni,hao,shi,jie</span></div><div class="line">PinyinHelper.getShortPinyin(str); <span class="comment">// nhsj</span></div><div class="line">PinyinHelper.addPinyinDict(<span class="string">"user.dict"</span>);  <span class="comment">// 添加用户自定义字典</span></div></pre></td></tr></table></figure>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/12/30/JPinYin/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/12/19/scikitImage-ACrashCourseOnNumPyForImages/" itemprop="url">
                   scikit image - a crash course on NumPy for images
                 </a>
@@ -2382,126 +2617,11 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/blog/2016/07/17/jzmq/" itemprop="url">
-                  CentOS install Jzmq
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">发表于</span>
-            <time itemprop="dateCreated" datetime="2016-07-17T14:52:35+08:00" content="2016-07-17">
-              2016-07-17
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">分类于</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/blog/categories/jzmq/" itemprop="url" rel="index">
-                    <span itemprop="name">jzmq</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-
-          
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>本文介绍了如何在CentOS系统上安装Jzmq</p>
-<h1 id="安装CZMQ"><a href="#安装CZMQ" class="headerlink" title="安装CZMQ"></a>安装CZMQ</h1><h2 id="首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装："><a href="#首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：" class="headerlink" title="首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装："></a>首先要求系统安装了zmq，在CentOS系统中，可以直接使用yum进行安装：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">yum install czmq</div></pre></td></tr></table></figure>
-<h1 id="安装JZMQ"><a href="#安装JZMQ" class="headerlink" title="安装JZMQ"></a>安装JZMQ</h1><h2 id="在安装了zmq之后，需要下载Jzmq，进行编译和安装："><a href="#在安装了zmq之后，需要下载Jzmq，进行编译和安装：" class="headerlink" title="在安装了zmq之后，需要下载Jzmq，进行编译和安装："></a>在安装了zmq之后，需要下载Jzmq，进行编译和安装：</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">git <span class="built_in">clone</span> https://github.com/zeromq/jzmq.git</div><div class="line"><span class="built_in">cd</span> jzmq-jni/</div><div class="line">./autogen.sh</div><div class="line">./configure</div><div class="line">make</div><div class="line">make install</div></pre></td></tr></table></figure>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/blog/2016/07/17/jzmq/#more" rel="contents">
-              阅读全文 &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/blog/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/blog/">1</a><a class="page-number" href="/blog/page/2/">2</a><span class="page-number current">3</span>
+    <a class="extend prev" rel="prev" href="/blog/page/2/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/blog/">1</a><a class="page-number" href="/blog/page/2/">2</a><span class="page-number current">3</span><a class="page-number" href="/blog/page/4/">4</a><a class="extend next" rel="next" href="/blog/page/4/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -2542,7 +2662,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-count">61</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -2550,7 +2670,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">21</span>
+                <span class="site-state-item-count">22</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -2559,7 +2679,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">26</span>
+                <span class="site-state-item-count">27</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>
@@ -2621,7 +2741,7 @@
         <div class="copyright" >
   
   &copy;  2016-07 - 
-  <span itemprop="copyrightYear">2019</span>
+  <span itemprop="copyrightYear">2020</span>
   <span class="with-love">
     <i class="fa fa-heart"></i>
   </span>
