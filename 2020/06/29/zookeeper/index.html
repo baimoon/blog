@@ -84,73 +84,25 @@
 
 
 
-<meta name="description" content="ZooKeeper的基本使用zookeeper的常用命令递归删除节点 rmr使用rmr命令可以删除节点以及节点的子节点。
-查看节点的角色
-zookeeper的四字母命令
-
-
-命令
-描述
-
-
-
-
-conf
-输出相关服务的详细配置信息
-
-
-cons
-列出所有连接到Server的Client的完全的连接／会话的详细信息。包括“接受／发送”的包数量、会话id、操作延迟、最后的操作执行等信息
-
-
-dump">
+<meta name="description" content="ZooKeeper的基本使用zookeeper的常用服务端命令服务启动命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh start
+服务停止命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh stop
+服务重启命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh restart
+服务状态命令sh ${ZOOKEEPER_">
 <meta property="og:type" content="article">
 <meta property="og:title" content="zookeeper">
 <meta property="og:url" content="http://baimoon.github.io/2020/06/29/zookeeper/index.html">
 <meta property="og:site_name" content="Baimoon's Note">
-<meta property="og:description" content="ZooKeeper的基本使用zookeeper的常用命令递归删除节点 rmr使用rmr命令可以删除节点以及节点的子节点。
-查看节点的角色
-zookeeper的四字母命令
-
-
-命令
-描述
-
-
-
-
-conf
-输出相关服务的详细配置信息
-
-
-cons
-列出所有连接到Server的Client的完全的连接／会话的详细信息。包括“接受／发送”的包数量、会话id、操作延迟、最后的操作执行等信息
-
-
-dump">
-<meta property="og:updated_time" content="2020-06-30T03:21:22.000Z">
+<meta property="og:description" content="ZooKeeper的基本使用zookeeper的常用服务端命令服务启动命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh start
+服务停止命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh stop
+服务重启命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh restart
+服务状态命令sh ${ZOOKEEPER_">
+<meta property="og:updated_time" content="2020-07-02T14:10:24.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="zookeeper">
-<meta name="twitter:description" content="ZooKeeper的基本使用zookeeper的常用命令递归删除节点 rmr使用rmr命令可以删除节点以及节点的子节点。
-查看节点的角色
-zookeeper的四字母命令
-
-
-命令
-描述
-
-
-
-
-conf
-输出相关服务的详细配置信息
-
-
-cons
-列出所有连接到Server的Client的完全的连接／会话的详细信息。包括“接受／发送”的包数量、会话id、操作延迟、最后的操作执行等信息
-
-
-dump">
+<meta name="twitter:description" content="ZooKeeper的基本使用zookeeper的常用服务端命令服务启动命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh start
+服务停止命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh stop
+服务重启命令sh ${ZOOKEEPER_HOME}/bin/zkServer.sh restart
+服务状态命令sh ${ZOOKEEPER_">
 
 
 
@@ -362,8 +314,21 @@ dump">
       
 
       
-        <h1 id="ZooKeeper的基本使用"><a href="#ZooKeeper的基本使用" class="headerlink" title="ZooKeeper的基本使用"></a>ZooKeeper的基本使用</h1><h2 id="zookeeper的常用命令"><a href="#zookeeper的常用命令" class="headerlink" title="zookeeper的常用命令"></a>zookeeper的常用命令</h2><h3 id="递归删除节点-rmr"><a href="#递归删除节点-rmr" class="headerlink" title="递归删除节点 rmr"></a>递归删除节点 rmr</h3><p>使用rmr命令可以删除节点以及节点的子节点。</p>
-<p>查看节点的角色</p>
+        <h1 id="ZooKeeper的基本使用"><a href="#ZooKeeper的基本使用" class="headerlink" title="ZooKeeper的基本使用"></a>ZooKeeper的基本使用</h1><h2 id="zookeeper的常用服务端命令"><a href="#zookeeper的常用服务端命令" class="headerlink" title="zookeeper的常用服务端命令"></a>zookeeper的常用服务端命令</h2><h2 id="服务启动命令"><a href="#服务启动命令" class="headerlink" title="服务启动命令"></a>服务启动命令</h2><p>sh ${ZOOKEEPER_HOME}/bin/zkServer.sh start</p>
+<h2 id="服务停止命令"><a href="#服务停止命令" class="headerlink" title="服务停止命令"></a>服务停止命令</h2><p>sh ${ZOOKEEPER_HOME}/bin/zkServer.sh stop</p>
+<h2 id="服务重启命令"><a href="#服务重启命令" class="headerlink" title="服务重启命令"></a>服务重启命令</h2><p>sh ${ZOOKEEPER_HOME}/bin/zkServer.sh restart</p>
+<h2 id="服务状态命令"><a href="#服务状态命令" class="headerlink" title="服务状态命令"></a>服务状态命令</h2><p>sh ${ZOOKEEPER_HOME}/bin/zkServer.sh status</p>
+<h2 id="连接服务命令"><a href="#连接服务命令" class="headerlink" title="连接服务命令"></a>连接服务命令</h2><p>sh ${ZOOKEEPER_HOME}/bin/zkCli.sh -server host:port</p>
+<h2 id="zookeeper的常用客户端命令"><a href="#zookeeper的常用客户端命令" class="headerlink" title="zookeeper的常用客户端命令"></a>zookeeper的常用客户端命令</h2><h3 id="ls-命令"><a href="#ls-命令" class="headerlink" title="ls 命令"></a>ls 命令</h3><p>ls命令用于列出指定ZNode的子节点</p>
+<h3 id="create-命令"><a href="#create-命令" class="headerlink" title="create 命令"></a>create 命令</h3><p>create命令用于创建指定的ZNode。</p>
+<h3 id="get-命令"><a href="#get-命令" class="headerlink" title="get 命令"></a>get 命令</h3><p>get命令用于获取指定ZNode的值。</p>
+<h3 id="set-命令"><a href="#set-命令" class="headerlink" title="set 命令"></a>set 命令</h3><p>set命令用于设置指定ZNode的值。</p>
+<h3 id="delete命令"><a href="#delete命令" class="headerlink" title="delete命令"></a>delete命令</h3><p>delete命令用于删除指定的ZNode，不能删除子ZNode不为空的ZNode。</p>
+<h3 id="rmr-递归删除节点"><a href="#rmr-递归删除节点" class="headerlink" title="rmr 递归删除节点"></a>rmr 递归删除节点</h3><p>使用rmr命令可以删除节点以及节点的子节点。</p>
+<h3 id="quit-命令"><a href="#quit-命令" class="headerlink" title="quit 命令"></a>quit 命令</h3><p>quit用于退出当前科幻。</p>
+<h2 id="数据状态信息"><a href="#数据状态信息" class="headerlink" title="数据状态信息"></a>数据状态信息</h2><blockquote>
+<p>cZxid：节点被创建时使用的事务id - 不变<br>ctime: 节点的创建时间 - 不变<br>mZxid: 节点最后一次被修改使用的事务id - 改变<br>mtime：节点最后一次被修改的时间 - 改变<br>pZxid：子节点id。<br>cversion：子节点version<br>dataVersion： 当前节点数据版本号，数据修改一次，版本号增加一。<br>aclVersion：节点ACL的版本，ACL修改一次，版本号增加一。<br>ephemeralOwner：临时节点所归属的Session。<br>dataLength：数据长度。<br>numChildren：子节点的个数。</p>
+</blockquote>
 <h2 id="zookeeper的四字母命令"><a href="#zookeeper的四字母命令" class="headerlink" title="zookeeper的四字母命令"></a>zookeeper的四字母命令</h2><table>
 <thead>
 <tr>
@@ -374,19 +339,23 @@ dump">
 <tbody>
 <tr>
 <td>conf</td>
-<td>输出相关服务的详细配置信息</td>
+<td>(New in 3.3.0)输出相关服务配置的详细信息。比如端口、zk数据及日志配置路径、最大连接数，session超时时间、serverId等</td>
 </tr>
 <tr>
 <td>cons</td>
-<td>列出所有连接到Server的Client的完全的连接／会话的详细信息。包括“接受／发送”的包数量、会话id、操作延迟、最后的操作执行等信息</td>
+<td>(New in 3.3.0)列出所有连接到这台服务器的客户端连接/会话的详细信息。包括“接受/发送”的包数量、session id 、操作延迟、最后的操作执行等信息。</td>
+</tr>
+<tr>
+<td>crst</td>
+<td>(New in 3.3.0)重置当前这台服务器所有连接/会话的统计信息</td>
 </tr>
 <tr>
 <td>dump</td>
-<td>列出未经处理的绘画和临时节点</td>
+<td>列出未经处理的会话和临时节点（只在leader上有效）</td>
 </tr>
 <tr>
 <td>envi</td>
-<td>输出Server环境的详细信息</td>
+<td>输出关于服务器的环境详细信息（不同于conf命令），比如host.name、java.version、java.home、user.dir=/data/zookeeper-3.4.6/bin之类信息</td>
 </tr>
 <tr>
 <td>reqs</td>
@@ -395,6 +364,14 @@ dump">
 <tr>
 <td>ruok</td>
 <td>测试服务是否处于正确状态。如果正常，返回“imok”</td>
+</tr>
+<tr>
+<td>srst</td>
+<td>重置服务器的统计信息</td>
+</tr>
+<tr>
+<td>srvr</td>
+<td>(New in 3.3.0)输出服务器的详细信息。zk版本、接收/发送包数量、连接数、模式（leader/follower）、节点总数。</td>
 </tr>
 <tr>
 <td>stat</td>
@@ -406,11 +383,15 @@ dump">
 </tr>
 <tr>
 <td>wchc</td>
-<td>通过Session列出服务器watch的详细信息，他的输出是一个与watch相关的会话的列表</td>
+<td>通过Session列出服务器watch的详细信息，他的输出是一个与watch相关的会话的列表。小心使用。</td>
 </tr>
 <tr>
 <td>wchp</td>
-<td>通过路径列出服务器watch的详细信息。它输出一个与Session相关的路径</td>
+<td>通过路径列出服务器watch的详细信息。它输出一个与Session相关的路径。小心使用。</td>
+</tr>
+<tr>
+<td>mntr</td>
+<td>(New in 3.4.0)列出集群的健康状态。包括“接受/发送”的包数量、操作延迟、当前服务模式（leader/follower）、节点总数、watch总数、临时节点总数。</td>
 </tr>
 </tbody>
 </table>
@@ -444,7 +425,7 @@ dump">
 <h1 id="Python-操作zookeeper"><a href="#Python-操作zookeeper" class="headerlink" title="Python 操作zookeeper"></a>Python 操作zookeeper</h1><p>首先需要安装 kazoo<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install kazoo</div></pre></td></tr></table></figure></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">#!/usr/bin/python</div><div class="line"></div><div class="line">import sys</div><div class="line">from kazoo.client import KazooClient,KazooState</div><div class="line"></div><div class="line">zk = KazooClient(</div><div class="line">    hosts=&apos;hadoop2035.rz.momo.com:2182&apos;</div><div class="line">    ,timeout=10.0</div><div class="line">    )</div><div class="line">zk.start()</div><div class="line"></div><div class="line">path = &quot;/databridgemanager_mirror/dataDir/finished&quot;</div><div class="line">children = zk.get_children(path);</div><div class="line"></div><div class="line">zk.stop()</div><div class="line">zk.close()</div></pre></td></tr></table></figure>
 <h1 id="问题排查"><a href="#问题排查" class="headerlink" title="问题排查"></a>问题排查</h1><h2 id="Session-Timeout"><a href="#Session-Timeout" class="headerlink" title="Session Timeout"></a>Session Timeout</h2><p>在ZooKeeper的使用过程中，经常遇到的一个问题是 Session Timeout，在我们的使用场景中，Kafka的某些节点总是遇到Session Timeout从而导致leader切换。</p>
-
+<h2 id="ZooKeeper的监控"><a href="#ZooKeeper的监控" class="headerlink" title="ZooKeeper的监控"></a>ZooKeeper的监控</h2>
       
     </div>
 
@@ -620,7 +601,7 @@ dump">
               
             
             
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ZooKeeper的基本使用"><span class="nav-number">1.</span> <span class="nav-text">ZooKeeper的基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper的常用命令"><span class="nav-number">1.1.</span> <span class="nav-text">zookeeper的常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#递归删除节点-rmr"><span class="nav-number">1.1.1.</span> <span class="nav-text">递归删除节点 rmr</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper的四字母命令"><span class="nav-number">1.2.</span> <span class="nav-text">zookeeper的四字母命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#权限管理"><span class="nav-number">2.</span> <span class="nav-text">权限管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ACL"><span class="nav-number">2.1.</span> <span class="nav-text">ACL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ACL的特性"><span class="nav-number">2.1.1.</span> <span class="nav-text">ACL的特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可控操作"><span class="nav-number">2.1.2.</span> <span class="nav-text">可控操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#控制模式"><span class="nav-number">2.1.3.</span> <span class="nav-text">控制模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关命令"><span class="nav-number">2.1.4.</span> <span class="nav-text">相关命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kerberos"><span class="nav-number">2.2.</span> <span class="nav-text">Kerberos</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#超级管理员角色"><span class="nav-number">2.3.</span> <span class="nav-text">超级管理员角色</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Python-操作zookeeper"><span class="nav-number">3.</span> <span class="nav-text">Python 操作zookeeper</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题排查"><span class="nav-number">4.</span> <span class="nav-text">问题排查</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Session-Timeout"><span class="nav-number">4.1.</span> <span class="nav-text">Session Timeout</span></a></li></ol></li></ol></div>
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#ZooKeeper的基本使用"><span class="nav-number">1.</span> <span class="nav-text">ZooKeeper的基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper的常用服务端命令"><span class="nav-number">1.1.</span> <span class="nav-text">zookeeper的常用服务端命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务启动命令"><span class="nav-number">1.2.</span> <span class="nav-text">服务启动命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务停止命令"><span class="nav-number">1.3.</span> <span class="nav-text">服务停止命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务重启命令"><span class="nav-number">1.4.</span> <span class="nav-text">服务重启命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#服务状态命令"><span class="nav-number">1.5.</span> <span class="nav-text">服务状态命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#连接服务命令"><span class="nav-number">1.6.</span> <span class="nav-text">连接服务命令</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper的常用客户端命令"><span class="nav-number">1.7.</span> <span class="nav-text">zookeeper的常用客户端命令</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ls-命令"><span class="nav-number">1.7.1.</span> <span class="nav-text">ls 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#create-命令"><span class="nav-number">1.7.2.</span> <span class="nav-text">create 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#get-命令"><span class="nav-number">1.7.3.</span> <span class="nav-text">get 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#set-命令"><span class="nav-number">1.7.4.</span> <span class="nav-text">set 命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#delete命令"><span class="nav-number">1.7.5.</span> <span class="nav-text">delete命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#rmr-递归删除节点"><span class="nav-number">1.7.6.</span> <span class="nav-text">rmr 递归删除节点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#quit-命令"><span class="nav-number">1.7.7.</span> <span class="nav-text">quit 命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据状态信息"><span class="nav-number">1.8.</span> <span class="nav-text">数据状态信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#zookeeper的四字母命令"><span class="nav-number">1.9.</span> <span class="nav-text">zookeeper的四字母命令</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#权限管理"><span class="nav-number">2.</span> <span class="nav-text">权限管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#ACL"><span class="nav-number">2.1.</span> <span class="nav-text">ACL</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ACL的特性"><span class="nav-number">2.1.1.</span> <span class="nav-text">ACL的特性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可控操作"><span class="nav-number">2.1.2.</span> <span class="nav-text">可控操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#控制模式"><span class="nav-number">2.1.3.</span> <span class="nav-text">控制模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#相关命令"><span class="nav-number">2.1.4.</span> <span class="nav-text">相关命令</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Kerberos"><span class="nav-number">2.2.</span> <span class="nav-text">Kerberos</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#超级管理员角色"><span class="nav-number">2.3.</span> <span class="nav-text">超级管理员角色</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Python-操作zookeeper"><span class="nav-number">3.</span> <span class="nav-text">Python 操作zookeeper</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#问题排查"><span class="nav-number">4.</span> <span class="nav-text">问题排查</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Session-Timeout"><span class="nav-number">4.1.</span> <span class="nav-text">Session Timeout</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#ZooKeeper的监控"><span class="nav-number">4.2.</span> <span class="nav-text">ZooKeeper的监控</span></a></li></ol></li></ol></div>
             
           </div>
         </section>
