@@ -248,6 +248,468 @@
             
               
                 
+                <a class="post-title-link" href="/blog/2016/07/26/spark-clusterModeOverview/" itemprop="url">
+                  Cluster Mode Overview
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-26T15:06:27+08:00" content="2016-07-26">
+              2016-07-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对<a href="http://spark.apache.org/docs/latest/cluster-overview.html," title="Cluster Mode Overview">Cluster Mode Overview</a>的翻译，请多提宝贵意见。</p>
+<p>这个文档给出了关于Spark如何在集群上运行的简短的概述，通过它是对相关组件的理解更加容易。通过读取<a href="https://baimoon.github.io/blog/2016/07/25/spark-submittingApplications," title="Submitting Applications">application submission guide</a>来学习如何在一个集群上发布application。</p>
+<h2 id="Components"><a href="#Components" class="headerlink" title="Components"></a>Components</h2><p>Spark application在集群上作为一组独立的进程运行，并通过你的主程序（被称为驱动程序）中的SparkContext进行协调。<br>特别的，要在一个cluster运行，SparkContext能够连接到几个类型的cluster managers（Spark自己的standalone cluster manager、Mesos或YARN），通过application来分配资源。一旦连接到，Spark要求集群中node上的executors进程来为你的application计算并存储数据。接下来，它发送你的应用程序代码（通过JAR或Python文件传递给SparkContext）给executors。最终，SparkContext发送tasks给executors来执行。</p>
+<p><img src="http://oaavtz33a.bkt.clouddn.com/217b79993ba1e6a7fa5adfeab2f8a430.png" alt="架构" title="架构"></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/26/spark-clusterModeOverview/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/07/25/spark-submittingApplications/" itemprop="url">
+                  Submitting Applications
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-25T14:22:23+08:00" content="2016-07-25">
+              2016-07-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对spark文档之Submitting Applications章节的翻译，原文档<a href="http://spark.apache.org/docs/latest/submitting-applications.html," title="Submitting Application">连接</a><br>在Spark的bin目录下的spark-submit脚本被用来发布应用程序到集群中。它能够使用所有被Spark支持的cluster managers的统一接口，因此你不需要为每个application进行配置。</p>
+<h2 id="Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖"><a href="#Bundling-Your-Application’s-Dependencies-绑定你的应用程序的依赖" class="headerlink" title="Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)"></a>Bundling Your Application’s Dependencies(绑定你的应用程序的依赖)</h2><p>如果你的代码依赖其他项目，你需要将它们打包到你的应用程序中，以便将它分发到集群。为了这样做，需要创建一个assembly jar（或）来包含你的代码和代码的依赖。sbt和Maven都有assembly插件。当创建assembly jar的时候，作为被提供的依赖列出Spark和Hadoop；这些不需要被捆绑，因为他们在运行时，cluster管理器会提供。一旦你有了一个assembly的jar包，你能够调用bin/spark-submit脚本在传递你的jar时进行解析。<br>对于Python，你可以使用spark-submit的–py-files参数来添加.py，.zip或.egg的文件，来发布你的application。如果你依赖多个Python文件，我们推荐将它们打包到.zip或.egg中。</p>
+<h2 id="Launching-Applications-with-spark-submit"><a href="#Launching-Applications-with-spark-submit" class="headerlink" title="Launching Applications with spark-submit"></a>Launching Applications with spark-submit</h2><p>一旦一个用户application被捆绑，那么这个application可以使用bin/spark-submit脚本来发布。这个脚本需要使用Spark和它的依赖来设置classpath，并支持不同的cluster manager和Spark支持的部署模式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">./bin/spark-submit \</div><div class="line">  --class &lt;main-class&gt;  --master &lt;master-url&gt; \</div><div class="line">  --deploy-mode &lt;deploy-mode&gt; \</div><div class="line">  --conf &lt;key&gt;=&lt;value&gt; \</div><div class="line">  ... <span class="comment">#other options  </span></div><div class="line">  &lt;application-jar&gt; \</div><div class="line">  [application-arguments]</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/25/spark-submittingApplications/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/07/25/spark-programmingGuide/" itemprop="url">
+                  Programming Guide
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-25T13:59:13+08:00" content="2016-07-25">
+              2016-07-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是对spark编程指南的翻译，主要用于自己对spark的理解，原文档<a href="http://spark.apache.org/docs/latest/programming-guide.html" title="Spark Programming Guide">链接</a></p>
+<h1 id="Linking-with-Spark"><a href="#Linking-with-Spark" class="headerlink" title="Linking with Spark"></a>Linking with Spark</h1><p>Spark 2.0.0默认使用Scala 2.11进行构建和部署。（Spark也可以使用其他版本的Scala进行构建）要使用Scala来编写application，你需要使用一个合适的Scala版本（如2.11.X）。<br>要编写一个Spark application，你需要在添加Spark的Maven依赖。Spark在Maven中可用的坐标为：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.spark</div><div class="line">artifactId = spark-core_2.11</div><div class="line">version = <span class="number">2.0</span>.0</div></pre></td></tr></table></figure></p>
+<p>另外，如果你想要访问一个HDFS集群，你需要添加与你的HDFS对应版本的hadoop-client依赖：<br><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">groupId = org.apache.hadoop</div><div class="line">artifactId = hadoop-client</div><div class="line">version = &lt;your-hdfs-version&gt;</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/25/spark-programmingGuide/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/blog/2016/07/25/spark-quickStart/" itemprop="url">
+                  Quick Start
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-07-25T10:52:04+08:00" content="2016-07-25">
+              2016-07-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/spark/" itemprop="url" rel="index">
+                    <span itemprop="name">spark</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>本文是Spark 快速开始的翻译文档，会随着自己的实现进行更新</p>
+<h2 id="Spark-shell的启动方式"><a href="#Spark-shell的启动方式" class="headerlink" title="Spark shell的启动方式"></a>Spark shell的启动方式</h2><p>spark提供了一种简单的方法来学习API，那就是Spark的shell。可以以Scala或python的方式来启动shell。<br>Scala的启动方式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/spark-shell</div></pre></td></tr></table></figure></p>
+<p>python的启动方式：<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">./bin/pyspark</div></pre></td></tr></table></figure></p>
+<p>spark的主要抽象是项目的分布式集合，被称为Resilient Distributed Database(RDD)。RDD能够根据Hadoop的输入格式（诸如HDFS文件）来创建，或者由其他RDD转换成为RDD。我们根据Spark源码中的README文件来创建一个新的RDD：<br><figure class="highlight scala"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">scala &gt; <span class="keyword">val</span> textFile = sc.textFile(<span class="string">"README.md"</span>)</div><div class="line">textFile:spark.<span class="type">RDD</span>[<span class="type">String</span>]= spark.<span class="type">MappedRDD</span>@<span class="number">2</span>ee9b6e3</div></pre></td></tr></table></figure></p>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/blog/2016/07/25/spark-quickStart/#more" rel="contents">
+              阅读全文 &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/blog/2016/07/17/jzmq/" itemprop="url">
                   CentOS install Jzmq
                 </a>
@@ -387,7 +849,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/blog/archives">
-              <span class="site-state-item-count">61</span>
+              <span class="site-state-item-count">65</span>
               <span class="site-state-item-name">日志</span>
             </a>
           </div>
@@ -395,7 +857,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/blog/categories">
-                <span class="site-state-item-count">22</span>
+                <span class="site-state-item-count">24</span>
                 <span class="site-state-item-name">分类</span>
               </a>
             </div>
@@ -404,7 +866,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/blog/tags">
-                <span class="site-state-item-count">27</span>
+                <span class="site-state-item-count">30</span>
                 <span class="site-state-item-name">标签</span>
               </a>
             </div>

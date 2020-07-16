@@ -1,0 +1,605 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="Spark CatalogSpark SQL提供了执行sql语句功能，sql语句是以表的方式组织、使用数据，那么表本身是如何组织存储的呢？肯定会有元数据之类的东西存在，Catalog就是Spark2.0之后提供的访问元数据的类。12
+Catalog提供了一些API，用来对数据库、表、视图、缓存、列、函数进行操作。
+Catalog相关的代码位于spark-sql包的org.apache.spark.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spark Catalog">
+<meta property="og:url" content="http://baimoon.github.io/2020/07/13/spark-catalog/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="Spark CatalogSpark SQL提供了执行sql语句功能，sql语句是以表的方式组织、使用数据，那么表本身是如何组织存储的呢？肯定会有元数据之类的东西存在，Catalog就是Spark2.0之后提供的访问元数据的类。12
+Catalog提供了一些API，用来对数据库、表、视图、缓存、列、函数进行操作。
+Catalog相关的代码位于spark-sql包的org.apache.spark.">
+<meta property="og:updated_time" content="2020-07-15T15:13:38.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Spark Catalog">
+<meta name="twitter:description" content="Spark CatalogSpark SQL提供了执行sql语句功能，sql语句是以表的方式组织、使用数据，那么表本身是如何组织存储的呢？肯定会有元数据之类的东西存在，Catalog就是Spark2.0之后提供的访问元数据的类。12
+Catalog提供了一些API，用来对数据库、表、视图、缓存、列、函数进行操作。
+Catalog相关的代码位于spark-sql包的org.apache.spark.">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2020/07/13/spark-catalog/"/>
+
+  <title> Spark Catalog | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Spark Catalog
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2020-07-13T23:07:04+08:00" content="2020-07-13">
+              2020-07-13
+            </time>
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Spark Catalog<br>Spark SQL提供了执行sql语句功能，sql语句是以表的方式组织、使用数据，那么表本身是如何组织存储的呢？肯定会有元数据之类的东西存在，Catalog就是Spark2.0之后提供的访问元数据的类。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>Catalog提供了一些API，用来对数据库、表、视图、缓存、列、函数进行操作。</p>
+<p>Catalog相关的代码位于spark-sql包的org.apache.spark.sql.catalog目录下，它定义的对象有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">class Database(</div><div class="line">	val name: String, </div><div class="line">	@Nullable val description: String, </div><div class="line">	val locationUri: String) extends DefinedByConstructorParams</div><div class="line"></div><div class="line">class Table(</div><div class="line">	val name: String, </div><div class="line">	@Nullable val database: String, </div><div class="line">	@Nullable val description: String, </div><div class="line">	val tableType: String, </div><div class="line">	val isTemporary: Boolean) extends DefinedByConstructorParams</div><div class="line"></div><div class="line">class Column(</div><div class="line">	val name: String,</div><div class="line">	@Nullable val description: String,</div><div class="line">	val dataType: String,</div><div class="line">	val nullable: Boolean,</div><div class="line">	val isPartition: Boolean,</div><div class="line">	val isBucket: Boolean) extends DefinedByConstructorParams</div><div class="line"></div><div class="line">class Function(</div><div class="line">	val name: String,</div><div class="line">	@Nullable val database: String,</div><div class="line">	@Nullable val description: String,</div><div class="line">	val className: String,</div><div class="line">	val isTemporary: Boolean) extends DefinedByConstructorParams</div></pre></td></tr></table></figure></p>
+<p>而对于Catalog本身，它定义了接口：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">def currentDatabase: String</div><div class="line">def setCurrentDatabase(dbName: String): Unit</div><div class="line">def listDatabases(): Dataset[Database]</div><div class="line">def listTables(): Dataset[Table]</div><div class="line">def listTables(dbName: String): Dataset[Table]</div><div class="line">def listFunctions(): Dataset[Function]</div><div class="line">def listFunctions(dbName: String): Dataset[Function]</div><div class="line">def listColumns(tableName: String): Dataset[Column]</div><div class="line">def listColumns(dbName: String, tableName: String): Dataset[Column]</div><div class="line">def getDatabase(dbName: String): Database</div><div class="line">def getTable(tableName: String): Table</div><div class="line">def getTable(dbName: String, tableName: String): Table</div><div class="line">def getFunction(functionName: String): Function</div><div class="line">def getFunction(dbName: String, functionName: String): Function</div><div class="line">def databaseExists(dbName: String): Boolean</div><div class="line">def tableExists(tableName: String): Boolean</div><div class="line">def tableExists(dbName: String, tableName: String): Boolean</div><div class="line">def functionExists(functionName: String): Boolean</div><div class="line">def functionExists(dbName: String, functionName: String): Boolean</div><div class="line">def createTable(tableName: String, path: String, source: String): DataFrame</div><div class="line">def createTable(tableName: String, source: String, options: Map[String, String]): DataFrame</div><div class="line">def createTable(tableName: String, source: String, schema: StructType, options: Map[String, String]): DataFrame</div><div class="line">def dropTempView(viewName: String): Boolean</div><div class="line">def dropGlobalTempView(viewName: String): Boolean</div><div class="line">def recoverPartitions(tableName: String): Unit</div><div class="line">def isCached(tableName: String): Boolean</div><div class="line">def cacheTable(tableName: String): Unit</div><div class="line">def uncacheTable(tableName: String): Unit</div><div class="line">def clearCache(): Unit</div><div class="line">def refreshTable(tableName: String): Unit</div><div class="line">def refreshByPath(path: String): Unit</div></pre></td></tr></table></figure></p>
+<p>在Spark中，Catalog只有一个实现类：CatalogImpl，而Catalog的实现依赖的是SessionCatalog（通过sparkSession.sessionState.catalog）。在SessionCatalog中定义了一些功能：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"># 数据库是否存在</div><div class="line">def databaseExists(db: String): Boolean = &#123;</div><div class="line">	val dbName = formatDatabaseName(db)</div><div class="line">	externalCatalog.databaseExists(dbName)</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>从上面方法的定义可以看出，SessionCatalog又依赖externalCatalog来实现的。SessionCatalog中的externalCatalog是在创建SessionCatalog的时候，通过参数传入的。对于ExternalCatalog，我们之后再讨论，这里只是先关注 CatalogImpl和SessionCatalog。</p>
+<p>除了SessionCatalog，在CatalogImp中还会用到 sparkSession.sessinState.sqlParser，用来解析Table、Function等对象的id，如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">sparkSession.sessionState.sqlParser.parseTableIdentifier</div><div class="line">sparkSession.sessionState.sqlParser.parseFunctionIdentifier</div></pre></td></tr></table></figure></p>
+<p>creatTable<br>CatalogImpl中对 createTable的实现：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">override def createTable(</div><div class="line">    tableName: String,</div><div class="line">    source: String,</div><div class="line">    schema: StructType,</div><div class="line">    options: Map[String, String]): DataFrame = &#123;</div><div class="line">  val tableIdent = sparkSession.sessionState.sqlParser.parseTableIdentifier(tableName)</div><div class="line">  val storage = DataSource.buildStorageFormatFromOptions(options)</div><div class="line">  val tableType = if (storage.locationUri.isDefined) &#123;</div><div class="line">    CatalogTableType.EXTERNAL</div><div class="line">  &#125; else &#123;</div><div class="line">    CatalogTableType.MANAGED</div><div class="line">  &#125;</div><div class="line">  val tableDesc = CatalogTable(</div><div class="line">    identifier = tableIdent,</div><div class="line">    tableType = tableType,</div><div class="line">    storage = storage,</div><div class="line">    schema = schema,</div><div class="line">    provider = Some(source)</div><div class="line">  )</div><div class="line">  val plan = CreateTable(tableDesc, SaveMode.ErrorIfExists, None)</div><div class="line">  sparkSession.sessionState.executePlan(plan).toRdd</div><div class="line">  sparkSession.table(tableIdent)</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2020/07/09/python-study/" rel="next" title="python_study">
+                <i class="fa fa-chevron-left"></i> python_study
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">65</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

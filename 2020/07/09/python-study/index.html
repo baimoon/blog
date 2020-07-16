@@ -1,0 +1,667 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next muse use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/blog/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/blog/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/blog/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="python," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/blog/favicon.ico?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="记录Python常用的组件
+redisredis模块用于Python连接redis数据库。redis提供了两个类Redis和StrictRedis用于实现Redis的命令。
+安装redis1pip install redis
+基本使用1234# 连接服务import redisclient = redis.Redis(host=&amp;apos;localhost&amp;apos;, port=6739, d">
+<meta property="og:type" content="article">
+<meta property="og:title" content="python_study">
+<meta property="og:url" content="http://baimoon.github.io/2020/07/09/python-study/index.html">
+<meta property="og:site_name" content="Baimoon's Note">
+<meta property="og:description" content="记录Python常用的组件
+redisredis模块用于Python连接redis数据库。redis提供了两个类Redis和StrictRedis用于实现Redis的命令。
+安装redis1pip install redis
+基本使用1234# 连接服务import redisclient = redis.Redis(host=&amp;apos;localhost&amp;apos;, port=6739, d">
+<meta property="og:updated_time" content="2020-07-12T14:19:35.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="python_study">
+<meta name="twitter:description" content="记录Python常用的组件
+redisredis模块用于Python连接redis数据库。redis提供了两个类Redis和StrictRedis用于实现Redis的命令。
+安装redis1pip install redis
+基本使用1234# 连接服务import redisclient = redis.Redis(host=&amp;apos;localhost&amp;apos;, port=6739, d">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Muse',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://baimoon.github.io/2020/07/09/python-study/"/>
+
+  <title> python_study | Baimoon's Note </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/blog/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Baimoon's Note</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/blog/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/blog/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/blog/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/blog/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                python_study
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2020-07-09T23:28:57+08:00" content="2020-07-09">
+              2020-07-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/blog/categories/python/" itemprop="url" rel="index">
+                    <span itemprop="name">python</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>记录Python常用的组件</p>
+<h1 id="redis"><a href="#redis" class="headerlink" title="redis"></a>redis</h1><p>redis模块用于Python连接redis数据库。redis提供了两个类Redis和StrictRedis用于实现Redis的命令。</p>
+<h2 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a>安装redis</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install redis</div></pre></td></tr></table></figure>
+<h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># 连接服务</div><div class="line">import redis</div><div class="line"></div><div class="line">client = redis.Redis(host=&apos;localhost&apos;, port=6739, decode_responses=True)</div></pre></td></tr></table></figure>
+<p>decode_responses=True，表示写入的键值对中的value为字符串类型，为False（默认值）表示写入字节类型。<br>除了直连方式，redis还提供了连接池功能，这样可以更优的使用连接：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">import redis</div><div class="line"></div><div class="line">clientPool = redis.ConnectionPool(host=&apos;host&apos;, port=6397, decode_responses=True)</div></pre></td></tr></table></figure></p>
+<h3 id="set命令"><a href="#set命令" class="headerlink" title="set命令"></a>set命令</h3><p>set命令的语法为：set(name, value, ex=None, px=None nx=False, xx=False)</p>
+<blockquote>
+<p>ex：过期时间-秒<br>nx：过期时间-毫秒<br>px：设置True时，只有name不存在时才执行<br>xx：设置True时，只有name存在时才执行</p>
+</blockquote>
+<p>其他命令 &gt;&gt; <a href="https://www.jianshu.com/p/2639549bedc8" target="_blank" rel="external">https://www.jianshu.com/p/2639549bedc8</a></p>
+<h1 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h1><p>MySQLdb是用于Pyton连接Mysql数据库的接口，它实现了Python数据库API规范V2.0，基于MySQL C API上建立的。</p>
+<h2 id="安装MySQLdb"><a href="#安装MySQLdb" class="headerlink" title="安装MySQLdb"></a>安装MySQLdb</h2><p>在通过如下脚本引入 MySQLdb 模块时<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: UTF-8 -*-</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> MySQLdb</div></pre></td></tr></table></figure></p>
+<p>如果发生如下报错：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">Traceback (most recent call last):</div><div class="line">  File <span class="string">"test.py"</span>, line <span class="number">3</span>, <span class="keyword">in</span> &lt;module&gt;</div><div class="line">    <span class="keyword">import</span> MySQLdb</div><div class="line">ImportError: No module named MySQLdb</div></pre></td></tr></table></figure></p>
+<p>则说明，当前python环境中没有安装 MySQLdb模块。</p>
+<p>安装MySQLdb可以参考“<a href="https://pypi.python.org/pypi/MySQL-python”，基本上执行" target="_blank" rel="external">https://pypi.python.org/pypi/MySQL-python”，基本上执行</a><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">pip install MySQL-python</div></pre></td></tr></table></figure></p>
+<p>命令就可以了。</p>
+<h2 id="基本使用-1"><a href="#基本使用-1" class="headerlink" title="基本使用"></a>基本使用</h2><p>MySQLdb的使用指南：<a href="https://mysqlclient.readthedocs.io/user_guide.html#mysqldb" target="_blank" rel="external">https://mysqlclient.readthedocs.io/user_guide.html#mysqldb</a><br>使用这个模块，首先就是导入：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: UTF-8 -*-</span></div><div class="line"></div><div class="line"><span class="keyword">import</span> MySQLdb</div></pre></td></tr></table></figure></p>
+<p>然后调用MySQLdb的connect方法与server建立连接：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"># 创建连接</div><div class="line">conn = MySQLdb.connect(&quot;host&quot;, &quot;userName&quot;, &quot;password&quot;, &quot;DB-name&quot;, port, charset=&apos;utf8&apos; )</div><div class="line"></div><div class="line"># 为了防止连接泄漏，不用的时候需要关闭</div><div class="line">conn.close()</div></pre></td></tr></table></figure></p>
+<p>建立连接后，就可以用来创建游标，并使用游标来进行各种操作：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"># 调用cursor方法获取游标</div><div class="line">cursor = conn.cursor()</div><div class="line"></div><div class="line"># 调用游标执行sql</div><div class="line">cursor.execute(&quot;sql...&quot;)</div><div class="line"></div><div class="line"># 对于查询sql的执行，通过游标获取数据</div><div class="line">row = cursor.fetchone()</div><div class="line">rows = cursor.fetchall()</div><div class="line">c = cursor.rowcount()</div><div class="line"></div><div class="line"># 对于执行写入的sql，需要连接提交</div><div class="line">conn.commit()</div><div class="line"></div><div class="line"># 如果写入失败，需要连接回滚</div><div class="line">conn.rollback()</div></pre></td></tr></table></figure></p>
+<h2 id="使用用例"><a href="#使用用例" class="headerlink" title="使用用例"></a>使用用例</h2><h1 id="Zookeeper"><a href="#Zookeeper" class="headerlink" title="Zookeeper"></a>Zookeeper</h1><p>Python中用于操作Zookeeper的模块是 kazoo。</p>
+<h2 id="安装kazoo"><a href="#安装kazoo" class="headerlink" title="安装kazoo"></a>安装kazoo</h2><h2 id="基本使用-2"><a href="#基本使用-2" class="headerlink" title="基本使用"></a>基本使用</h2><p>要想使用kazoo，需要先进行导入<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">from kazoo.client import KazooClient,KazooState</div></pre></td></tr></table></figure></p>
+<p>然后便可以创建Zookeeper客户端<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"># 创建客户端</div><div class="line">zk = KazooClient(host=&apos;127.0.12.1:2181,127.0.0.1:2181&apos;, timeout=10, logger=logging)</div><div class="line"># 启动后开始和server心跳</div><div class="line">zk.start()</div></pre></td></tr></table></figure></p>
+<p>timeout 是连接超时时间<br>logger 是用来进行日志输出的日志对象</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"># 获取节点数据和状态</div><div class="line">data, stat = zk.get(&apos;/myZnode&apos;)</div><div class="line"></div><div class="line"># 获取子节点</div><div class="line">children = zk.get_children(&quot;/&quot;)</div><div class="line"></div><div class="line"># 监听节点变化</div><div class="line">def zkEvent(event):</div><div class="line">  print type(event)</div><div class="line">  print event</div><div class="line"></div><div class="line">zk.exists(&quot;/zNode&quot;, zkEvent)</div></pre></td></tr></table></figure>
+<p>其他方法可以参考kazoo的文档</p>
+<h2 id="使用用例-1"><a href="#使用用例-1" class="headerlink" title="使用用例"></a>使用用例</h2><h1 id="logging"><a href="#logging" class="headerlink" title="logging"></a>logging</h1><p>loggine模块用来处理日志信息。</p>
+<h2 id="基本使用-3"><a href="#基本使用-3" class="headerlink" title="基本使用"></a>基本使用</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line">需要使用logging模块，首先要引入</div><div class="line">import loggine</div><div class="line"></div><div class="line"># 调用 logging的方法来记录不同级别的日志</div><div class="line">logging.warning(&quot;here is warning&quot;)</div><div class="line">logging.info(&quot;here is info&quot;)</div><div class="line"></div><div class="line"># 如果不设置，日志的数据级别默认为waring，如下设置日志的输出级别，以及日志格式</div><div class="line">logging.basicConfig(level=logging.DEBUG, format=&apos;%(asctime)s:%(name)s:%s(levelname)s:%(message)s&apos;)</div><div class="line"></div><div class="line"># 没有创建logger，默认是root logger，我们可以创建自己的logger</div><div class="line">logger = logging.getLogger(&quot;kafka&quot;)</div><div class="line">logger.setLevel(logging.DEBUG)</div><div class="line"># 日志信息是否向上传播</div><div class="line">logger.propagate = False</div><div class="line"># 添加Handler，用于处理日志的输出位置</div><div class="line">kafka_log_handler = logging.FileHandler(filename=&quot;myKafka.log&quot;)</div><div class="line"># 定义日志格式</div><div class="line">kafka_formatter = logging.Formatter(&apos;%(asctime)s:%(name)s:%s(levelname)s:%(message)s&apos;)</div><div class="line"># 将formatter赋值给handler，将handler赋值给 logger</div><div class="line">kafka_log_handler.setFormatter(kafka_formatter)</div><div class="line">logger.addHandler(kafka_log_handler)</div><div class="line"></div><div class="line"># 定义一个继承前面kafka的logger</div><div class="line">logger_c = logging.getLogger(&quot;kafka.child&quot;)</div><div class="line"># 这样logger_c的日志也会输出到 kafka的 logger中。</div></pre></td></tr></table></figure>
+<p>上面使用过实例化logging.logger，然后给logger添加所需的设置，除此之外，我们还可以通过<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">logging.config.dictConfig来从配置文件生成logger</div></pre></td></tr></table></figure></p>
+<p>配置文件定义如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line">PATTERN = &#123;</div><div class="line">    &apos;version&apos;: 1,</div><div class="line">    &apos;formatters&apos;: &#123;</div><div class="line">        &apos;normal&apos;: &#123;</div><div class="line">            &apos;format&apos;: &apos;%(name)s %(asctime)s %(levelname)s %(message)s&apos;,</div><div class="line">            &apos;datefmt&apos;: &apos;%Y-%m-%d %H:%M:%S&apos;</div><div class="line">        &#125;,</div><div class="line">        &apos;raw&apos;: &#123;</div><div class="line">            &apos;format&apos;: &apos;%(message)s&apos;,</div><div class="line">        &#125;,</div><div class="line">    &#125;,</div><div class="line">    &apos;handlers&apos;: &#123;</div><div class="line">        &apos;console&apos;: &#123;</div><div class="line">            &apos;class&apos;: &apos;logging.StreamHandler&apos;,</div><div class="line">            &apos;stream&apos;: &apos;ext://sys.stdout&apos;,</div><div class="line">            &apos;formatter&apos;: &apos;normal&apos;,</div><div class="line">        &#125;,</div><div class="line">        &apos;root&apos;: &#123;</div><div class="line">            &apos;class&apos;: &apos;logging.handlers.WatchedFileHandler&apos;,</div><div class="line">            &apos;formatter&apos;: &apos;normal&apos;,</div><div class="line">            &apos;filename&apos;: RUNTIME_HOME + &apos;/var/log/root.log&apos;,</div><div class="line">            &apos;mode&apos;: &apos;a&apos;,</div><div class="line">            &apos;level&apos;: &apos;INFO&apos;,</div><div class="line">        &#125;,</div><div class="line">        &apos;extapi&apos;: &#123;</div><div class="line">            &apos;class&apos;: &apos;logging.handlers.WatchedFileHandler&apos;,</div><div class="line">            &apos;formatter&apos;: &apos;normal&apos;,</div><div class="line">            &apos;filename&apos;: RUNTIME_HOME + &apos;/var/log/ext_api.log&apos;,</div><div class="line">            &apos;mode&apos;: &apos;a&apos;,</div><div class="line">            &apos;level&apos;: &apos;DEBUG&apos;,</div><div class="line">        &#125;,</div><div class="line">        &apos;api&apos;: &#123;</div><div class="line">            &apos;class&apos;: &apos;logging.handlers.WatchedFileHandler&apos;,</div><div class="line">            &apos;formatter&apos;: &apos;normal&apos;,</div><div class="line">            &apos;filename&apos;: RUNTIME_HOME + &apos;/var/log/api.log&apos;,</div><div class="line">            &apos;mode&apos;: &apos;a&apos;,</div><div class="line">            &apos;level&apos;: &apos;DEBUG&apos;,</div><div class="line">        &#125;,</div><div class="line">    &#125;,</div><div class="line">    &apos;loggers&apos;: &#123;</div><div class="line">        &apos;API&apos;: &#123;&apos;level&apos;: &apos;DEBUG&apos;,</div><div class="line">                &apos;handlers&apos;: [&apos;api&apos;],</div><div class="line">                &#125;,</div><div class="line">        &apos;EXTAPI&apos;: &#123;&apos;level&apos;: &apos;DEBUG&apos;,</div><div class="line">                   &apos;handlers&apos;: [&apos;extapi&apos;],</div><div class="line">                   &#125;,</div><div class="line">        &apos;requests.packages.urllib3.connectionpool&apos;: &#123;&apos;level&apos;: &apos;ERROR&apos;&#125;,</div><div class="line">    &#125;,</div><div class="line">    &apos;root&apos;: &#123;</div><div class="line">        &apos;handlers&apos;: [&apos;root&apos;,],</div><div class="line">        &apos;level&apos;: &apos;INFO&apos;,</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>然后使用配置文件初始化logging<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">logging.config.dictConfig(log_config.PATTERN)</div><div class="line"></div><div class="line"># 然后通过getLogger方法获取logger</div><div class="line">api_logger = logging.getLogger(&quot;API&quot;)</div></pre></td></tr></table></figure></p>
+<h2 id="Formatter的设置"><a href="#Formatter的设置" class="headerlink" title="Formatter的设置"></a>Formatter的设置</h2><blockquote>
+<p>%(levelno)s：打印日志的级别数值信息。<br>%(levelname)s：打印日志的级别名称。<br>%(pathname)s：打印当前执行程序的路径信息。<br>%(filenae)s：打印当前执行程序的名字。<br>%(funcName)s：打印当前的函数名。<br>%(lineno)d：打印日志的当前行号。<br>%(asctime)s：打印日志的时间。<br>%(thread)d：打印线程ID。<br>%(threadName)s：打印线程名称。<br>%(process)d：打印进程ID。<br>%(message)s：打印日志信息。</p>
+</blockquote>
+<h2 id="日志的滚动和日志保留个数"><a href="#日志的滚动和日志保留个数" class="headerlink" title="日志的滚动和日志保留个数"></a>日志的滚动和日志保留个数</h2><p>使用TimedRotatingFileHandler可以设置日志的滚动方式以及保留的日志文件个数。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">log_file_handler = TimedRotatingFileHandle(filename=&apos;roll_log&apos;, when=&apos;M&apos;, interval=2, backupCount=1)</div><div class="line"># filename是日志文件的名字， when是日志滚动的时间单位，interval是日志滚动的间隔，backupCount是日志文件保留的个数。</div></pre></td></tr></table></figure></p>
+<p>when的取值</p>
+<blockquote>
+<p>S：秒<br>M：分钟<br>H：小时<br>D：天<br>W：周<br>midnight：午夜。<br>如果选择D，不是以日期天来滚动的，是以启动日志时，24小时为一天算。</p>
+</blockquote>
+<p>参考文档：<a href="https://docs.python.org/2/library/logging.config.html#logging-config-dictschema" target="_blank" rel="external">https://docs.python.org/2/library/logging.config.html#logging-config-dictschema</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/blog/tags/python/" rel="tag">#python</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/blog/2020/07/06/spark/" rel="next" title="spark">
+                <i class="fa fa-chevron-left"></i> spark
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/blog/2020/07/13/spark-catalog/" rel="prev" title="Spark Catalog">
+                Spark Catalog <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/blog/uploads/avatar.png"
+               alt="baimoon" />
+          <p class="site-author-name" itemprop="name">baimoon</p>
+          <p class="site-description motion-element" itemprop="description">Baimoon's blog</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/blog/archives">
+              <span class="site-state-item-count">65</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/blog/categories">
+                <span class="site-state-item-count">24</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/blog/tags">
+                <span class="site-state-item-count">30</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/baimoon" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://gallery.xrange.org" title="xrange" target="_blank">xrange</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#redis"><span class="nav-number">1.</span> <span class="nav-text">redis</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装redis"><span class="nav-number">1.1.</span> <span class="nav-text">安装redis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用"><span class="nav-number">1.2.</span> <span class="nav-text">基本使用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#set命令"><span class="nav-number">1.2.1.</span> <span class="nav-text">set命令</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mysql"><span class="nav-number">2.</span> <span class="nav-text">mysql</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装MySQLdb"><span class="nav-number">2.1.</span> <span class="nav-text">安装MySQLdb</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用-1"><span class="nav-number">2.2.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用用例"><span class="nav-number">2.3.</span> <span class="nav-text">使用用例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Zookeeper"><span class="nav-number">3.</span> <span class="nav-text">Zookeeper</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#安装kazoo"><span class="nav-number">3.1.</span> <span class="nav-text">安装kazoo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用-2"><span class="nav-number">3.2.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用用例-1"><span class="nav-number">3.3.</span> <span class="nav-text">使用用例</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#logging"><span class="nav-number">4.</span> <span class="nav-text">logging</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#基本使用-3"><span class="nav-number">4.1.</span> <span class="nav-text">基本使用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Formatter的设置"><span class="nav-number">4.2.</span> <span class="nav-text">Formatter的设置</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#日志的滚动和日志保留个数"><span class="nav-number">4.3.</span> <span class="nav-text">日志的滚动和日志保留个数</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy;  2016-07 - 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">baimoon</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Muse
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/blog/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/blog/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/blog/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/blog/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/blog/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
